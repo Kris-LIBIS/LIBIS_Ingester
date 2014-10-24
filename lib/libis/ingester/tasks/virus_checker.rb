@@ -22,7 +22,7 @@ module LIBIS
           debug 'Scanning file for virusses'
 
           cmd_options = Config.virusscanner[:options]
-          result = LIBIS::Tools::Command.run Config.virusscanner[:command], *cmd_options, item.filepath
+          result = LIBIS::Tools::Command.run Config.virusscanner[:command], *cmd_options, item.fullpath
           raise WorkflowError, "Error during viruscheck: #{result[:err]}" unless result[:status]
 
           item.options[:virus_check] = true

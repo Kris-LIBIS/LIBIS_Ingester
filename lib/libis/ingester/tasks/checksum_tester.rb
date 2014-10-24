@@ -22,7 +22,7 @@ module LIBIS
       end
 
       def check_exists(item)
-        raise ::LIBIS::WorkflowError, "File '#{item.filepath}' does not exist." unless File.exists? item.filepath
+        raise ::LIBIS::WorkflowError, "File '#{item.fullpath}' does not exist." unless File.exists? item.fullpath
       end
 
       def check_checksum(item)
@@ -47,7 +47,7 @@ module LIBIS
               warn "File '#{item.name}' not found in checksum file ('#{checksumfile_path}'. Skipping check."
               return
             end
-            file_checksum = ::LIBIS::Tools::Checksum.hexdigest(item.filepath, checksum_type.to_sym)
+            file_checksum = ::LIBIS::Tools::Checksum.hexdigest(item.fullpath, checksum_type.to_sym)
             test_checksum(item, checksum_type) if item.checksum(checksum_type)
             item.set_checksum(checksum_type, file_checksum)
             # we try to match any line as there may be multiple lines containing the file name. We also check any field
@@ -70,7 +70,7 @@ module LIBIS
 
       def test_checksum(item, checksum_type, expected = nil)
         expected ||= item.checksum(checksum_type)
-        checksum = ::LIBIS::Tools::Checksum.hexdigest(item.filepath, checksum_type.to_sym)
+        checksum = ::LIBIS::Tools::Checksum.hexdigest(item.fullpath, checksum_type.to_sym)
         return if expected == checksum
         raise ::LIBIS::WorkflowError, "Calculated #{checksum_type} checksum does not match previously calculated checksum."
       end

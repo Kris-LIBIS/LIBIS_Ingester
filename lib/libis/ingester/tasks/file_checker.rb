@@ -21,7 +21,7 @@ module LIBIS
       end
 
       def check_exists(item)
-        raise ::LIBIS::WorkflowError, "File '#{item.filepath}' does not exist." unless File.exists? item.filepath
+        raise ::LIBIS::WorkflowError, "File '#{item.filepath}' does not exist." unless File.exists? item.fullpath
       end
 
       def check_file_name(item)

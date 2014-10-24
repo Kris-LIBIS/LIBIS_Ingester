@@ -102,7 +102,7 @@ module LIBIS
         # set file's original creation and modification dates
         ctime = object['algemeen']['datumcreatie']
         mtime = object['algemeen']['datumwijziging']
-        File.utime(ctime.to_time, mtime.to_time, file_item.properties[:filename]) rescue nil
+        File.utime(ctime.to_time, mtime.to_time, file_item.fullpath) rescue nil
 
         # create file's metadata record
         file_item.properties[:rmt_info] = object
@@ -128,7 +128,7 @@ module LIBIS
         file_item.metadata.data = dc_record.root.to_xml
         file_item.metadata.format = 'DC'
 
-        debug "File added: #{file_item.filepath}."
+        debug "File added: #{file_item.namepath}."
 
         file_item.save!
         file_item
