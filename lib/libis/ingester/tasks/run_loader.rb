@@ -9,9 +9,9 @@ require 'date'
 module LIBIS
   module Ingester
 
-    class DavSipCollector < ::LIBIS::Workflow::Task
-      parameter location: nil,
-                description: 'Dir location to scan for RMT files.'
+    class RunLoader < ::LIBIS::Workflow::Task
+      parameter run_id: nil,
+                description: 'Id of the run that should be loaded'
 
       def process(item)
         check_item_type ::LIBIS::Ingester::Run, item
@@ -60,7 +60,7 @@ module LIBIS
         dossier.properties[:rmt_info] = info
 
         base_dir = dir
-        object_list = objects['informationObject'] rescue nil
+        object_list = objects['informationObject']
         case object_list
           when Array
             object_list.each { |object| create_file_object(base_dir, dossier, object) }
@@ -108,18 +108,21 @@ module LIBIS
         file_item.properties[:rmt_info] = object
         file_item.metadata = ::LIBIS::Ingester::MetadataRecord.new
         dc_record = LIBIS::Tools::DCRecord.new do |xml|
-          xml[:dc].title filename
+          xml['dc'].title = filename
           if object['beschrijvendeMetadata']
             if object['beschrijvendeMetadata']['auteurs'] && !object['beschrijvendeMetadata']['auteurs'].empty?
               # noinspection RubyResolve
-              xml[:dc].contributor object['beschrijvendeMetadata']['auteurs']
+              xml['dc'].contributor = object['beschrijvendeMetadata']['auteurs']
             end
             if object['beschrijvendeMetadata']['titel'] && !object['beschrijvendeMetadata']['titel'].empty?
-              xml[:dc].description object['beschrijvendeMetadata']['titel']
+              xml['dc'].description = object['beschrijvendeMetadata']['titel']
             end
             if object['beschrijvendeMetadata']['onderwerp'] && !object['beschrijvendeMetadata']['onderwerp'].empty?
-              xml[:dc].subject object['beschrijvendeMetadata']['onderwerp']
+              xml['dc'].subject = object['beschrijvendeMetadata']['onderwerp']
             end
+          end
+          if dossier.properties[:disposition]
+            xml['dc'].date = Date.new(dossier.properties[:disposition], 2, 1).rfc3339
           end
        end
         file_item.metadata.data = dc_record.root.to_xml

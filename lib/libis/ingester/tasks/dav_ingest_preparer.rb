@@ -5,6 +5,7 @@ require 'LIBIS_Tools'
 require 'LIBIS_Ingester'
 
 require 'fileutils'
+require 'pathname'
 
 module LIBIS
   module Ingester
@@ -15,7 +16,21 @@ module LIBIS
       parameter ingest_type: 'METS',
                 description: 'Collect directories into METS structure or Collections',
                 constraint: %w[Collection METS]
-
+      parameter ie_entity_type: 'DAV_DOSSIER',
+                description: 'Entity type of the IE.'
+      parameter file_entity_type: 'DAV_FILE',
+                description: 'Entity type of the files.'
+      parameter user_a: nil,
+                description: 'IE User defined value A.'
+      parameter user_b: nil,
+                description: 'IE User defined value B.'
+      parameter user_c: nil,
+                description: 'IE User defined value C.'
+      parameter status: 'ACTIVE',
+                description: 'IE status value.'
+      parameter access_right: 'AR_EVERYONE',
+                constraint: %w[AR_EVERYONE 361545 361546 361547],
+                description: 'IE Access Right MID.'
 
       def process(item)
         check_item_type ::LIBIS::Ingester::Run, item
@@ -24,9 +39,10 @@ module LIBIS
 
         raise RuntimeError, 'No location given.' unless @dirname
 
-        @dirname = File.join(dirname, item.name)
+        @dirname = File.join(@dirname, item.name)
 
-        debug "Preparing ingest in #{@dirname}."
+        debug "Preparing ingest in #{@dirname}.", item
+        FileUtils.rmtree @dirname
 
         item.items.map { |i| process_dossier(i) }
 
@@ -34,20 +50,40 @@ module LIBIS
 
       def process_dossier(item)
 
-        check_item_type LIBIS::Ingester::DavDossier
+        check_item_type LIBIS::Ingester::DavDossier, item
+
+        # @dossier_dir = @dirname
+        # Enable below to create one ingest per dossier
+        @dossier_dir = File.join(@dirname, item.filename)
+        FileUtils.mkdir_p File.join(@dossier_dir, 'content', 'streams')
+        item.properties[:ingest_sub_dir] = Pathname.new(@dossier_dir).relative_path_from(options[:ingest_dir]).to_s
+        item.save
 
         @mets = LIBIS::Tools::MetsFile.new
 
+        # noinspection RubyResolve
         dc_record = LIBIS::Tools::DCRecord.new do |xml|
-          xml[:dc].title = item.name
+          xml[:dc].title item.name
+          xml[:dc].identifier item.properties[:rmt_info][:folder][:referenceCode]
         end
-        dc_record.add('dc:identifier', item.properties[:rmt_info][:folder][:referenceCode]) rescue nil
-        dc_record.add('dc:date', DateTime.parse(item.properties[:rmt_info][:transfer][:transferredOn])) rescue nil
+        if item.properties[:disposition]
+          dc_record.add 'dc:date', Date.new(item.properties[:disposition], 2, 1).rfc3339
+        end
 
         @mets.dc_record = dc_record.root.to_xml
 
+        @mets.amd_info = {
+            entity_type: options[:ie_entity_type],
+            user_a: options[:user_a],
+            user_b: options[:user_b],
+            user_c: options[:user_c],
+            status: options[:status],
+            access_right: options[:access_right],
+            retention_id: (item.properties[:disposition] ? '361540' : 'NO_RETENTION'),
+        }
+
         rep = @mets.representation(
-            label: item.name,
+            label: 'Archiefkopie',
             preservation_type: 'PRESERVATION_MASTER',
             usage_type: 'VIEW',
         )
@@ -56,6 +92,12 @@ module LIBIS
         @mets.map(rep, div)
 
         process_children(item, rep, div)
+
+        mets_filename = File.join(@dossier_dir, 'content', "#{item.filename}.xml")
+        @mets.xml_doc.save mets_filename
+
+        debug "Created METS file '#{mets_filename}'.", item
+
       end
 
       def process_children(item, rep, div)
@@ -77,22 +119,22 @@ module LIBIS
       def process_file(item)
 
         # copy file to stream
-        relative_path = item.namepath
-        target_path = File.join('streams', relative_path)
-        target_dir = File.join(@dirname, subdir)
-        FileUtils.mkdir_p(target_dir)
-        FileUtils.copy_entry(item.properties[:filename], File.join(target_dir, item.filename))
+        relative_path = item.filepath
 
         file = @mets.file(
             label: item.name,
-            mimetype: item.properties[:mimetype],
             location: relative_path,
-            size: item.properties[:size],
-            fixity_type: 'MD5',
-            fixity_value: item.checksum('MD5'),
+            entity_type: options[:file_entity_type],
         )
 
-        file.dc_record = item.metadata.data if file.metadata && file.metadata.format == 'DC'
+        target_path = File.join(@dossier_dir, 'content', 'streams', file.target_location)
+        FileUtils.copy_entry(item.fullpath, target_path)
+        debug "Copied file to #{target_path}.", item
+
+        if item.metadata && item.metadata.format == 'DC'
+          dc = LIBIS::Tools::DCRecord.parse item.metadata.data
+          file.dc_record = dc.root.to_xml
+        end
 
         file
       end
