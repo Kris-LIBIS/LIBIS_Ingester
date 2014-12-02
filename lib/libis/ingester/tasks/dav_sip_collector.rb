@@ -1,10 +1,15 @@
 # encoding: utf-8
 
+require 'date'
+
 require 'LIBIS_Workflow'
 require 'LIBIS_Tools'
-require 'LIBIS_Ingester'
 
-require 'date'
+require 'libis/ingester/run'
+require 'libis/ingester/dav_dossier'
+require 'libis/ingester/file_item'
+require 'libis/ingester/dir_item'
+require 'libis/ingester/metadata_record'
 
 module LIBIS
   module Ingester
@@ -106,7 +111,7 @@ module LIBIS
 
         # create file's metadata record
         file_item.properties[:rmt_info] = object
-        file_item.metadata = ::LIBIS::Ingester::MetadataRecord.new
+        file_item.metadata = LIBIS::Ingester::MetadataRecord.new
         dc_record = LIBIS::Tools::DCRecord.new do |xml|
           xml[:dc].title filename
           if object['beschrijvendeMetadata']

@@ -30,6 +30,8 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'coveralls'
 
   spec.add_runtime_dependency 'LIBIS_Tools', '0.0.1'
+  spec.add_runtime_dependency 'LIBIS_Services', '0.0.1'
+  spec.add_runtime_dependency 'LIBIS_Format', '0.0.1'
   spec.add_runtime_dependency 'LIBIS_Workflow_Mongoid', '2.0.beta.3'
   spec.add_runtime_dependency 'rubyzip', '>= 1.0.0'
 

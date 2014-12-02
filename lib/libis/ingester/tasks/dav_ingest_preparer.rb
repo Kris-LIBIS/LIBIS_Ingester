@@ -1,11 +1,15 @@
 # encoding: utf-8
 
-require 'LIBIS_Workflow'
-require 'LIBIS_Tools'
-require 'LIBIS_Ingester'
-
 require 'fileutils'
 require 'pathname'
+
+require 'LIBIS_Workflow'
+require 'LIBIS_Tools'
+
+require 'libis/ingester/run'
+require 'libis/ingester/dav_dossier'
+require 'libis/ingester/file_item'
+require 'libis/ingester/dir_item'
 
 module LIBIS
   module Ingester
@@ -56,7 +60,7 @@ module LIBIS
         # Enable below to create one ingest per dossier
         @dossier_dir = File.join(@dirname, item.filename)
         FileUtils.mkdir_p File.join(@dossier_dir, 'content', 'streams')
-        item.properties[:ingest_sub_dir] = Pathname.new(@dossier_dir).relative_path_from(options[:ingest_dir]).to_s
+        item.properties[:ingest_sub_dir] = Pathname.new(@dossier_dir).relative_path_from(Pathname.new(options[:ingest_dir])).to_s
         item.save
 
         @mets = LIBIS::Tools::MetsFile.new
@@ -124,10 +128,13 @@ module LIBIS
         file = @mets.file(
             label: item.name,
             location: relative_path,
+            target_location: item.filelist[1..-1].join('/'),
             entity_type: options[:file_entity_type],
         )
 
-        target_path = File.join(@dossier_dir, 'content', 'streams', file.target_location)
+        target_path = File.join(@dossier_dir, 'content', 'streams', file.target)
+        target_list = target_path.split('/')[0...-1]
+        FileUtils.mkpath(target_list.join('/'))
         FileUtils.copy_entry(item.fullpath, target_path)
         debug "Copied file to #{target_path}.", item
 

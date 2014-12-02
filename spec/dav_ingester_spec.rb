@@ -12,12 +12,13 @@ require 'libis/ingester'
 SIPDIR = File.absolute_path(File.join(File.dirname(__FILE__), '..', 'data', 'SIP'))
 
 def get_flow
-  @dav_mets = LIBIS::Ingester::Flow.find_by(name: 'DAVIngestMETS')
+  @dav_mets = LIBIS::Ingester::Flow.find_by(name: 'DAVIngestMETS2')
 end
 
 def setup_flow
   # LIBIS::Ingester::Flow.each { |wf| wf.destroy }
-
+  get_flow
+  return unless @dav_mets.nil?
   @dav_mets = LIBIS::Ingester::Flow.new
   @dav_mets.configure(
       name: 'DAVIngestMETS2',
@@ -88,12 +89,12 @@ describe 'DAV Ingester' do
       cfg.database_connect 'mongoid.yml', :test
     end
 
-    get_flow
+    setup_flow
 
   end
 
   # it 'should collect all files in collection groups' do
-  #   puts @lqogoutput.string
+  #   puts @logoutput.string
   #   run = @dav_mets.run(collection_type: 'METS')
   #   expect(run.items.count).to be 2
   #   check_data(run, DAV_FILES + [run.name])
@@ -116,27 +117,53 @@ describe 'DAV Ingester' do
   #   list_data(run)
   # end
 
-  it 'should read all files in poc2' do
-    puts @logoutput.string
-    run = @dav_mets.run(
-        folder: '/nas/vol04/upload/flandrica/DAV/poc2',
-        ingest_type: 'METS', access_right: '361546',
-        login_name: 'dav_poc2', login_pass: 'Z3Et5mZ7', login_inst: 'ROSETTA_DAVPOC2',
-        flow_id: '91018905', producer_id: '91019864'
-    )
-    list_data(run)
-  end
-
   # it 'should read all files in poc2' do
   #   puts @logoutput.string
-  #   run = @dav_mets.run(folder: '/nas/vol04/upload/flandrica/DAV/poc3', ingest_type: 'METS', access_right: '361547')
+  #   run = @dav_mets.run(
+  #       folder: '/nas/vol04/upload/flandrica/DAV/poc2',
+  #       ingest_type: 'METS', access_right: '361546',
+  #       login_name: 'dav_poc2', login_pass: 'Z3Et5mZ7', login_inst: 'ROSETTA_DAVPOC2',
+  #       flow_id: '91018905', producer_id: '91019864'
+  #   )
   #   list_data(run)
+  # end
+
+  # it 'should resubmit poc2' do
+  #   run = LIBIS::Ingester::Run.find_by(created_at: DateTime.parse('2014-11-03T15:10:10.121+01:00'))
+  #   run.restart 'Ingest'
+  # end
+
+  # it 'should read all files in poc3' do
+  #   puts @logoutput.string
+  #   run = @dav_mets.run(
+  #       folder: '/nas/vol04/upload/flandrica/DAV/poc3',
+  #       ingest_type: 'METS', access_right: '361547',
+  #       login_name: 'dav_poc3', login_pass: 'W5wbXeF7', login_inst: 'ROSETTA_DAVPOC3',
+  #       flow_id: '88375579', producer_id: '100531736'
+  #   )
+  #   list_data(run)
+  # end
+
+  # it 'should restart last run' do
+  #   run = LIBIS::Ingester::Run.last
+  #   run.restart 'Ingest'
   # end
 
   # it 'should restart poc1' do
   #   run = LIBIS::Ingester::Run.last
   #   run.restart 'PreIngest'
   # end
+
+  it 'should create a sub-dir' do
+    puts @logoutput.string
+    run = @dav_mets.run(
+        folder: '/nas/vol04/upload/flandrica/DAV/poc3/000003',
+        ingest_type: 'METS', access_right: '361547',
+        login_name: 'dav_poc3', login_pass: 'W5wbXeF7', login_inst: 'ROSETTA_DAVPOC3',
+        flow_id: '88375579', producer_id: '100531736'
+    )
+    # list_data(run)
+  end
 
 end
 
