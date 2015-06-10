@@ -1,15 +1,15 @@
 # encoding: utf-8
 
-require 'LIBIS_Workflow'
+require 'libis/workflow'
 require 'libis/ingester/run'
 require 'libis/ingester/file_item'
 require 'libis/ingester/collection'
 require 'libis/ingester/mets_division'
 
-module LIBIS
+module Libis
   module Ingester
 
-    class DirCollector < ::LIBIS::Workflow::Task
+    class DirCollector < ::Libis::Workflow::Task
 
       parameter location: '.',
                 description: 'Dir location to scan for files.'
@@ -28,9 +28,9 @@ module LIBIS
                 description: 'Label of file object in a group (ruby expression). Can refer to regexp groups from "selection". Regular label if nil.'
 
       def process(item)
-        if item.is_a? ::LIBIS::Ingester::Run
+        if item.is_a? ::Libis::Ingester::Run
           collect(item, options[:location])
-        elsif item.is_a? LIBIS::Workflow::DirItem
+        elsif item.is_a? Libis::Workflow::DirItem
           collect(item, item.filepath)
         end
       end
@@ -55,27 +55,27 @@ module LIBIS
             when 'recursive'
               collect(item, file)
             when 'collection'
-              child = LIBIS::Ingester::Collection.new
-              child.extend LIBIS::Workflow::DirItem
+              child = Libis::Ingester::Collection.new
+              child.extend Libis::Workflow::DirItem
               child.filename = file
               collect(child, file)
             when 'mets', 'complex'
-              child = LIBIS::Ingester::MetsDivision.new
-              child.extend LIBIS::Workflow::DirItem
+              child = Libis::Ingester::MetsDivision.new
+              child.extend Libis::Workflow::DirItem
               child.filename = file
               collect(child, file)
             else
               info "Ignoring subdir #{file}."
           end
         elsif File.file?(file)
-          child = LIBIS::Ingester::FileItem.new
+          child = Libis::Ingester::FileItem.new
           child.filename = file
           grouping = options[:group_match]
           if grouping && file =~ Regexp.new(grouping)
             group_label = eval(options[:group_label] || '$1')
             group = item.items.select { |i| i.name == group_label }.first
             unless group
-              group = LIBIS::Ingester::MetsDivision.new
+              group = Libis::Ingester::MetsDivision.new
               group.name = group_label
               item << group
             end

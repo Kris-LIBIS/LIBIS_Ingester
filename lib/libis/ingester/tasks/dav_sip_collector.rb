@@ -2,8 +2,8 @@
 
 require 'date'
 
-require 'LIBIS_Workflow'
-require 'LIBIS_Tools'
+require 'libis/tools'
+require 'libis/workflow'
 
 require 'libis/ingester/run'
 require 'libis/ingester/dav_dossier'
@@ -11,15 +11,15 @@ require 'libis/ingester/file_item'
 require 'libis/ingester/dir_item'
 require 'libis/ingester/metadata_record'
 
-module LIBIS
+module Libis
   module Ingester
 
-    class DavSipCollector < ::LIBIS::Workflow::Task
+    class DavSipCollector < ::Libis::Workflow::Task
       parameter location: nil,
                 description: 'Dir location to scan for RMT files.'
 
       def process(item)
-        check_item_type ::LIBIS::Ingester::Run, item
+        check_item_type ::Libis::Ingester::Run, item
 
         dirname = options[:location]
 
@@ -46,16 +46,16 @@ module LIBIS
       end
 
       def process_rmt(dir, file, ingest_run)
-        dossier = LIBIS::Ingester::DavDossier.new
+        dossier = Libis::Ingester::DavDossier.new
         dossier.filename = dir
         ingest_run << dossier
 
-        info = LIBIS::Tools::XmlDocument.open(File.join(dir,file)).to_hash['RMT_metadata']
+        info = Libis::Tools::XmlDocument.open(File.join(dir,file)).to_hash['RMT_metadata']
         dossier.name = info['folder']['name'].to_s
 
         debug "Dossier found: #{file.gsub(options[:location],'')} - #{dossier.name}"
 
-        file_item = LIBIS::Ingester::FileItem.new
+        file_item = Libis::Ingester::FileItem.new
         file_item.filename = File.join(dir, file)
         dossier << file_item
 
@@ -96,7 +96,7 @@ module LIBIS
         filename = object['algemeen']['documentnaam']
         relative_path = File.join(*rel_dirs, filename)
         full_path = File.join(base_dir, relative_path)
-        file_item = LIBIS::Ingester::FileItem.new
+        file_item = Libis::Ingester::FileItem.new
         file_item.filename = full_path
         checksum = object['technischeMetadata']['checksum']
         checksum_type = checksum.attributes['algorithm'].gsub('-', '')
@@ -111,8 +111,8 @@ module LIBIS
 
         # create file's metadata record
         file_item.properties[:rmt_info] = object
-        file_item.metadata = LIBIS::Ingester::MetadataRecord.new
-        dc_record = LIBIS::Tools::DCRecord.new do |xml|
+        file_item.metadata = Libis::Ingester::MetadataRecord.new
+        dc_record = Libis::Tools::DCRecord.new do |xml|
           xml[:dc].title filename
           if object['beschrijvendeMetadata']
             if object['beschrijvendeMetadata']['auteurs'] && !object['beschrijvendeMetadata']['auteurs'].empty?
@@ -137,7 +137,7 @@ module LIBIS
       end
 
       def create_dir_item(name, parent)
-        dir_item = LIBIS::Ingester::DirItem.new
+        dir_item = Libis::Ingester::DirItem.new
         dir_item.filename = name
         parent << dir_item
         dir_item.save!

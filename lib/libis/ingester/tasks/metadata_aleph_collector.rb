@@ -20,7 +20,7 @@ module LIBIS
                 description: 'Ruby expression that builds the search term to be used in the metadata lookup. Available data are: \n' +
                     'filename: file name of the object, \n' +
                     'filepath: file path of the object, \n' +
-                    'name: name of the object. \n'
+                    'name: name of the object.'
 
 
       def process(item)

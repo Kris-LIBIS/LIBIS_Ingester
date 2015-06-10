@@ -6,14 +6,14 @@ require 'libis/ingester/item'
 module LIBIS
   module Ingester
 
-    class IngestBuilder < LIBIS::Workflow::Task
+    class IngestBuilder < Libis::Workflow::Task
 
       def process(item)
 
         case item
-          when LIBIS::Ingester::Run
+          when Libis::Ingester::Run
             item.items.each { |i| process(i) }
-          when LIBIS::Ingester::Item
+          when Libis::Ingester::Item
             if item.properties[:ingest_type]
               create_ingest(item)
             else

@@ -1,7 +1,7 @@
 # encoding: utf-8
 require 'rspec'
 require 'stringio'
-require 'LIBIS_Workflow_Mongoid'
+require 'libis-workflow-mongoid'
 
 require_relative 'spec_helper'
 
@@ -22,7 +22,7 @@ describe 'Ingester' do
 
     @logoutput = StringIO.new
 
-    ::LIBIS::Ingester.configure do |cfg|
+    ::Libis::Ingester.configure do |cfg|
       cfg.workdir = File.join(File.dirname(__FILE__), 'work')
       cfg.logger = Logger.new @logoutput
       cfg.set_formatter
@@ -30,15 +30,15 @@ describe 'Ingester' do
       cfg.database_connect 'mongoid.yml', :test
     end
 
-    LIBIS::Ingester::Flow.each { |wf| wf.destroy }
+    Libis::Ingester::Flow.each { |wf| wf.destroy }
 
-    @simple_wf = LIBIS::Ingester::Flow.new
+    @simple_wf = Libis::Ingester::Flow.new
     @simple_wf.configure(
         name: 'SimpleTestIngest',
         description: 'Simple ingest flow for testing',
         tasks: [
             {
-                class: 'LIBIS::Ingester::DirCollector',
+                class: 'Libis::Ingester::DirCollector',
                 location: DATADIR,
             },
         ],
@@ -51,17 +51,17 @@ describe 'Ingester' do
     )
     @simple_wf.save
 
-    @workflow = LIBIS::Ingester::Flow.new
+    @workflow = Libis::Ingester::Flow.new
     @workflow.configure(
         name: 'TestIngest',
         description: 'Ingest flow for testing',
         tasks: [
-            {class: 'LIBIS::Ingester::DirCollector', location: DIRNAME},
+            {class: 'Libis::Ingester::DirCollector', location: DIRNAME},
             {name: 'Check', subitems: true, recursive: true, tasks: [
-                {name: 'FilenameCheck', class: 'LIBIS::Ingester::FileChecker'},
-                {name: 'MimetypeCheck', class: 'LIBIS::Ingester::FileChecker'},
-                {name: 'ChecksumCheck', class: 'LIBIS::Ingester::ChecksumTester'},
-                {class: 'LIBIS::Ingester::VirusChecker'},
+                {name: 'FilenameCheck', class: 'Libis::Ingester::FileChecker'},
+                {name: 'MimetypeCheck', class: 'Libis::Ingester::FileChecker'},
+                {name: 'ChecksumCheck', class: 'Libis::Ingester::ChecksumTester'},
+                {class: 'Libis::Ingester::VirusChecker'},
             ]
             },
         ],

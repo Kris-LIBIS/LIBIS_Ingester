@@ -12,20 +12,20 @@ require 'libis/ingester'
 SIPDIR = File.absolute_path(File.join(File.dirname(__FILE__), '..', 'data', 'SIP'))
 
 def get_flow
-  @dav_mets = LIBIS::Ingester::Flow.find_by(name: 'DAVIngestMETS2')
+  @dav_mets = Libis::Ingester::Flow.find_by(name: 'DAVIngestMETS2')
 end
 
 def setup_flow
-  # LIBIS::Ingester::Flow.each { |wf| wf.destroy }
+  # Libis::Ingester::Flow.each { |wf| wf.destroy }
   get_flow
   return unless @dav_mets.nil?
-  @dav_mets = LIBIS::Ingester::Flow.new
+  @dav_mets = Libis::Ingester::Flow.new
   @dav_mets.configure(
       name: 'DAVIngestMETS2',
       description: 'DAV Ingest into METS structure.',
       tasks: [
           {
-              class: 'LIBIS::Ingester::DavSipCollector',
+              class: 'Libis::Ingester::DavSipCollector',
           },
           {
               name: 'PreProcess',
@@ -33,10 +33,10 @@ def setup_flow
               recursive: true,
               tasks: [
                   {
-                      class: 'LIBIS::Ingester::ChecksumTester',
+                      class: 'Libis::Ingester::ChecksumTester',
                   },
                   {
-                      class: 'LIBIS::Ingester::FormatIdentifier',
+                      class: 'Libis::Ingester::FormatIdentifier',
                   },
               ]
           },
@@ -44,7 +44,7 @@ def setup_flow
               name: 'PreIngest',
               tasks: [
                   {
-                      class: 'LIBIS::Ingester::DavIngestPreparer',
+                      class: 'Libis::Ingester::DavIngestPreparer',
                   }
               ]
           },
@@ -52,7 +52,7 @@ def setup_flow
               name: 'Ingest',
               tasks: [
                   {
-                      class: 'LIBIS::Ingester::Submitter',
+                      class: 'Libis::Ingester::Submitter',
                   }
               ]
           },
@@ -81,7 +81,7 @@ describe 'DAV Ingester' do
 
     @logoutput = StringIO.new
 
-    ::LIBIS::Ingester.configure do |cfg|
+    ::Libis::Ingester.configure do |cfg|
       cfg.workdir = File.join(File.dirname(__FILE__), 'work')
       #cfg.logger = Logger.new @logoutput
       cfg.set_formatter
@@ -129,7 +129,7 @@ describe 'DAV Ingester' do
   # end
 
   # it 'should resubmit poc2' do
-  #   run = LIBIS::Ingester::Run.find_by(created_at: DateTime.parse('2014-11-03T15:10:10.121+01:00'))
+  #   run = Libis::Ingester::Run.find_by(created_at: DateTime.parse('2014-11-03T15:10:10.121+01:00'))
   #   run.restart 'Ingest'
   # end
 
@@ -145,12 +145,12 @@ describe 'DAV Ingester' do
   # end
 
   # it 'should restart last run' do
-  #   run = LIBIS::Ingester::Run.last
+  #   run = Libis::Ingester::Run.last
   #   run.restart 'Ingest'
   # end
 
   # it 'should restart poc1' do
-  #   run = LIBIS::Ingester::Run.last
+  #   run = Libis::Ingester::Run.last
   #   run.restart 'PreIngest'
   # end
 

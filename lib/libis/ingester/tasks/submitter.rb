@@ -10,7 +10,7 @@ require 'fileutils'
 module LIBIS
   module Ingester
 
-    class Submitter < ::LIBIS::Workflow::Task
+    class Submitter < ::Libis::Workflow::Task
       parameter login_name: nil,
                 description: 'Deposit user login name.'
       parameter login_pass: nil,
@@ -23,7 +23,7 @@ module LIBIS
                 description: 'Id of the producer to use.'
 
       def process(item)
-        check_item_type ::LIBIS::Ingester::Run, item
+        check_item_type ::Libis::Ingester::Run, item
 
         check_ingestable(item)
 
@@ -37,16 +37,16 @@ module LIBIS
 
       def submit_item(item)
         debug "Found ingestable item. Subdir: #{item.properties[:ingest_sub_dir]}", item
-        rosetta = LIBIS::Services::Rosetta.new
+        rosetta = Libis::Services::Rosetta.new
         handle = rosetta.login(options[:login_name], options[:login_pass], options[:login_inst])
-        raise LIBIS::WorkflowAbort, 'Could not log in into Rosetta.' if handle.nil?
+        raise Libis::WorkflowAbort, 'Could not log in into Rosetta.' if handle.nil?
 
         deposit_result = rosetta.deposit_service.submit(
             options[:flow_id],
             item.properties[:ingest_sub_dir],
             options[:producer_id]
         )
-        raise LIBIS::WorkflowError, "SIP deposit failed: #{deposit_result[:error]}" if deposit_result[:error]
+        raise Libis::WorkflowError, "SIP deposit failed: #{deposit_result[:error]}" if deposit_result[:error]
 
         item.properties[:ingest_sip] = deposit_result['sip_id']
         item.properties[:ingest_dip] = deposit_result['deposit_activity_id']

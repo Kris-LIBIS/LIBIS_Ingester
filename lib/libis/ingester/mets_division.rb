@@ -1,10 +1,10 @@
 # encoding: utf-8
 require_relative 'item'
 
-module LIBIS
+module Libis
   module Ingester
 
-    class MetsDivision < LIBIS::Ingester::Item
+    class MetsDivision < Libis::Ingester::Item
 
       def filename=(f)
         self.properties[:name] = File.basename(f)

@@ -1,15 +1,14 @@
 # encoding: utf-8
 
-require 'LIBIS_Workflow'
+require 'libis/workflow'
 
-require_relative 'item'
-module LIBIS
+require_relative 'intellectual_entity'
+
+module Libis
   module Ingester
 
-    class DavDossier < LIBIS::Ingester::Item
-      include ::LIBIS::Workflow::DirItem
-
-      field :ingest_type, type: String, default: 'METS'
+    class DavDossier < Libis::Ingester::IntellectualEntity
+      include ::Libis::Ingester::DirItem
 
       def filepath
         ''

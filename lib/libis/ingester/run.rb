@@ -2,15 +2,17 @@
 
 require 'LIBIS_Workflow_Mongoid'
 
-module LIBIS
+module Libis
   module Ingester
 
     class Run
-      include ::LIBIS::Workflow::Mongoid::Run
+      include ::Libis::Workflow::Mongoid::Run
 
       storage_options[:collection] = 'ingest_runs'
-      workflow_class 'LIBIS::Ingester::Flow'
-      item_class 'LIBIS::Ingester::Item'
+      workflow_class 'Libis::Ingester::Flow'
+      item_class 'Libis::Ingester::Item'
+
+      field ingest_model, class: ::Libis::Ingester::IngestModel
 
       def name
         self.workflow.name + self.start_date.strftime('_%Y%m%dT%H%M%S')

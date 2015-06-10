@@ -2,10 +2,10 @@
 require 'LIBIS_Workflow'
 require 'LIBIS_Tools'
 
-module LIBIS
+module Libis
   module Ingester
 
-    class MetadataCollector < LIBIS::Workflow::Task
+    class MetadataCollector < Libis::Workflow::Task
       parameter source: nil, constraint: %w[mapfile directory Aleph Scope CollectiveAccess]
 
     end

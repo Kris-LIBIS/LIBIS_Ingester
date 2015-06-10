@@ -1,4 +1,4 @@
 source 'https://rubygems.org'
 
-# Specify your gem's dependencies in LIBIS_Ingester.gemspec
-gemspec name: 'LIBIS_Ingester', development_group: :test
+# Specify your gem's dependencies in libis-ingester.gemspec
+gemspec name: 'libis-ingester', development_group: :test

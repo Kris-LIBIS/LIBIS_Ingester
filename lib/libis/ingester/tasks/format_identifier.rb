@@ -14,7 +14,7 @@ module LIBIS
       def process(item)
         return unless item.is_a? ::LIBIS::Ingester::FileItem
 
-        mimetype = LIBIS::Format::Identifier.get(item.fullpath, options[:formats])
+        mimetype = LIBIS::Format::Identifier.get(item.fullpath, formats: options[:formats])
 
         unless mimetype
           warn "Could not determine MIME type. Using default 'application/octet-stream'."

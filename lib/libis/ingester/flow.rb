@@ -1,13 +1,14 @@
 # encoding: utf-8
-require 'LIBIS_Workflow_Mongoid'
-module LIBIS
+require 'libis/workflow/mongoid'
+
+module Libis
   module Ingester
 
     class Flow
-      include LIBIS::Workflow::Mongoid::Workflow
+      include Libis::Workflow::Mongoid::Workflow
 
       storage_options[:collection] = 'ingest_flows'
-      run_class 'LIBIS::Ingester::Run'
+      run_class 'Libis::Ingester::Run'
 
     end
 

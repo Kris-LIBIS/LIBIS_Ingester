@@ -3,15 +3,15 @@
 require 'LIBIS_Workflow'
 require 'LIBIS_Tools'
 
-module LIBIS
+module Libis
   module Ingester
 
-      class VirusChecker < ::LIBIS::Workflow::Task
+      class VirusChecker < ::Libis::Workflow::Task
 
         def process(item)
 
-          return unless item_type? ::LIBIS::Ingester::FileItem, item
-          return unless item_type? ::LIBIS::Workflow::WorkItem, item
+          return unless item_type? ::Libis::Ingester::FileItem, item
+          return unless item_type? ::Libis::Workflow::WorkItem, item
           return unless item.options[:filename]
 
           if item.options[:virus_check]
@@ -22,7 +22,7 @@ module LIBIS
           debug 'Scanning file for virusses'
 
           cmd_options = Config.virusscanner[:options]
-          result = LIBIS::Tools::Command.run Config.virusscanner[:command], *cmd_options, item.fullpath
+          result = Libis::Tools::Command.run Config.virusscanner[:command], *cmd_options, item.fullpath
           raise WorkflowError, "Error during viruscheck: #{result[:err]}" unless result[:status]
 
           item.options[:virus_check] = true

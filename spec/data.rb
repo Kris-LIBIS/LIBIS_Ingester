@@ -1,4 +1,4 @@
-require 'LIBIS_Ingester'
+require 'libis-ingester'
 
 def check_data(item, names)
   match_count = 0
@@ -22,7 +22,7 @@ def list_data(item, level = 0)
       '- ' * level,
       item.name,
       count > 0 ? " (#{count})" : '',
-      item.is_a?(LIBIS::Ingester::FileItem) ? ' [' + item.properties[:mimetype].to_s + ']': ''
+      item.is_a?(Libis::Ingester::FileItem) ? ' [' + item.properties[:mimetype].to_s + ']': ''
   ]
   item.items.each { |i| list_data(i, level + 1)}
 end

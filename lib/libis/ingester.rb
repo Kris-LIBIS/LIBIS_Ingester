@@ -1,6 +1,6 @@
 require_relative 'ingester/version'
 
-module LIBIS
+module Libis
   module Ingester
 
     autoload :Config, 'libis/ingester/config'
@@ -19,7 +19,7 @@ module LIBIS
     autoload :DavDossier, 'libis/ingester/dav_dossier'
 
     def self.configure
-      yield ::LIBIS::Ingester::Config.instance
+      yield ::Libis::Ingester::Config.instance
     end
 
   end

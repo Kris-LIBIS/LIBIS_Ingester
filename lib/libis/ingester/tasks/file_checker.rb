@@ -1,11 +1,11 @@
 # encoding: utf-8
 
-require 'LIBIS_Workflow'
+require 'libis/workflow'
 
-module LIBIS
+module Libis
   module Ingester
 
-    class FileChecker < ::LIBIS::Workflow::Task
+    class FileChecker < ::Libis::Workflow::Task
 
       parameter filename_regexp: nil,
                 description: 'Match files with names that match the given regular expession. Ignored if empty.'
@@ -13,7 +13,7 @@ module LIBIS
                 description: 'Match files with MIME types that match the given regular expression. Ignored if empty.'
 
       def process(item)
-        return unless item.is_a? ::LIBIS::Ingester::FileItem
+        return unless item.is_a? ::Libis::Ingester::FileItem
 
         check_exists item
         check_file_name item
@@ -21,7 +21,7 @@ module LIBIS
       end
 
       def check_exists(item)
-        raise ::LIBIS::WorkflowError, "File '#{item.filepath}' does not exist." unless File.exists? item.fullpath
+        raise ::Libis::WorkflowError, "File '#{item.filepath}' does not exist." unless File.exists? item.fullpath
       end
 
       def check_file_name(item)

@@ -1,28 +1,28 @@
 # encoding: utf-8
 
-require 'LIBIS_Tools'
-require 'LIBIS_Workflow'
+require 'libis/tools'
+require 'libis/workflow'
 
-module LIBIS
+module Libis
   module Ingester
 
-    class ChecksumTester < ::LIBIS::Workflow::Task
+    class ChecksumTester < ::Libis::Workflow::Task
 
       parameter checksum_type: nil,
                 description: 'Checksum type to use.',
-                constraint: ::LIBIS::Tools::Checksum::CHECKSUM_TYPES.map { |x| x.to_s }
+                constraint: ::Libis::Tools::Checksum::CHECKSUM_TYPES.map { |x| x.to_s }
       parameter checksum_file: nil,
                 description: 'File with pairs of file names and checksums.'
 
       def process(item)
-        return unless item.is_a? ::LIBIS::Ingester::FileItem
+        return unless item.is_a? ::Libis::Ingester::FileItem
 
         check_exists item
         check_checksum item
       end
 
       def check_exists(item)
-        raise ::LIBIS::WorkflowError, "File '#{item.fullpath}' does not exist." unless File.exists? item.fullpath
+        raise ::Libis::WorkflowError, "File '#{item.fullpath}' does not exist." unless File.exists? item.fullpath
       end
 
       def check_checksum(item)
@@ -47,7 +47,7 @@ module LIBIS
               warn "File '#{item.name}' not found in checksum file ('#{checksumfile_path}'. Skipping check."
               return
             end
-            file_checksum = ::LIBIS::Tools::Checksum.hexdigest(item.fullpath, checksum_type.to_sym)
+            file_checksum = ::Libis::Tools::Checksum.hexdigest(item.fullpath, checksum_type.to_sym)
             test_checksum(item, checksum_type) if item.checksum(checksum_type)
             item.set_checksum(checksum_type, file_checksum)
             # we try to match any line as there may be multiple lines containing the file name. We also check any field
@@ -60,7 +60,7 @@ module LIBIS
                 next
               end
             end
-            raise ::LIBIS::WorkflowError, "#{checksum_type} checksum file test failed for #{item.filepath}."
+            raise ::Libis::WorkflowError, "#{checksum_type} checksum file test failed for #{item.filepath}."
           else
             test_checksum(item, checksum_type)
           end
@@ -70,9 +70,9 @@ module LIBIS
 
       def test_checksum(item, checksum_type, expected = nil)
         expected ||= item.checksum(checksum_type)
-        checksum = ::LIBIS::Tools::Checksum.hexdigest(item.fullpath, checksum_type.to_sym)
+        checksum = ::Libis::Tools::Checksum.hexdigest(item.fullpath, checksum_type.to_sym)
         return if expected == checksum
-        raise ::LIBIS::WorkflowError, "Calculated #{checksum_type} checksum does not match previously calculated checksum."
+        raise ::Libis::WorkflowError, "Calculated #{checksum_type} checksum does not match previously calculated checksum."
       end
 
 

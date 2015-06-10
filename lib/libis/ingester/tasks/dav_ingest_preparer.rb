@@ -3,18 +3,18 @@
 require 'fileutils'
 require 'pathname'
 
-require 'LIBIS_Workflow'
-require 'LIBIS_Tools'
+require 'libis/tools'
+require 'libis/workflow'
 
 require 'libis/ingester/run'
 require 'libis/ingester/dav_dossier'
 require 'libis/ingester/file_item'
 require 'libis/ingester/dir_item'
 
-module LIBIS
+module Libis
   module Ingester
 
-    class DavIngestPreparer < ::LIBIS::Workflow::Task
+    class DavIngestPreparer < ::Libis::Workflow::Task
       parameter ingest_dir: '/nas/vol04/dav_deposit_area',
                 description: 'Directory where the ingest files are to be created.'
       parameter ingest_type: 'METS',
@@ -37,7 +37,7 @@ module LIBIS
                 description: 'IE Access Right MID.'
 
       def process(item)
-        check_item_type ::LIBIS::Ingester::Run, item
+        check_item_type ::Libis::Ingester::Run, item
 
         @dirname = options[:ingest_dir]
 
@@ -54,7 +54,7 @@ module LIBIS
 
       def process_dossier(item)
 
-        check_item_type LIBIS::Ingester::DavDossier, item
+        check_item_type Libis::Ingester::DavDossier, item
 
         # @dossier_dir = @dirname
         # Enable below to create one ingest per dossier
@@ -63,10 +63,10 @@ module LIBIS
         item.properties[:ingest_sub_dir] = Pathname.new(@dossier_dir).relative_path_from(Pathname.new(options[:ingest_dir])).to_s
         item.save
 
-        @mets = LIBIS::Tools::MetsFile.new
+        @mets = Libis::Tools::MetsFile.new
 
         # noinspection RubyResolve
-        dc_record = LIBIS::Tools::DCRecord.new do |xml|
+        dc_record = Libis::Tools::DCRecord.new do |xml|
           xml[:dc].title item.name
           xml[:dc].identifier item.properties[:rmt_info][:folder][:referenceCode]
         end
@@ -107,11 +107,11 @@ module LIBIS
       def process_children(item, rep, div)
         item.items.each do |child|
           case child
-            when LIBIS::Ingester::FileItem
+            when Libis::Ingester::FileItem
               file = process_file(child)
               file.representation = rep
               div << file
-            when LIBIS::Ingester::DirItem
+            when Libis::Ingester::DirItem
               div << process_children(child, rep, @mets.div(label: child.name))
             else
               # do nothing
@@ -139,7 +139,7 @@ module LIBIS
         debug "Copied file to #{target_path}.", item
 
         if item.metadata && item.metadata.format == 'DC'
-          dc = LIBIS::Tools::DCRecord.parse item.metadata.data
+          dc = Libis::Tools::DCRecord.parse item.metadata.data
           file.dc_record = dc.root.to_xml
         end
 
