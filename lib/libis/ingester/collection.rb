@@ -1,9 +1,6 @@
 # encoding: utf-8
 require_relative 'item'
 require_relative 'intellectual_entity'
-require_relative 'dir_item'
-require_relative 'file_item'
-require_relative 'mets_division'
 
 module Libis
   module Ingester
@@ -18,16 +15,8 @@ module Libis
         self.items.select { |item| item.is_a? Collection }
       end
 
-      def divisions
-        self.items.select { |item| item.is_a? MetsDivision }
-      end
-
-      def ies
+      def intellectual_entities
         self.items.select { |item| item.is_a? IntellectualEntity }
-      end
-
-      def files
-        self.items.select { |item| item.is_a? FileItem }
       end
 
     end

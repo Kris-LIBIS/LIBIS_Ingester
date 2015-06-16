@@ -13,7 +13,7 @@ module Libis
     autoload :FileItem, 'libis/ingester/file_item'
 
     autoload :AccessRight, 'libis/ingester/access_right'
-    autoload :Manifestation, 'libis/ingester/manifestation'
+    autoload :Representation, 'libis/ingester/representation_info'
     autoload :MetadataRecord, 'libis/ingester/metadata_record'
 
     autoload :DavDossier, 'libis/ingester/dav_dossier'

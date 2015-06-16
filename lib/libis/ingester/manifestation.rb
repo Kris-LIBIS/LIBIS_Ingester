@@ -1,7 +1,6 @@
-# encoding: utf-8
+require_relative 'access_right'
 
 require 'libis/workflow/mongoid/base'
-
 module Libis
   module Ingester
 
@@ -9,10 +8,10 @@ module Libis
       include Libis::Workflow::Mongoid::Base
 
       field :name
-      field :object_type
-      field :preservation_type
-      field :usage_type
-      field :representation_code
+      field :target_format
+      field :options, type: Hash
+      field :generator
+      has_one :access_right, class_name: ::Libis::Ingester::AccessRight.to_s, inverse_of: nil
 
       validates_presence_of :name
       validates_uniqueness_of :name
@@ -20,13 +19,12 @@ module Libis
       def info
         {
             name: self.name,
-            object_type: self.object_type,
-            preservation_type: self.preservation_type,
-            usage_type: self.usage_type,
-            representation_code: self.representation_code
-        }
+            target_format: self.target_format,
+            options: self.options,
+            generator: self.generator,
+            access_right: (self.access_right.info rescue nil)
+        }.cleanup
       end
-
     end
 
   end

@@ -25,7 +25,7 @@ describe 'Ingester' do
     ::Libis::Ingester.configure do |cfg|
       cfg.workdir = File.join(File.dirname(__FILE__), 'work')
       cfg.logger = Logger.new @logoutput
-      cfg.set_formatter
+      cfg.set_log_formatter
       cfg.logger.level = Logger::DEBUG
       cfg.database_connect 'mongoid.yml', :test
     end

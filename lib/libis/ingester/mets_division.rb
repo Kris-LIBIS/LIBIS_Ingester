@@ -18,7 +18,6 @@ module Libis
         self.items.select { |item| item.is_a? FileItem }
       end
 
-
     end
 
   end
