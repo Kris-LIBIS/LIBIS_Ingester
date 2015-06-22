@@ -1,4 +1,4 @@
-require_relative 'access_right'
+require 'libis/ingester'
 
 require 'libis/workflow/mongoid/base'
 module Libis
@@ -11,7 +11,9 @@ module Libis
       field :target_format
       field :options, type: Hash
       field :generator
-      has_one :access_right, class_name: ::Libis::Ingester::AccessRight.to_s, inverse_of: nil
+
+      embedded_in :ingest_model, class_name: Libis::Ingester::IngestModel.to_s
+      belongs_to :access_right, class_name: Libis::Ingester::AccessRight.to_s, inverse_of: nil
 
       validates_presence_of :name
       validates_uniqueness_of :name

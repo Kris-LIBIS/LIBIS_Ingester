@@ -1,13 +1,12 @@
 # encoding: utf-8
 require 'libis/workflow'
 
-require_relative 'item'
-require_relative 'file_item'
+require 'libis/ingester'
 
 module Libis
   module Ingester
 
-    class DirItem < Libis::Ingester::Item
+    class DirItem < ::Libis::Ingester::Item
       include Libis::Workflow::DirItem
 
       def files
@@ -18,8 +17,8 @@ module Libis
         self.items.select { |item| item.is_a? DirItem }
       end
 
-      def files_recursive
-        files + dirs.select { |dir| dir.files_recursive }.flatten
+      def all_files
+        files + dirs.select { |dir| dir.all_files }.flatten
       end
 
     end

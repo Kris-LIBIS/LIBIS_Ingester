@@ -1,26 +1,26 @@
 # encoding: utf-8
 
-require 'LIBIS_Workflow'
-require 'LIBIS_Format'
+require 'libis/ingester'
+require 'libis-format'
 
 module LIBIS
   module Ingester
 
-    class FormatIdentifier < ::LIBIS::Workflow::Task
+    class FormatIdentifier < ::Libis::Ingester::Task
 
       parameter formats: nil,
                 description: 'Format file to load.'
 
       def process(item)
-        return unless item.is_a? ::LIBIS::Ingester::FileItem
+        return unless item.is_a? ::Libis::Ingester::FileItem
 
-        mimetype = LIBIS::Format::Identifier.get(item.fullpath, formats: options[:formats])
+        mimetype = Libis::Format::Identifier.get(item.fullpath, formats: parameter(:formats))
 
-        unless mimetype
+        if mimetype
+          info "MIME type '#{mimetype}' detected."
+        else
           warn "Could not determine MIME type. Using default 'application/octet-stream'."
           mimetype = 'application/octet-stream'
-        else
-          info "MIME type '#{mimetype}' detected."
         end
 
         item.properties[:mimetype] = mimetype

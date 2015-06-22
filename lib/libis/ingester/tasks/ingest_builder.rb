@@ -1,12 +1,10 @@
 # encoding: utf-8
-require 'LIBIS_Workflow'
-
-require 'libis/ingester/item'
+require 'libis/ingester'
 
 module LIBIS
   module Ingester
 
-    class IngestBuilder < Libis::Workflow::Task
+    class IngestBuilder < Libis::Ingester::Task
 
       def process(item)
 

@@ -8,7 +8,7 @@ module Libis
     class MetadataRecord
       include Libis::Workflow::Mongoid::Base
 
-      embedded_in :item, class_name: 'Libis::Ingester::Item', inverse_of: :metadata
+      embedded_in :item, class_name: Libis::Ingester::Item.to_s, inverse_of: :metadata
 
       field :format
       field :filepath

@@ -1,12 +1,12 @@
 # encoding: utf-8
 
-require 'libis/tools'
-require 'libis/workflow'
+require 'libis-tools'
+require 'libis/ingester'
 
 module Libis
   module Ingester
 
-    class ChecksumTester < ::Libis::Workflow::Task
+    class ChecksumTester < ::Libis::Ingester::Task
 
       parameter checksum_type: nil,
                 description: 'Checksum type to use.',
@@ -27,7 +27,7 @@ module Libis
 
       def check_checksum(item)
 
-        checksum_type = options[:checksum_type]
+        checksum_type = parameter(:checksum_type)
 
         debug 'Checking checksum.'
 
@@ -36,11 +36,14 @@ module Libis
             test_checksum(item, x) if item.checksum(x)
           end
         else
-          checksumfile_path = options[:checksum_file]
+          checksumfile_path = parameter(:checksum_file)
           if checksumfile_path
             unless File.exist?(checksumfile_path)
-              warn "Checksum file '#{checksumfile_path}' not found. Skipping check."
-              return
+              checksumfile_path = File.join(File.dirname(item.fullpath), checksumfile_path)
+              unless File.exist?(checksumfile_path)
+                warn "Checksum file '#{checksumfile_path}' not found. Skipping check."
+                return
+              end
             end
             lines = %x(grep #{item.name} #{checksumfile_path})
             if lines.empty

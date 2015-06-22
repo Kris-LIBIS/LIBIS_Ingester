@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-require 'LIBIS_Workflow_Mongoid'
+require 'libis/ingester'
 
 module Libis
   module Ingester
@@ -8,11 +8,11 @@ module Libis
     class Run
       include ::Libis::Workflow::Mongoid::Run
 
-      storage_options[:collection] = 'ingest_runs'
-      workflow_class 'Libis::Ingester::Flow'
-      item_class 'Libis::Ingester::Item'
+      store_in collection: 'ingest_runs'
+      workflow_class Libis::Ingester::Flow.to_s
+      item_class Libis::Ingester::Item.to_s
 
-      field ingest_model, class: ::Libis::Ingester::IngestModel
+      has_one :ingest_model, class_name: ::Libis::Ingester::IngestModel.to_s
 
       def name
         self.workflow.name + self.start_date.strftime('_%Y%m%dT%H%M%S')

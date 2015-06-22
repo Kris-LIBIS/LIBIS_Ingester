@@ -9,6 +9,8 @@ module Libis
     class FileItem < Libis::Ingester::Item
       include Libis::Workflow::FileItem
 
+      field :entity_type
+
     end
 
   end

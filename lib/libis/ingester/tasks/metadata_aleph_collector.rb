@@ -1,12 +1,11 @@
 # encoding: utf-8
 
-require 'LIBIS_Tools'
-require 'LIBIS_Workflow'
+require 'libis/ingester'
 
 module LIBIS
   module Ingester
 
-    class MetadataAlephCollector < ::LIBIS::Workflow::Task
+    class MetadataAlephCollector < ::Libis::Ingester::Task
       parameter host: 'http://opac.libis.be/X',
                 description: 'URL of the search service.'
       parameter target: 'Opac'
@@ -32,11 +31,11 @@ module LIBIS
 
       def get_search_term(item)
         search_term = item.name
-        if options[:term]
-          if options[:match]
+        if parameter(:term)
+          if parameter(:match)
             search_term = item.filename if obj.respond_to? :filename
-            if search_term =~ options[:match]
-              search_term = eval options[:term]
+            if search_term =~ parameter(:match)
+              search_term = eval parameter(:term)
             end
           end
         end

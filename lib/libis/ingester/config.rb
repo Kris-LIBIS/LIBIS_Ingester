@@ -1,5 +1,4 @@
 # encoding: utf-8
-require 'libis/workflow/mongoid/config'
 
 module Libis
   module Ingester

@@ -1,22 +1,21 @@
 # encoding: utf-8
 
-require 'LIBIS_Workflow'
-require 'LIBIS_Tools'
-require 'libis-ingester'
+require 'libis-tools'
+require 'libis/ingester'
 
 require 'date'
 
 module LIBIS
   module Ingester
 
-    class RunLoader < ::Libis::Workflow::Task
+    class RunLoader < ::Libis::Ingester::Task
       parameter run_id: nil,
                 description: 'Id of the run that should be loaded'
 
       def process(item)
         check_item_type ::Libis::Ingester::Run, item
 
-        dirname = options[:location]
+        dirname = parameter(:location)
 
         raise RuntimeError, 'No location given.' unless dirname
 
@@ -48,7 +47,7 @@ module LIBIS
         info = Libis::Tools::XmlDocument.open(File.join(dir,file)).to_hash['RMT_metadata']
         dossier.name = info['folder']['name'].to_s
 
-        debug "Dossier found: #{file.gsub(options[:location],'')} - #{dossier.name}"
+        debug "Dossier found: #{file.gsub(parameter(:location),'')} - #{dossier.name}"
 
         file_item = Libis::Ingester::FileItem.new
         file_item.filename = File.join(dir, file)

@@ -2,24 +2,28 @@
 
 require_relative 'item'
 require_relative 'representation_info'
+require_relative 'file_item'
+require_relative 'dir_item'
+require_relative 'division'
 
 module Libis
   module Ingester
 
     class Representation < Libis::Ingester::Item
 
-      has_one :representation_info, class_name: ::Libis::Ingester::RepresentationInfo.to_s, inverse_of: nil
+      belongs_to :representation_info, class_name: ::Libis::Ingester::RepresentationInfo.to_s, inverse_of: nil
+      belongs_to :access_right, class_name: Libis::Ingester::AccessRight.to_s, inverse_of: nil
 
       def files
         self.items.select { |item| item.is_a? FileItem }
       end
 
-      def dirs
-        self.items.select { |item| item.is_a? DirItem }
+      def divisions
+        self.items.select { |item| item.is_a? Division }
       end
 
-      def files_recursive
-        files + dirs.select { |dir| dir.files_recursive }.flatten
+      def all_files_recursive
+        files + divisions.select { |div| div.all_files }.flatten
       end
 
 

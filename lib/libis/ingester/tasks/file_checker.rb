@@ -25,7 +25,7 @@ module Libis
       end
 
       def check_file_name(item)
-        filter = options[:filename_regexp]
+        filter = parameter(:filename_regexp)
         return if filter.nil? or filter.empty?
         debug "Checking filename against '/#{filter}/'."
         filter = Regexp.new(filter) unless filter.is_a? Regexp
@@ -37,7 +37,7 @@ module Libis
       end
 
       def check_mime_type(item)
-        filter = options[:mimetype_regexp]
+        filter = parameter(:mimetype_regexp)
         return if filter.nil?
         debug "Checking MIME type against '/#{filter}/'."
         filter = Regexp.new(filter) unless filter.is_a? Regexp

@@ -7,8 +7,8 @@ module Libis
     class Flow
       include Libis::Workflow::Mongoid::Workflow
 
-      storage_options[:collection] = 'ingest_flows'
-      run_class 'Libis::Ingester::Run'
+      store_in collection: 'ingest_flows'
+      run_class Libis::Ingester::Run.to_s
 
     end
 

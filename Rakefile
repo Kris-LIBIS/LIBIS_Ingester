@@ -5,3 +5,5 @@ RSpec::Core::RakeTask.new('spec')
 
 desc 'run tests'
 task :default => :spec
+
+require 'libis/ingester'

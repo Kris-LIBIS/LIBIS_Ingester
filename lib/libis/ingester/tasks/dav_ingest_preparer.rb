@@ -3,18 +3,15 @@
 require 'fileutils'
 require 'pathname'
 
-require 'libis/tools'
-require 'libis/workflow'
+require 'libis-tools'
+require 'libis/ingester'
 
-require 'libis/ingester/run'
 require 'libis/ingester/dav_dossier'
-require 'libis/ingester/file_item'
-require 'libis/ingester/dir_item'
 
 module Libis
   module Ingester
 
-    class DavIngestPreparer < ::Libis::Workflow::Task
+    class DavIngestPreparer < ::Libis::Ingester::Task
       parameter ingest_dir: '/nas/vol04/dav_deposit_area',
                 description: 'Directory where the ingest files are to be created.'
       parameter ingest_type: 'METS',
@@ -39,7 +36,7 @@ module Libis
       def process(item)
         check_item_type ::Libis::Ingester::Run, item
 
-        @dirname = options[:ingest_dir]
+        @dirname = parameter(:ingest_dir)
 
         raise RuntimeError, 'No location given.' unless @dirname
 
@@ -60,7 +57,7 @@ module Libis
         # Enable below to create one ingest per dossier
         @dossier_dir = File.join(@dirname, item.filename)
         FileUtils.mkdir_p File.join(@dossier_dir, 'content', 'streams')
-        item.properties[:ingest_sub_dir] = Pathname.new(@dossier_dir).relative_path_from(Pathname.new(options[:ingest_dir])).to_s
+        item.properties[:ingest_sub_dir] = Pathname.new(@dossier_dir).relative_path_from(Pathname.new(parameter(:ingest_dir))).to_s
         item.save
 
         @mets = Libis::Tools::MetsFile.new
@@ -77,12 +74,12 @@ module Libis
         @mets.dc_record = dc_record.root.to_xml
 
         @mets.amd_info = {
-            entity_type: options[:ie_entity_type],
-            user_a: options[:user_a],
-            user_b: options[:user_b],
-            user_c: options[:user_c],
-            status: options[:status],
-            access_right: options[:access_right],
+            entity_type: parameter(:ie_entity_type),
+            user_a: parameter(:user_a),
+            user_b: parameter(:user_b),
+            user_c: parameter(:user_c),
+            status: parameter(:status),
+            access_right: parameter(:access_right),
             retention_id: (item.properties[:disposition] ? '361540' : 'NO_RETENTION'),
         }
 
@@ -129,7 +126,7 @@ module Libis
             label: item.name,
             location: relative_path,
             target_location: item.filelist[1..-1].join('/'),
-            entity_type: options[:file_entity_type],
+            entity_type: parameter(:file_entity_type),
         )
 
         target_path = File.join(@dossier_dir, 'content', 'streams', file.target)

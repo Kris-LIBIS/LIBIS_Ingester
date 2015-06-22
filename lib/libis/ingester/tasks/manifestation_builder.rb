@@ -12,6 +12,8 @@ module Libis
       parameter ingest_model: nil,
                 description: 'Ingest model name for the configuration of manifestations.'
 
+      parameter recursive: true
+
       def process(item)
 
         return unless item.is_a? Libis::Ingester::FileItem
@@ -22,8 +24,11 @@ module Libis
         type_id = ::Libis::Format::TypeDatabase.mime_types(mimetype).first
         raise WorkflowError, 'File item %s format (%s) is not supported.' % [item, mimetype] unless type_id
 
-        @ingest_model ||= ::Libis::Ingester::IngestModel.find_by name: options[:ingest_model] if options[:ingest_model]
+        ingest_model_name = parameter(:ingest_model) || 'default'
+        ingest_model ||= ::Libis::Ingester::IngestModel.find_by name: ingest_model_name
+        raise WorkflowError, 'Ingest model %s not found.' % ingest_model_name unless ingest_model
 
+        @manifestations = ingest_model.manifestations.where()
 
 
       end

@@ -4,19 +4,17 @@ require 'libis/workflow/mongoid'
 module Libis
   module Ingester
 
-    class AccessRight
+    class RetentionPeriod
       include ::Libis::Workflow::Mongoid::Base
-      store_in collection: 'access_rights'
+      store_in collection: 'retention_periods'
 
       field :name, type: String
-      field :ar_id, type: String
-      field :watermark, type: String
+      field :rp_id, type: String
 
       def info
         {
             name: self.name,
-            ar_id: self.ar_id,
-            watermark: self.watermark,
+            rp_id: self.rp_id,
         }.cleanup
       end
 

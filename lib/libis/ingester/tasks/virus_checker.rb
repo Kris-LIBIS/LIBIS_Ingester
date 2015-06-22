@@ -1,17 +1,17 @@
 # encoding: utf-8
 
-require 'LIBIS_Workflow'
-require 'LIBIS_Tools'
+require 'libis/ingester'
+require 'libis-tools'
 
 module Libis
   module Ingester
 
-      class VirusChecker < ::Libis::Workflow::Task
+      class VirusChecker < ::Libis::Ingester::Task
 
         def process(item)
 
           return unless item_type? ::Libis::Ingester::FileItem, item
-          return unless item_type? ::Libis::Workflow::WorkItem, item
+          return unless item_type? ::Libis::Ingester::WorkItem, item
           return unless item.options[:filename]
 
           if item.options[:virus_check]
@@ -21,7 +21,9 @@ module Libis
 
           debug 'Scanning file for virusses'
 
+          # noinspection RubyResolve
           cmd_options = Config.virusscanner[:options]
+          # noinspection RubyResolve
           result = Libis::Tools::Command.run Config.virusscanner[:command], *cmd_options, item.fullpath
           raise WorkflowError, "Error during viruscheck: #{result[:err]}" unless result[:status]
 

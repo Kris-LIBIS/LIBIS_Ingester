@@ -3,22 +3,26 @@ require 'yaml'
 require 'libis/tools/extend/hash'
 
 require 'libis/workflow/mongoid/base'
-require_relative 'manifestation'
 
 module Libis
   module Ingester
 
     class IngestModel
       include Libis::Workflow::Mongoid::Base
+      store_in collection: 'ingest_models'
 
       field :name
       field :description
       field :producer
       field :material_flow
-      field :group
       field :formats, type: Array
+      field :group_match
+      field :group_label
+      field :group_file
+      field :entity_type
+      field :retention_period
 
-      embeds_many :manifestations, class_name: ::Libis::Ingester::Manifestation.to_s
+      embeds_many :manifestations, class_name: Libis::Ingester::Manifestation.to_s
 
       validates :producer, presence: true, allow_nil: false
       validates :name, presence: true, allow_nil: false
@@ -32,8 +36,12 @@ module Libis
             description: self.description,
             producer: self.producer,
             material_flow: self.material_flow,
-            group: self.group,
             formats: self.formats,
+            group_match: self.group_match,
+            group_label: self.group_label,
+            group_file: self.group_file,
+            entity_type: self.entity_type,
+            retention_period: self.retention_period,
             manifestations: (self.manifestations.map(&:info) rescue nil),
         }.cleanup
       end

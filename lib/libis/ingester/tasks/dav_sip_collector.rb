@@ -2,26 +2,22 @@
 
 require 'date'
 
-require 'libis/tools'
-require 'libis/workflow'
+require 'libis-tools'
+require 'libis/ingester'
 
-require 'libis/ingester/run'
 require 'libis/ingester/dav_dossier'
-require 'libis/ingester/file_item'
-require 'libis/ingester/dir_item'
-require 'libis/ingester/metadata_record'
 
 module Libis
   module Ingester
 
-    class DavSipCollector < ::Libis::Workflow::Task
+    class DavSipCollector < ::Libis::Ingester::Task
       parameter location: nil,
                 description: 'Dir location to scan for RMT files.'
 
       def process(item)
         check_item_type ::Libis::Ingester::Run, item
 
-        dirname = options[:location]
+        dirname = parameter(:location)
 
         raise RuntimeError, 'No location given.' unless dirname
 
@@ -53,7 +49,7 @@ module Libis
         info = Libis::Tools::XmlDocument.open(File.join(dir,file)).to_hash['RMT_metadata']
         dossier.name = info['folder']['name'].to_s
 
-        debug "Dossier found: #{file.gsub(options[:location],'')} - #{dossier.name}"
+        debug "Dossier found: #{file.gsub(parameter(:location),'')} - #{dossier.name}"
 
         file_item = Libis::Ingester::FileItem.new
         file_item.filename = File.join(dir, file)
