@@ -7,7 +7,7 @@ require 'libis/ingester/ingest_model'
 module Libis
   module Ingester
 
-    class ManifestationBuilder < Libis::Workflow::Task
+    class ManifestationBuilder < Libis::Ingester::Task
 
       parameter ingest_model: nil,
                 description: 'Ingest model name for the configuration of manifestations.'

@@ -10,10 +10,10 @@ module Libis
 
       field :name
       field :label
-      field :entity_type
       field :preservation_type
       field :usage_type
       field :representation_code
+      field :entity_type
       field :user_a
       field :user_b
       field :user_c
@@ -25,10 +25,13 @@ module Libis
         {
             name: self.name,
             label: self.label,
-            entity_type: self.entity_type,
             preservation_type: self.preservation_type,
             usage_type: self.usage_type,
-            representation_code: self.representation_code
+            representation_code: self.representation_code,
+            entity_type: self.entity_type,
+            user_a: self.user_a,
+            user_b: self.user_b,
+            user_c: self.user_c,
         }
       end
 

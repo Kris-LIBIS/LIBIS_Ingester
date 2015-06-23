@@ -6,6 +6,13 @@ require_relative 'spec_helper'
 $:.unshift File.join(File.dirname(__FILE__), '..', 'lib')
 require 'libis/ingester'
 
+Dir.new(File.absolute_path(File.join(__FILE__, '..', '..', 'lib', 'libis', 'ingester', 'tasks'))).entries.each do |filename|
+  next if File.basename(filename) =~ /^\.{1,2}$/
+  next unless File.extname(filename) == '.rb'
+  # noinspection RubyResolve
+  require "libis/ingester/tasks/#{filename}"
+end
+
 require_relative 'data'
 
 describe 'Ingester' do
@@ -16,7 +23,7 @@ describe 'Ingester' do
     # noinspection RubyResolve
     ::Libis::Ingester.configure do |cfg|
       cfg.workdir = File.join(File.dirname(__FILE__), 'work')
-      cfg.logger = Logger.new(logoutput)
+      # cfg.logger = Logger.new(logoutput)
       cfg.set_log_formatter
       cfg.logger.level = Logger::DEBUG
       cfg.database_connect 'mongoid.yml', :test
@@ -154,14 +161,21 @@ describe 'Ingester' do
         name: 'TestIngest',
         description: 'Ingest flow for testing',
         tasks: [
-            {class: 'Libis::Ingester::DirCollector', location: datadir},
-            {name: 'Check', subitems: true, recursive: true, tasks: [
-                {name: 'FilenameCheck', class: 'Libis::Ingester::FileChecker'},
-                {name: 'MimetypeCheck', class: 'Libis::Ingester::FileChecker'},
-                {name: 'ChecksumCheck', class: 'Libis::Ingester::ChecksumTester'},
+            {class: 'Libis::Ingester::DirCollector', location: datadir, subdirs: 'recursive'},
+            {name: 'Check', subitems: true, recursive: false, tasks: [
+                {name: 'FilenameCheck', class: 'Libis::Ingester::FileChecker',
+                 filename_match: '^(abc|def)'
+                 },
+                {name: 'ChecksumCheck', class: 'Libis::Ingester::ChecksumTester',
+                 checksum_type: :MD5, checksum_file: File.absolute_path(File.join(File.dirname(__FILE__), 'test_data.md5'))},
                 {class: 'Libis::Ingester::VirusChecker'},
             ]
             },
+            {name: 'PreProcess', subitems: true, recursive: false, tasks: [
+                {name: 'FormatIdentifier', class: Libis::Ingester::FormatIdentifier.to_s},
+                {name: 'MimetypeCheck', class: 'Libis::Ingester::FileChecker',
+                 mimetype_match: nil},
+            ]},
             {name: 'PreIngest', subitems: false, recursive: false, tasks: [
                 {class: Libis::Ingester::FileGrouper.to_s,
                  recursive: true,
@@ -170,17 +184,14 @@ describe 'Ingester' do
                  file_label: '"page-" + $2'
                 },
                 {class: Libis::Ingester::IeBuilder.to_s}
-            ]}
+            ]},
+            {name: 'Ingest', subitems: false, recursive: false, tasks: [
+                {class: Libis::Ingester::IngestBuilder.to_s,
+                 ingest_dir: File.join(File.dirname(__FILE__), 'work')
+                }
+            ]},
         ],
         input: {
-            subdirs: {
-                description: 'Scan the location recursively for files',
-                default: 'recursive', propagate_to: 'DirCollector'
-            },
-            selection: {
-                description: 'Regular expression to match file path against. Only files matching the expresion will be selected.',
-                default: nil, propagate_to: 'DirCollector'
-            },
             filename_match: {
                 description: 'Regular expression to match file name against. Files not matching the expresion will fail.',
                 default: nil, propagate_to: 'FilenameCheck#filename_regexp'
@@ -195,6 +206,12 @@ describe 'Ingester' do
             },
         }
     } }
+
+    it do
+      run = workflow.run
+      expect(run.status).to be :DONE
+      list_data(run)
+    end
   end
 
 end

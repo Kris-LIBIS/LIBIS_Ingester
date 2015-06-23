@@ -46,7 +46,7 @@ module Libis
               end
             end
             lines = %x(grep #{item.name} #{checksumfile_path})
-            if lines.empty
+            if lines.empty?
               warn "File '#{item.name}' not found in checksum file ('#{checksumfile_path}'. Skipping check."
               return
             end

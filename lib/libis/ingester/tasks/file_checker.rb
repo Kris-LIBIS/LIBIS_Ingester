@@ -5,7 +5,7 @@ require 'libis/workflow'
 module Libis
   module Ingester
 
-    class FileChecker < ::Libis::Workflow::Task
+    class FileChecker < ::Libis::Ingester::Task
 
       parameter filename_regexp: nil,
                 description: 'Match files with names that match the given regular expession. Ignored if empty.'

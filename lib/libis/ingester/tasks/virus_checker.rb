@@ -11,7 +11,6 @@ module Libis
         def process(item)
 
           return unless item_type? ::Libis::Ingester::FileItem, item
-          return unless item_type? ::Libis::Ingester::WorkItem, item
           return unless item.options[:filename]
 
           if item.options[:virus_check]

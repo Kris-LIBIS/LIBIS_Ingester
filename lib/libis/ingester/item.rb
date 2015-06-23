@@ -31,6 +31,10 @@ module Libis
         item_list
       end
 
+      def uplevel
+        self.parent || self.run
+      end
+
     end
 
   end

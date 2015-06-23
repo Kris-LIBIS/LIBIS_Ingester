@@ -20,6 +20,11 @@ module Libis
       field :group_label
       field :group_file
       field :entity_type
+      field :user_a
+      field :user_b
+      field :user_c
+      field :status
+      field :access_right
       field :retention_period
 
       embeds_many :manifestations, class_name: Libis::Ingester::Manifestation.to_s

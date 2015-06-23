@@ -24,7 +24,7 @@ module Libis
     autoload :Manifestation, 'libis/ingester/manifestation'
 
     autoload :AccessRight, 'libis/ingester/access_right'
-    autoload :RetentionPerion, 'libis/ingester/retention_period'
+    autoload :RetentionPeriod, 'libis/ingester/retention_period'
     autoload :RepresentationInfo, 'libis/ingester/representation_info'
     autoload :MetadataRecord, 'libis/ingester/metadata_record'
 

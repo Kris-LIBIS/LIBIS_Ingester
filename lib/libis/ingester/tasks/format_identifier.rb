@@ -3,7 +3,7 @@
 require 'libis/ingester'
 require 'libis-format'
 
-module LIBIS
+module Libis
   module Ingester
 
     class FormatIdentifier < ::Libis::Ingester::Task
@@ -14,7 +14,9 @@ module LIBIS
       def process(item)
         return unless item.is_a? ::Libis::Ingester::FileItem
 
-        mimetype = Libis::Format::Identifier.get(item.fullpath, formats: parameter(:formats))
+        format = Libis::Format::Identifier.get(item.fullpath, formats: parameter(:formats)) rescue {}
+
+        mimetype = format[:mimetype]
 
         if mimetype
           info "MIME type '#{mimetype}' detected."
@@ -24,6 +26,7 @@ module LIBIS
         end
 
         item.properties[:mimetype] = mimetype
+        item.properties[:puid] = format[:puid]
       end
 
     end

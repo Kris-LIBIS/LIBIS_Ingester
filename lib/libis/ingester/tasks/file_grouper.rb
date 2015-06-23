@@ -18,21 +18,23 @@ module Libis
       def process(item)
         return unless item.is_a? ::Libis::Ingester::FileItem
         debug 'Processing item: %s', item.name
-        parent = item.parent
+        uplevel = item.uplevel
         # noinspection RubyResolve
         grouping = parameter(:group_regex)
         if grouping && item.filename =~ Regexp.new(grouping)
           # noinspection RubyResolve
           group_label = eval(parameter(:group_label))
-          group = parent.items.select { |g| g.name == group_label }.first
+          group = uplevel.items.select { |g| g.name == group_label }.first
           unless group
             group = Libis::Ingester::Division.new
             group.name = group_label
-            group.parent = parent
+            group.parent = item.parent if item.parent
+            group.run = item.run if item.run
             group.save
             debug 'Created new group: %s', group_label
           end
           item.parent = group
+          item.run = nil
           # noinspection RubyResolve
           item.name = eval(parameter(:file_label)) if parameter(:file_label)
           debug 'File name: %s', item.name
