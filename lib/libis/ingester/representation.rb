@@ -26,7 +26,6 @@ module Libis
         files + divisions.select { |div| div.all_files }.flatten
       end
 
-
     end
 
   end

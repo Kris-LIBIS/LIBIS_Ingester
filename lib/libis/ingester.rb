@@ -20,6 +20,9 @@ module Libis
     autoload :Division, 'libis/ingester/division'
     autoload :Representation, 'libis/ingester/representation'
 
+    autoload :Organization, 'libis/ingester/organization'
+    autoload :Account, 'libis/ingester/account'
+
     autoload :IngestModel, 'libis/ingester/ingest_model'
     autoload :Manifestation, 'libis/ingester/manifestation'
 

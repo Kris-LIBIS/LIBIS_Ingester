@@ -3,6 +3,7 @@ require 'yaml'
 require 'libis/tools/extend/hash'
 
 require 'libis/workflow/mongoid/base'
+require 'libis/ingester'
 
 module Libis
   module Ingester
@@ -28,6 +29,7 @@ module Libis
       field :retention_period
 
       embeds_many :manifestations, class_name: Libis::Ingester::Manifestation.to_s
+      belongs_to :organization, class_name: Libis::Ingester::Organization.to_s, inverse_of: :ingest_models
 
       validates :producer, presence: true, allow_nil: false
       validates :name, presence: true, allow_nil: false

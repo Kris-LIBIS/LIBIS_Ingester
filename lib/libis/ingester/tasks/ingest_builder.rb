@@ -8,10 +8,12 @@ module Libis
 
     class IngestBuilder < Libis::Ingester::Task
 
-      parameter ingest_dir: '/nas/vol04/ingest',
-                description: 'Directory where the ingest files are to be created.'
       parameter ingest_model: nil,
                 description: 'Ingest model name for the configuration of the IE building process.'
+      parameter ingest_dir: '/nas/vol04/ingest',
+                description: 'Directory where the ingest files are to be created.'
+      parameter collection: nil,
+                description: 'Existing collection to add the documents to.'
 
       parameter subitems: false
       parameter recursive: false
@@ -31,20 +33,25 @@ module Libis
         @ingest_dir.mkpath
         @ingest_dir.rmtree
 
-        item.items.each { |i| create_ingest(i) }
+        item.items.each { |i| create_item(i) }
 
       end
 
       # noinspection RubyResolve
-      def create_ingest(item)
+      def create_item(item)
 
         check_item_type Libis::Ingester::Item, item
 
-        unless item.is_a? Libis::Ingester::IntellectualEntity
-          item.items.each { |i| create_ingest(i) }
-          return
+        case item
+          when Libis::Ingester::IntellectualEntity
+            create_ie item
+          else
+            item.items.each { |i| create_item(i) }
         end
+      end
 
+      # noinspection RubyResolve
+      def create_ie(item)
         @ie_dir = @ingest_dir + "#{item._id}.#{item.name}"
 
         item.properties[:ingest_sub_dir] = @ie_dir.relative_path_from(Pathname.new(parameter(:ingest_dir))).to_s
@@ -54,6 +61,12 @@ module Libis
         dc_record = Libis::Tools::DCRecord.new do |xml|
           xml[:dc].title item.name
         end
+
+        collection_path = ''
+        collection_path = parameter(:collection) + '/' if parameter(:collection)
+        dc_record.isPartOf = collection_path + item.ancestors.select do |i|
+          i.is_a? Libis::Ingester::Collection
+        end.reverse.map(&:name).join('/')
 
         mets.dc_record = dc_record.root.to_xml
 

@@ -14,6 +14,8 @@ module Libis
 
       def setup
         ::Libis::Ingester::Item.create_indexes
+        ::Libis::Ingester::Origanization.create_indexes
+        ::Libis::Ingester::Account.create_indexes
         ::Libis::Ingester::IngestModel.create_indexes
         ::Libis::Ingester::AccessRight.create_indexes
         ::Libis::Ingester::Flow.create_indexes

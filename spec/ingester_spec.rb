@@ -23,7 +23,7 @@ describe 'Ingester' do
     # noinspection RubyResolve
     ::Libis::Ingester.configure do |cfg|
       cfg.workdir = File.join(File.dirname(__FILE__), 'work')
-      # cfg.logger = Logger.new(logoutput)
+      cfg.logger = Logger.new(logoutput)
       cfg.set_log_formatter
       cfg.logger.level = Logger::DEBUG
       cfg.database_connect 'mongoid.yml', :test
@@ -161,7 +161,7 @@ describe 'Ingester' do
         name: 'TestIngest',
         description: 'Ingest flow for testing',
         tasks: [
-            {class: 'Libis::Ingester::DirCollector', location: datadir, subdirs: 'recursive'},
+            {class: 'Libis::Ingester::DirCollector', location: datadir, subdirs: 'collection'},
             {name: 'Check', subitems: true, recursive: false, tasks: [
                 {name: 'FilenameCheck', class: 'Libis::Ingester::FileChecker',
                  filename_match: '^(abc|def)'
