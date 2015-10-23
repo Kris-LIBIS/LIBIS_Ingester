@@ -9,7 +9,6 @@ module Libis
       store_in collection: 'representation_infos'
 
       field :name
-      field :label
       field :preservation_type
       field :usage_type
       field :representation_code
@@ -21,10 +20,10 @@ module Libis
       validates_presence_of :name
       validates_uniqueness_of :name
 
+
       def info
         {
             name: self.name,
-            label: self.label,
             preservation_type: self.preservation_type,
             usage_type: self.usage_type,
             representation_code: self.representation_code,

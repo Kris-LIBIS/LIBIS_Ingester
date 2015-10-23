@@ -8,7 +8,7 @@ module Libis
   module Ingester
 
     class DavDossier < Libis::Ingester::IntellectualEntity
-      include Libis::Workflow::DirItem
+      include Libis::Workflow::Base::DirItem
 
       def filepath
         ''

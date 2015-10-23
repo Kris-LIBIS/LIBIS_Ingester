@@ -10,12 +10,16 @@ module Libis
 
       field :name, type: String
       field :ar_id, type: String
+      field :ar_description, type: String
       field :watermark, type: String
+
+      index({name: 1}, {unique: true})
 
       def info
         {
             name: self.name,
             ar_id: self.ar_id,
+            ar_description: self.ar_description,
             watermark: self.watermark,
         }.cleanup
       end

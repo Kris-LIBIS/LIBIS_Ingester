@@ -26,9 +26,9 @@ Gem::Specification.new do |gem|
 
   gem.add_runtime_dependency 'libis-tools', '~> 0.9'
   gem.add_runtime_dependency 'libis-format', '~> 0.9'
-  gem.add_runtime_dependency 'libis-services', '~> 0.0.1'
+  gem.add_runtime_dependency 'libis-services', '~> 0.0'
   gem.add_runtime_dependency 'libis-workflow-mongoid', '~> 2.0.beta'
-  gem.add_runtime_dependency 'mongoid-enum', '~> 0.2'
+  # gem.add_runtime_dependency 'mongoid-enum', '~> 0.3'
   gem.add_runtime_dependency 'rubyzip', '~> 1.1'
 
   gem.add_development_dependency 'bundler', '~> 1.7'

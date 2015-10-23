@@ -29,15 +29,17 @@ module Libis
             group = Libis::Ingester::Division.new
             group.name = group_label
             group.parent = item.parent if item.parent
+            # noinspection RubyResolve
             group.run = item.run if item.run
             group.save
             debug 'Created new group: %s', group_label
           end
+          new_name = parameter(:file_label) ? eval(parameter(:file_label)) : item.name
+          debug 'Adding to group %s as %s', group.name, new_name
+          item.name = new_name
           item.parent = group
-          item.run = nil
           # noinspection RubyResolve
-          item.name = eval(parameter(:file_label)) if parameter(:file_label)
-          debug 'File name: %s', item.name
+          item.run = nil
         end
       end
 

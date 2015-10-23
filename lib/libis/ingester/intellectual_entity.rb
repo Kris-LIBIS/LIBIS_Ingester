@@ -22,6 +22,17 @@ module Libis
         self.items.select { |item| item.is_a? ::Libis::Ingester::Representation }
       end
 
+      def representation(name_or_id)
+        representations.each do |representation|
+          return representation if name_or_id == representation.id or name_or_id == representation.name
+        end
+        nil
+      end
+
+      def originals
+        self.items.select { |item| !(item.is_a? ::Libis::Ingester::Representation) }
+      end
+
     end
 
   end

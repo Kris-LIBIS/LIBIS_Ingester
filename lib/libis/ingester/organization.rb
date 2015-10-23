@@ -8,10 +8,10 @@ module Libis
 
     class Organization
       include Libis::Workflow::Mongoid::Base
-      store_in collection: 'oranizations'
+      store_in collection: 'organizations'
 
       field :name
-      field :institution_code
+      field :code
 
       has_many :ingest_models, class_name: Libis::Ingester::IngestModel.to_s, inverse_of: :organization,
                dependent: :destroy, autosave: true, order: :created_at.asc

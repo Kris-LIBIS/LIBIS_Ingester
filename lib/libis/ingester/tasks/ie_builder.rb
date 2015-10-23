@@ -11,36 +11,30 @@ module Libis
 
       parameter recursive: true
 
-      def pre_process(item)
+      def pre_process(_)
         ingest_model_name = parameter(:ingest_model) || 'default'
         @ingest_model ||= ::Libis::Ingester::IngestModel.find_by(name: ingest_model_name)
         raise WorkflowError, 'Ingest model %s not found.' % ingest_model_name unless @ingest_model
       end
 
       def process(item)
-        item_list = nil
-        destroy_self = false
-        case item
-          when ::Libis::Ingester::Division
-            destroy_self = true
-            item_list = item.items
-          when ::Libis::Ingester::FileItem
-            #nothing
-          else
-            return
-        end
+
         # Check if there exists an IE somewhere up the hierarchy
-        ie = get_ie(item)
-        unless ie
-          ie = create_ie(item, item.parent || item.run, item_list)
-          if destroy_self
-            item.parent = nil
-            # noinspection RubyResolve
-            item.run = nil
+        return if get_ie(item)
+
+        case item
+          when Libis::Ingester::FileItem
+            ie = create_ie(item)
+            # FileItem objects are added to the IE
+            ie << item
+          when ::Libis::Ingester::Division
+            ie = create_ie(item)
+            # Division objects are replaced with the IE
+            item.items.each { |i| ie << i }
             item.destroy
-            # required for the task to be able to continue it's processing
-            self.workitem = ie
-          end
+            return ie
+          else
+            # do nothing
         end
 
       end
@@ -50,29 +44,29 @@ module Libis
       def get_ie(for_item)
         for_item.ancestors.select do |i|
           i.is_a? ::Libis::Ingester::IntellectualEntity
-        end.first
+        end.first rescue nil
       end
 
-      def create_ie(item, parent, children = nil)
+      def create_ie(item)
+        # Create an the IE for this item
+        debug "Creating new IE for item #{item.name}"
         ie = ::Libis::Ingester::IntellectualEntity.new
         ie.name = item.name
-        parent << ie
-        rep = ::Libis::Ingester::Representation.new
-        rep.name = 'Archiefkopie'
-        rep.representation_info = ::Libis::Ingester::RepresentationInfo.find_by(name: 'ARCHIVE')
+
+        # Substitute the IE for the item
+        (item.parent || item.run) << ie
+
+        # detach the item from it's parent
+        item.parent = nil
+
+        # detach the item from the run
         # noinspection RubyResolve
-        children.nil? ? (item.parent = rep; item.run = nil) : children.each { |c| c.parent = rep }
-        rep.parent = ie
-        ie.save
+        item.run = nil
+
+        # returns the newly created IE
         ie
       end
 
-      def get_archive_rep(ie)
-        ie.representations.select do |rep|
-          # noinspection RubyResolve
-          rep.representation_info.preservation_type == 'PRESERVATION_MASTER'
-        end.first
-      end
 
     end
 

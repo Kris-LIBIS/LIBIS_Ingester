@@ -7,7 +7,7 @@ module Libis
   module Ingester
 
     class FileItem < Libis::Ingester::Item
-      include Libis::Workflow::FileItem
+      include Libis::Workflow::Base::FileItem
 
       field :entity_type
 

@@ -12,14 +12,14 @@ require 'libis/ingester'
 SIPDIR = File.absolute_path(File.join(File.dirname(__FILE__), '..', 'data', 'SIP'))
 
 def get_flow
-  @dav_mets = Libis::Ingester::Flow.find_by(name: 'DAVIngestMETS2')
+  @dav_mets = Libis::Ingester::Workflow.find_by(name: 'DAVIngestMETS2')
 end
 
 def setup_flow
-  # Libis::Ingester::Flow.each { |wf| wf.destroy }
+  # Libis::Ingester::Workflow.each { |wf| wf.destroy }
   get_flow
   return unless @dav_mets.nil?
-  @dav_mets = Libis::Ingester::Flow.new
+  @dav_mets = Libis::Ingester::Workflow.new
   @dav_mets.configure(
       name: 'DAVIngestMETS2',
       description: 'DAV Ingest into METS structure.',

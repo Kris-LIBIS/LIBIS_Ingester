@@ -7,7 +7,7 @@ module Libis
   module Ingester
 
     class DirItem < ::Libis::Ingester::Item
-      include Libis::Workflow::DirItem
+      include Libis::Workflow::Base::DirItem
 
       def files
         self.items.select { |item| item.is_a? FileItem }

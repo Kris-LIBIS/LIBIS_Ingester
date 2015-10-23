@@ -7,6 +7,9 @@ module Libis
 
     class Collection < ::Libis::Ingester::Item
 
+      field :navigate, type: Boolean, default: true
+      field :publish, type: Boolean, default: false
+
       def filename=(f)
         self.properties[:name] = File.basename(f)
       end

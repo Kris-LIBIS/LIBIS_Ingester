@@ -9,10 +9,8 @@ module Libis
       include ::Libis::Workflow::Mongoid::Run
 
       store_in collection: 'ingest_runs'
-      workflow_class Libis::Ingester::Flow.to_s
+      workflow_class Libis::Ingester::Workflow.to_s
       item_class Libis::Ingester::Item.to_s
-
-      has_one :ingest_model, class_name: ::Libis::Ingester::IngestModel.to_s
 
       def name
         self.workflow.name + self.start_date.strftime('_%Y%m%dT%H%M%S')

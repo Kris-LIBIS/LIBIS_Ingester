@@ -51,12 +51,12 @@ module Libis
               collect(item, file)
             when 'collection'
               child = Libis::Ingester::Collection.new
-              child.extend Libis::Workflow::DirItem
+              child.extend Libis::Workflow::Base::DirItem
               child.filename = file
               collect(child, file)
             when 'complex'
               child = Libis::Ingester::Division.new
-              child.extend Libis::Workflow::DirItem
+              child.extend Libis::Workflow::Base::DirItem
               child.filename = file
               collect(child, file)
             else

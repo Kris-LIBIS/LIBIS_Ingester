@@ -25,11 +25,12 @@ module Libis
       field :user_b
       field :user_c
       field :status
-      field :access_right
-      field :retention_period
+
+      belongs_to :access_right, class_name: Libis::Ingester::AccessRight.to_s, inverse_of: nil
+      belongs_to :retention_period, class_name: Libis::Ingester::RetentionPeriod.to_s, inverse_of: nil
+      belongs_to :organization, class_name: Libis::Ingester::Organization.to_s, inverse_of: :ingest_models
 
       embeds_many :manifestations, class_name: Libis::Ingester::Manifestation.to_s
-      belongs_to :organization, class_name: Libis::Ingester::Organization.to_s, inverse_of: :ingest_models
 
       validates :producer, presence: true, allow_nil: false
       validates :name, presence: true, allow_nil: false
@@ -48,7 +49,12 @@ module Libis
             group_label: self.group_label,
             group_file: self.group_file,
             entity_type: self.entity_type,
-            retention_period: self.retention_period,
+            user_a: self.user_a,
+            user_b: self.user_b,
+            user_c: self.user_c,
+            status: self.status,
+            access_right: (self.access_right.info rescue nil),
+            retention_period: (self.retention_period.info rescue nil),
             manifestations: (self.manifestations.map(&:info) rescue nil),
         }.cleanup
       end

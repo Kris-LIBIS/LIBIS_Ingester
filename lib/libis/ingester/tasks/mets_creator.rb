@@ -1,22 +1,21 @@
 # encoding: utf-8
-require 'pathname'
-
+require 'fileutils'
 require 'libis/ingester'
 
 module Libis
   module Ingester
 
-    class IngestBuilder < Libis::Ingester::Task
+    class MetsCreator < Libis::Ingester::Task
 
       parameter ingest_model: nil,
                 description: 'Ingest model name for the configuration of the IE building process.'
-      parameter ingest_dir: '/nas/vol04/ingest',
+      parameter ingest_dir: nil,
                 description: 'Directory where the ingest files are to be created.'
       parameter collection: nil,
                 description: 'Existing collection to add the documents to.'
 
-      parameter subitems: false
-      parameter recursive: false
+      parameter subitems: false, frozen: true
+      parameter recursive: false, frozen: true
 
       def process(item)
 
@@ -27,11 +26,12 @@ module Libis
         raise WorkflowError, 'Ingest model %s not found.' % ingest_model_name unless @ingest_model
 
         raise RuntimeError, 'No location given.' unless parameter(:ingest_dir)
-        @ingest_dir = Pathname.new(parameter(:ingest_dir)) + item.name
+        ingest_dir = File.join(parameter(:ingest_dir), item.name)
+        item.properties[:ingest_dir] = ingest_dir
 
-        debug "Preparing ingest in #{@ingest_dir}.", item
-        @ingest_dir.mkpath
-        @ingest_dir.rmtree
+        debug "Preparing ingest in #{ingest_dir}.", item
+        FileUtils.mkpath ingest_dir
+        FileUtils.rmtree ingest_dir
 
         item.items.each { |i| create_item(i) }
 
@@ -52,21 +52,20 @@ module Libis
 
       # noinspection RubyResolve
       def create_ie(item)
-        @ie_dir = @ingest_dir + "#{item._id}.#{item.name}"
-
-        item.properties[:ingest_sub_dir] = @ie_dir.relative_path_from(Pathname.new(parameter(:ingest_dir))).to_s
+        item.properties[:ingest_sub_dir] = "#{item._id}.#{item.name}"
         item.save
 
         mets = Libis::Tools::MetsFile.new
-        dc_record = Libis::Tools::DCRecord.new do |xml|
+        dc_record = Libis::Tools::Metadata::DublinCoreRecord.new do |xml|
           xml[:dc].title item.name
         end
 
-        collection_path = ''
-        collection_path = parameter(:collection) + '/' if parameter(:collection)
-        dc_record.isPartOf = collection_path + item.ancestors.select do |i|
+        collection_list = item.ancestors.select do |i|
           i.is_a? Libis::Ingester::Collection
-        end.reverse.map(&:name).join('/')
+        end.map(&:name)
+        collection_list << parameter(:collection) if parameter(:collection)
+
+        dc_record.isPartOf = collection_list.reverse.join('/')
 
         mets.dc_record = dc_record.root.to_xml
 
@@ -86,31 +85,33 @@ module Libis
 
         mets.amd_info = amd
 
-        item.representations.each { |rep| add_rep(mets, rep) }
+        ie_ingest_dir = File.join(item.get_run.properties[:ingest_dir], item.properties[:ingest_sub_dir])
 
-        mets_filename = @ie_dir + 'content' + "#{item.name}.xml"
-        mets.xml_doc.save mets_filename.to_s
+        item.representations.each { |rep| add_rep(mets, rep, ie_ingest_dir) }
+
+        mets_filename = File.join(ie_ingest_dir, 'content', "#{item.name}.xml")
+        mets.xml_doc.save mets_filename
 
         debug "Created METS file '#{mets_filename}'.", item
       end
 
-      def add_rep(mets, item)
+      def add_rep(mets, item, ie_ingest_dir)
 
         rep = mets.representation(label: item.representation_info.info.compact)
         div = mets.div label: item.parent.name
         mets.map(rep, div)
 
-        add_children(mets, rep, div, item)
+        add_children(mets, rep, div, item, ie_ingest_dir)
 
       end
 
-      def add_children(mets, rep, div, item)
-        item.divisions.each { |d| div << add_children(mets, rep, mets.div(d.name), d) }
-        item.files.each { |f| div << add_file(mets, rep, f) }
+      def add_children(mets, rep, div, item, ie_ingest_dir)
+        item.divisions.each { |d| div << add_children(mets, rep, mets.div(d.name), d, ie_ingest_dir) }
+        item.files.each { |f| div << add_file(mets, rep, f, ie_ingest_dir) }
         div
       end
 
-      def add_file(mets, rep, item)
+      def add_file(mets, rep, item, ie_ingest_dir)
         file = mets.file(
             label: item.name,
             location: item.filepath,
@@ -121,14 +122,14 @@ module Libis
         file.representation = rep
 
         # copy file to stream
-        stream_dir = @ie_dir + 'content' + 'streams'
-        stream_dir.mkpath
-        target_path = stream_dir + file.target
+        stream_dir = File.join(ie_ingest_dir, 'content', 'streams')
+        FileUtils.mkpath stream_dir
+        target_path = File.join(stream_dir, file.target)
         FileUtils.copy_entry(item.fullpath, target_path)
         debug "Copied file to #{target_path}.", item
 
         if item.metadata && item.metadata.format == 'DC'
-          dc = Libis::Tools::DCRecord.parse item.metadata.data
+          dc = Libis::Tools::Metadata::DublinCoreRecord.parse item.metadata.data
           file.dc_record = dc.root.to_xml
         end
 
