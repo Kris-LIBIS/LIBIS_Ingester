@@ -11,12 +11,7 @@ module Libis
       field :name, type: String
       field :rp_id, type: String
 
-      def info
-        {
-            name: self.name,
-            rp_id: self.rp_id,
-        }.cleanup
-      end
+      index({name: 1}, {unique: true})
 
     end
 

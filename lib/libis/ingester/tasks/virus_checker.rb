@@ -8,23 +8,22 @@ module Libis
 
       class VirusChecker < ::Libis::Ingester::Task
 
+        parameter item_types: [Libis::Ingester::FileItem], frozen: true
+
+        def pre_process(item)
+          super
+          skip_processing_item if item.options[:virus_check]
+        end
+
         def process(item)
 
-          return unless item_type? ::Libis::Ingester::FileItem, item
-          return unless item.options[:filename]
-
-          if item.options[:virus_check]
-            debug 'Skipping file. Already checked.'
-            return
-          end
-
-          debug 'Scanning file for virusses'
+          debug 'Scanning file for viruses'
 
           # noinspection RubyResolve
           cmd_options = Config.virusscanner[:options]
           # noinspection RubyResolve
           result = Libis::Tools::Command.run Config.virusscanner[:command], *cmd_options, item.fullpath
-          raise WorkflowError, "Error during viruscheck: #{result[:err]}" unless result[:status]
+          raise Libis::WorkflowError, "Error during viruscheck: #{result[:err]}" unless result[:status]
 
           item.options[:virus_check] = true
           info 'File is clean'

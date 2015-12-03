@@ -33,6 +33,8 @@ module Libis
                 constraint: %w[AR_EVERYONE 361545 361546 361547],
                 description: 'IE Access Right MID.'
 
+      protected
+
       def process(item)
         check_item_type ::Libis::Ingester::Run, item
 
@@ -48,6 +50,8 @@ module Libis
         item.items.map { |i| process_dossier(i) }
 
       end
+
+      private
 
       def process_dossier(item)
 
@@ -107,9 +111,9 @@ module Libis
             when Libis::Ingester::FileItem
               file = process_file(child)
               file.representation = rep
-              div << file
+              file.parent = div
             when Libis::Ingester::DirItem
-              div << process_children(child, rep, @mets.div(label: child.name))
+              process_children(child, rep, @mets.div(label: child.name)).parent = div
             else
               # do nothing
           end
@@ -135,8 +139,9 @@ module Libis
         FileUtils.copy_entry(item.fullpath, target_path)
         debug "Copied file to #{target_path}.", item
 
-        if item.metadata && item.metadata.format == 'DC'
-          dc = Libis::Tools::DCRecord.parse item.metadata.data
+        # noinspection RubyResolve
+        if item.metadata_record && item.metadata_record.format == 'DC'
+          dc = Libis::Tools::DublinCoreRecord.parse item.metadata_record.data
           file.dc_record = dc.root.to_xml
         end
 

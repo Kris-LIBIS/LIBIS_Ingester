@@ -14,6 +14,8 @@ module Libis
       parameter location: nil,
                 description: 'Dir location to scan for RMT files.'
 
+      protected
+
       def process(item)
         check_item_type ::Libis::Ingester::Run, item
 
@@ -28,6 +30,8 @@ module Libis
           process_file(dirname, File.basename(filename), item) if File.file?(filename)
         end
       end
+
+      private
 
       def process_dir(dirname, parent)
         Dir.entries(dirname).select do |file|
@@ -44,7 +48,7 @@ module Libis
       def process_rmt(dir, file, ingest_run)
         dossier = Libis::Ingester::DavDossier.new
         dossier.filename = dir
-        ingest_run << dossier
+        dossier.parent = ingest_run
 
         info = Libis::Tools::XmlDocument.open(File.join(dir,file)).to_hash['RMT_metadata']
         dossier.name = info['folder']['name'].to_s
@@ -53,7 +57,7 @@ module Libis
 
         file_item = Libis::Ingester::FileItem.new
         file_item.filename = File.join(dir, file)
-        dossier << file_item
+        file_item.parent = dossier
 
         objects = info.delete('informationObjects')
 
@@ -98,7 +102,7 @@ module Libis
         checksum_type = checksum.attributes['algorithm'].gsub('-', '')
         file_item.set_checksum(checksum_type, checksum)
         file_item.properties[:rmt_info] = object
-        parent << file_item
+        file_item.parent = parent
 
         # set file's original creation and modification dates
         ctime = object['algemeen']['datumcreatie']
@@ -107,8 +111,8 @@ module Libis
 
         # create file's metadata record
         file_item.properties[:rmt_info] = object
-        file_item.metadata = Libis::Ingester::MetadataRecord.new
-        dc_record = Libis::Tools::DCRecord.new do |xml|
+        file_item.metadata_record = Libis::Ingester::MetadataRecord.new
+        dc_record = Libis::Tools::DublinCoreRecord.new do |xml|
           xml[:dc].title filename
           if object['beschrijvendeMetadata']
             if object['beschrijvendeMetadata']['auteurs'] && !object['beschrijvendeMetadata']['auteurs'].empty?
@@ -123,8 +127,8 @@ module Libis
             end
           end
        end
-        file_item.metadata.data = dc_record.root.to_xml
-        file_item.metadata.format = 'DC'
+        file_item.metadata_record.data = dc_record.root.to_xml
+        file_item.metadata_record.format = 'DC'
 
         debug "File added: #{file_item.namepath}."
 
@@ -135,7 +139,7 @@ module Libis
       def create_dir_item(name, parent)
         dir_item = Libis::Ingester::DirItem.new
         dir_item.filename = name
-        parent << dir_item
+        dir_item.parent = parent
         dir_item.save!
         dir_item
       end

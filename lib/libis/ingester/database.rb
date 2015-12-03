@@ -1,4 +1,5 @@
 require 'libis/ingester'
+require 'libis/tools/extend/hash'
 
 module Libis
   module Ingester
@@ -13,59 +14,31 @@ module Libis
       end
 
       def clear
+        ::Libis::Ingester::Run.destroy_all
         Mongoid.purge!
         self
       end
 
       def setup(cfg_dir = nil)
-        ::Libis::Ingester::Item.create_indexes
+        ::Libis::Ingester::User.create_indexes
         ::Libis::Ingester::Organization.create_indexes
-        ::Libis::Ingester::Account.create_indexes
-        ::Libis::Ingester::IngestModel.create_indexes
         ::Libis::Ingester::AccessRight.create_indexes
-        ::Libis::Ingester::Workflow.create_indexes
         ::Libis::Ingester::RepresentationInfo.create_indexes
+        ::Libis::Ingester::IngestModel.create_indexes
+        ::Libis::Ingester::Workflow.create_indexes
+        ::Libis::Ingester::Job.create_indexes
         ::Libis::Ingester::Run.create_indexes
-        Seed.new(cfg_dir || File.join(Libis::Ingester::ROOT_DIR, 'db', 'data')).
-            organizations.
-            accounts.
-            access_right.
-            representation_info.
-            ingest_model.
-            workflows
+        ::Libis::Ingester::Item.create_indexes
+        Seed.new(cfg_dir || File.join(Libis::Ingester::ROOT_DIR, 'db', 'data')).load_data
         self
       end
 
-      def self.access_right(ar_name)
-        if ar_name
-          ar = Libis::Ingester::AccessRight.find_by(name: ar_name)
-          return ar if ar
-          warn 'Could not find access right \'%s\'', ar_name
-        end
-        Libis::Ingester::AccessRight.find_by(name: 'public')
-      end
-
-      def self.retention_period(rp_name)
-        return nil unless rp_name
-        rp = Libis::Ingester::RetentionPeriod.find_by(name: rp_name)
-        return rp if rp
-        warn 'Could not find retention_period \'%s\'', rp_name
-        nil
-      end
-
-      def self.representation_info(rep_info_name)
-        rep_info = Libis::Ingester::RepresentationInfo.find_by(name: rep_info_name)
-        return rep_info if rep_info
-        warn 'Could not find representation info \'%s\'', rep_info_name
-        nil
-      end
-
-      def self.manifestation(mf_name, in_ingest_model)
-        return nil unless mf_name
-        mf = in_ingest_model.manifestations.find_by(name: mf_name)
-        return mf if mf
-        warn 'Could not find manifestation \'%s\' in ingest_model \'%s\'', mf_name, in_ingest_model.name
-        nil
+      def self.find_by_name(object, name)
+        return nil unless name
+        klass = object if object.is_a?(Class)
+        klass ||= "::Libis::Ingester::#{object.to_s.classify}".constantize
+        klass.find_by(name: name) ||
+            warn("Could not find %s '%s'" % [klass.to_s.split('::').last.underscore.humanize.downcase, name])
       end
 
       class Seed
@@ -74,6 +47,68 @@ module Libis
 
         def initialize(dir)
           @datadir = File.absolute_path(dir)
+        end
+
+        # noinspection RubyResolve
+        def load_data
+          load_organization
+          load_user(id_tag: [:user_id]) do |item, cfg|
+            (cfg.delete('organizations') || []).each do |org_name|
+              # noinspection RubyResolve
+              item.organizations << find_object(:organization, org_name)
+            end
+          end
+          load_access_right
+          load_retention_period
+          load_representation_info
+          load_ingest_model do |item, cfg|
+            item.access_right = find_object :access_right, cfg.delete('access_right')
+            item.retention_period = find_object :retention_period, cfg.delete('retention_period')
+            (cfg.delete('manifestations') || []).each do |mf_cfg|
+              create_item(item.manifestations, mf_cfg, [:name]) do |mf, cfg_mf|
+                mf.access_right = find_object :access_right, cfg_mf.delete('access_right')
+                mf.representation_info = find_object :representation_info, cfg_mf.delete('representation')
+                (cfg_mf.delete('convert') || []).each do |cv_cfg|
+                  create_item(mf.convert_infos, cv_cfg, [:source_formats])
+                end
+              end
+            end
+          end
+          load_workflow do |item, cfg|
+            item.configure(cfg.to_hash.key_strings_to_symbols(recursive: true))
+            cfg.clear
+          end
+          load_job do |item, cfg|
+            item.workflow = find_object :workflow, cfg.delete('workflow')
+            item.ingest_model = find_object :ingest_model, cfg.delete('ingest_model')
+            item.organization = find_object :organization, cfg.delete('organization')
+          end
+        end
+
+        private
+
+        def find_object(object, name)
+          ::Libis::Ingester::Database.find_by_name(object, name)
+        end
+
+        def method_missing(name, *args, &block)
+          if name =~ /^load_(.*)$/
+            options = {
+                postfix: $1.to_sym,
+                klass: "Libis::Ingester::#{$1.classify}".constantize,
+                id_tag: [:name]
+            }
+            options.merge!(args[0]) if args[0] && args[0].is_a?(Hash)
+            load_config options, &block
+          else
+            super
+          end
+        end
+
+        def load_config(options = {}, &block)
+          each_config(options[:postfix]) do |cfg|
+            create_item(options[:klass], cfg, options[:id_tag], &block)
+          end
         end
 
         def each_config(postfix)
@@ -91,50 +126,11 @@ module Libis
           self
         end
 
-        def load_config(postfix, klass, id_tag)
-          each_config(postfix) do |cfg|
-            item = klass.find_or_initialize_by(cfg.select { |k, _| id_tag.include?(k.to_sym) })
-            yield item, cfg if block_given?
-            item.update_attributes(cfg)
-            item.save!
-          end
-        end
-
-        def organizations
-          load_config(:organization, ::Libis::Ingester::Organization, [:name])
-        end
-
-        def accounts
-          load_config(:account, ::Libis::Ingester::Account, [:user_id])
-        end
-
-        def access_right
-          load_config(:access_right, ::Libis::Ingester::AccessRight, [:name])
-        end
-
-        def representation_info
-          load_config(:representation_info, ::Libis::Ingester::RepresentationInfo, [:name])
-        end
-
-        # noinspection RubyResolve
-        def ingest_model
-          load_config(:ingest_model, ::Libis::Ingester::IngestModel, [:name]) do |item, cfg|
-            item.access_right = Libis::Ingester::Database.access_right(cfg.delete('access_right'))
-            item.retention_period = Libis::Ingester::Database.retention_period(cfg.delete('retention_period'))
-            (cfg.delete('manifestations') || []).each do |mf_cfg|
-                mf = item.manifestations.find_or_initialize_by(name: mf_cfg[:name])
-                mf.access_right = Libis::Ingester::Database.access_right(mf_cfg.delete('access_right'))
-                mf.representation_info = Libis::Ingester::Database.representation_info(mf_cfg.delete('representation'))
-                (mf_cfg.delete('convert') || []).each do |convert_cfg|
-                  mf.convert_infos.find_or_initialize_by(convert_cfg)
-                end
-                mf.update_attributes(mf_cfg)
-            end
-          end
-        end
-
-        def workflows
-          load_config(:workflow, ::Libis::Ingester::Workflow, [:name])
+        def create_item(klass, cfg, id_tag, &block)
+          item = klass.find_or_initialize_by(cfg.select { |k, _| id_tag.include?(k.to_sym) })
+          block.call(item, cfg) if block
+          item.update_attributes(cfg)
+          item.save!
         end
 
       end

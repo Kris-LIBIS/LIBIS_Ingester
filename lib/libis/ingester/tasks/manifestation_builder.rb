@@ -1,7 +1,9 @@
 # encoding: utf-8
 require 'fileutils'
 require 'libis/ingester'
+
 require 'libis-format'
+Libis::Format::Converter::Repository.get_converters
 
 require 'libis/tools/extend/hash'
 
@@ -10,22 +12,18 @@ module Libis
 
     class ManifestationBuilder < Libis::Ingester::Task
 
-      parameter ingest_model: nil,
-                description: 'Ingest model name for the configuration of manifestations.'
+      parameter subitems: true, frozen: true
+      parameter recursive: true, frozen: true
 
-      parameter recursive: true
+      parameter item_types: [Libis::Ingester::IntellectualEntity], frozen: true
+
+      protected
 
       # noinspection RubyResolve
       def process(item)
 
-        return unless item.is_a? Libis::Ingester::IntellectualEntity
-
-        ingest_model_name = parameter(:ingest_model) || 'default'
-        ingest_model ||= ::Libis::Ingester::IngestModel.find_by name: ingest_model_name
-        raise WorkflowError, 'Ingest model %s not found.' % ingest_model_name unless ingest_model
-
         # Build all manifestations
-        ingest_model.manifestations.each do |manifestation|
+        item.get_run.ingest_model.manifestations.each do |manifestation|
           debug 'Building manifestation %s', manifestation.representation_info.name
           rep = Libis::Ingester::Representation.new
           rep.representation_info = manifestation.representation_info
@@ -33,19 +31,25 @@ module Libis
           rep.name = manifestation.name
           rep.label = manifestation.label
           rep.parent = item
-          rep.save
           build_manifestation(rep, manifestation)
+          rep.save
         end
 
+        stop_processing_subitems
+
       end
+
+      private
 
       # noinspection RubyResolve
       def build_manifestation(representation, manifestation)
 
-        # special case: no conversion info means to copy the original files. This is typically the preservation master.
+        @processed_files = Set.new
+
+        # special case: no conversion info means to move the original files. This is typically the preservation master.
         if manifestation.convert_infos.empty?
           representation.parent.originals.each do |original|
-            copy_file(original, representation)
+            move_file(original, representation)
           end
           return
         end
@@ -59,8 +63,8 @@ module Libis
           from_manifestation = convert_info.from_manifestation &&
               manifestation.ingest_model.manifestations.find_by(name: convert_info.from_manifestation)
           source = from_manifestation &&
-              representation.parent.representation(from_manifestation.representation_info.name)
-          source_items = source && source.items || representation.parent.originals
+              representation.parent.representation(from_manifestation.name)
+          source_items = source && source.items.dup || representation.parent.originals
 
           info = convert_info.info
           info[:name] = representation.name
@@ -69,6 +73,9 @@ module Libis
             when 'assemble_images'
               # The image assembly generator
               assemble_images source_items, representation, info
+            when 'assemble_pdf'
+              # The PDF assembly generator
+              assemble_pdf source_items, representation, info
             else
               # No generator - convert each source file according to the specifications
               source_items.each do |item|
@@ -78,16 +85,47 @@ module Libis
         end
       end
 
+      def move_file(file, to_parent)
+        debug "Moving '#{file.name}' to '#{parent.name}'"
+        file.parent = to_parent
+        file.save!
+        if file.is_a?(Libis::Ingester::FileItem)
+          @processed_files << file.id
+          register_file(file)
+        end
+      end
+
       def copy_file(file, to_parent)
+        debug "Copying '#{file.name}' to '#{parent.name}'"
         new_file = file.dup
         new_file.parent = to_parent
         new_file.save!
-        file.items.each {|item| copy_file(item, new_file)}
+        if file.is_a?(Libis::Ingester::FileItem)
+          @processed_files << file.id
+          register_file(new_file)
+        end
+        file.items.each { |item| copy_file(item, new_file) }
       end
 
       def assemble_images(items, representation, info)
+        assemble(
+            items, representation, info[:source_formats],
+            "#{representation.parent.name}_#{info[:name]}." +
+                "#{Libis::Format::TypeDatabase.type_extentions(info[:target_format].to_sym).first}"
+        ) do |sources, new_file|
+          Libis::Format::Converter::ImageConverter.new.
+              assemble_and_convert(sources, new_file, info[:target_format])
+        end
+      end
 
-        sources = items.map do |item|
+      def assemble_pdf(items, representation, info)
+        assemble(items, representation, [:PDF], "#{representation.parent.name}_#{info[:name]}.pdf") do |sources, new_file|
+          Libis::Format::PdfMerge.run(sources, new_file)
+        end
+      end
+
+      def assemble(items, representation, formats, name)
+        source_files = items.map do |item|
           # Collect all files from the list of items
           case item
             when Libis::Ingester::FileItem
@@ -97,40 +135,35 @@ module Libis
             else
               nil
           end
-        end.flatten.compact.select do |file|
-          # Check if the file format fits the requirements
-          next(true) if info[:source_formats].nil? || info[:source_formats].empty?
-          mimetype = file.properties[:mimetype]
-          next(false) unless mimetype
-          type_id = Libis::Format::TypeDatabase.mime_types(mimetype).first
-          next(false) unless type_id
-          group = Libis::Format::TypeDatabase.type_group(type_id)
-          next(false) if (info[:source_formats] & [type_id.to_sym, type_id.to_s, group.to_sym, group.to_s]).empty?
-          true
-        end.map { |file| file.fullpath }
+        end.flatten.compact.reject do |file|
+          @processed_files.include?(file.id)
+        end.select do |file|
+          match_file(file, formats)
+        end
+
+        sources = source_files.map { |file| file.fullpath }
 
         return if sources.empty?
-
-        generator = Libis::Format::Converter::ImageConverter.new
-
-        # TODO: apply options to the converter.
-        # Something like:
-        # generator.apply_options(info[:options])
 
         new_file = File.join(
             representation.get_run.work_dir,
             representation.parent.id.to_s,
-            "#{info[:name]}.#{Libis::Format::TypeDatabase.type_extentions(info[:target_format].to_sym).first}"
+            name
         )
 
         FileUtils.mkpath(File.dirname(new_file))
 
-        generator.assemble_and_convert(sources, new_file , info[:target_format] || :TIFF)
+        debug "Building '#{new_file}' for '#{representation.name}' from #{sources.count} source files"
+        yield sources, new_file
+
+        source_files.each { |file| @processed_files << file.id }
 
         assembly = Libis::Ingester::FileItem.new
         assembly.filename = new_file
         assembly.parent = representation
+        register_file(assembly)
         assembly.save!
+        assembly
       end
 
       def convert(item, new_parent, info)
@@ -140,55 +173,93 @@ module Libis
             div = item.dup
             div.parent = new_parent
             div.save!
-            item.items.each { |child| convert(child, div, info)}
+            item.items.each { |child| convert(child, div, info) }
 
           when Libis::Ingester::FileItem
+
+            return if @processed_files.include?(item.id)
+
             mimetype = item.properties[:mimetype]
-            raise WorkflowError, 'File item %s format not identified.' % item unless mimetype
+            raise Libis::WorkflowError, 'File item %s format not identified.' % item unless mimetype
 
             type_id = Libis::Format::TypeDatabase.mime_types(mimetype).first
-            raise WorkflowError, 'File item %s format (%s) is not supported.' % [item, mimetype] unless type_id
+            raise Libis::WorkflowError, 'File item %s format (%s) is not supported.' % [item, mimetype] unless type_id
 
-            unless info[:source_formats].nil? || info[:source_formats].empty?
+            unless info[:source_formats].blank?
               group = Libis::Format::TypeDatabase.type_group(type_id)
-              return if (info[:source_formats] & [type_id.to_sym, type_id.to_s, group.to_sym, group.to_s]).empty?
+              check_list = [type_id, group].compact.map { |v| [v.to_s, v.to_sym] }.flatten
+              return if (info[:source_formats] & check_list).empty?
             end
 
-
             options = info[:options]
+            if options[:copy_file]
+              return copy_file(item, new_parent)
+            end
+
+            if options[:move_file]
+              return move_file(item, new_parent)
+            end
+
             options.key_strings_to_symbols!(recursive: true, downcase: true) if options && options.is_a?(Hash)
             converter = Libis::Format::Converter::Repository.get_converter_chain(
                 type_id, info[:target_format].to_sym, options
             )
 
             unless converter
-              raise WorkflowError,
-                    "Could not find converter for #{type_id} -> #{info[:target_format]} with #{info[:options]}"
+              raise Libis::WorkflowError,
+                    "Could not find converter for #{type_id} -> #{info[:target_format]} with #{options}"
             end
-
-            path = item.fullpath
 
             new_file = File.join(
                 item.get_run.work_dir,
                 item.id.to_s,
                 new_parent.id.to_s,
-                "#{File.basename(item.fullpath, '.*')}.#{info[:name]}.#{Libis::Format::TypeDatabase.type_extentions(info[:target_format]).first}"
+                "#{File.basename(item.fullpath, '.*')}.#{info[:name]}." +
+                    "#{Libis::Format::TypeDatabase.type_extentions(info[:target_format]).first}"
             )
-            new_file = converter.convert(path, new_file)
+            new_file = converter.convert(item.fullpath, new_file)
 
             unless new_file
               error 'File conversion failed.'
               return nil
             end
 
+            @processed_files << item.id
+
             new_item = Libis::Ingester::FileItem.new
             new_item.filename = new_file
+            new_item.name = item.name
             new_item.parent = new_parent
+            new_item.properties[:converter] = converter.to_s
+            new_item.properties[:group_id] = item.properties[:group_id] || item.id
+            register_file(new_item)
             new_item.save!
 
           else
             # no action
         end
+      end
+
+      def match_file(file, formats)
+        return true if formats.blank?
+        mimetype = file.properties[:mimetype]
+        type_id = Libis::Format::TypeDatabase.mime_types(mimetype).first
+        group = Libis::Format::TypeDatabase.type_group(type_id.to_s)
+        check_list = [type_id, group].compact.map { |v| [v.to_s, v.to_sym] }.flatten
+        return false if (formats & check_list).empty?
+        true
+      end
+
+      private
+
+      def register_file(new_file)
+        new_file.properties[:group_id] = add_file_to_registry(new_file.name)
+      end
+
+      def add_file_to_registry(name)
+        @file_registry ||= {}
+        return @file_registry[name] if @file_registry.has_key?(name)
+        @file_registry[name] = @file_registry.count + 1
       end
 
     end

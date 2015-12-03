@@ -17,7 +17,7 @@ module Libis
       parameter source_representation: 'ARCHIVE',
                 description: 'Representation with the source images are.'
 
-        parameter target_representation: 'VIEW',
+      parameter target_representation: 'VIEW',
                 description: 'Representation for the assembly.'
 
       parameter access_right: 'public',
@@ -30,19 +30,19 @@ module Libis
         return unless item.is_a? Libis::Ingester::IntellectualEntity
 
         source_rep = item.representations.find { |rep| rep.name == parameter(:source_representation) }
-        raise WorkflowError, 'Representation %s not found.' % parameter(:source_representation) unless source_rep
+        raise Libis::WorkflowError, 'Representation %s not found.' % parameter(:source_representation) unless source_rep
 
         target_rep = item.representations.find { |rep| rep.name == parameter(:target_representation) }
-        raise WorkflowError, 'Representation %s exists.' % parameter(:target_representation) if target_rep
+        raise Libis::WorkflowError, 'Representation %s exists.' % parameter(:target_representation) if target_rep
 
         rep_info = Libis::Ingester::RepresentationInfo.find_by(name: parameter(:target_representation))
-        raise WorkflowError, 'Unknown representation %s.' % parameter(target_rep) unless rep_info
+        raise Libis::WorkflowError, 'Unknown representation %s.' % parameter(target_rep) unless rep_info
 
         target_rep = Libis::Ingester::Representation.new
         target_rep.representation_info = rep_info
 
         ar = Libis::Ingester::AccessRight.find_by(name: parameter(:access_right))
-        raise WorkflowError, 'Unknown access right %s.' % parameter(parameter(:access_right)) unless ar
+        raise Libis::WorkflowError, 'Unknown access right %s.' % parameter(parameter(:access_right)) unless ar
         target_rep.access_right = ar
 
         target_rep.parent = item
@@ -70,6 +70,10 @@ module Libis
         )
 
         generator.assemble_and_convert(files, new_file , parameter(:target_format))
+
+        new_item = Libis::Ingester::FileItem.new
+        new_item.filename = new_file
+        new_item.parent = target_rep
 
       end
 

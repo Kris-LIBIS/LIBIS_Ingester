@@ -9,6 +9,10 @@ module Libis
 
       field :name
       field :label
+      field :entity_type
+      field :user_a
+      field :user_b
+      field :user_c
 
       belongs_to :access_right, class_name: Libis::Ingester::AccessRight.to_s, inverse_of: nil
       belongs_to :representation_info, class_name: Libis::Ingester::RepresentationInfo.to_s, inverse_of: nil
@@ -20,15 +24,6 @@ module Libis
       validates_presence_of :name
       validates_uniqueness_of :name
 
-      def info
-        {
-            name: self.name,
-            label: self.label,
-            access_right: self.access_right && self.access_right.info,
-            representation_info: self.representation_info && self.representation_info.info,
-            convert_infos: self.convert_infos.map { |ci| ci.info }
-        }.cleanup
-      end
     end
 
   end

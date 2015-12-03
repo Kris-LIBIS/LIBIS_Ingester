@@ -5,12 +5,25 @@ require_relative 'ingester/version'
 module Libis
   module Ingester
 
-    autoload :Config, 'libis/ingester/config'
-    autoload :Database, 'libis/ingester/database'
+    autoload :User, 'libis/ingester/user'
+    autoload :Organization, 'libis/ingester/organization'
+    autoload :Job, 'libis/ingester/job'
+
+    autoload :Job, 'libis/ingester/job'
+    autoload :Run, 'libis/ingester/run'
 
     autoload :Workflow, 'libis/ingester/workflow'
-    autoload :Run, 'libis/ingester/run'
     autoload :Task, 'libis/ingester/task'
+
+    autoload :IngestModel, 'libis/ingester/ingest_model'
+    autoload :Manifestation, 'libis/ingester/manifestation'
+    autoload :AccessRight, 'libis/ingester/access_right'
+    autoload :RetentionPeriod, 'libis/ingester/retention_period'
+    autoload :RepresentationInfo, 'libis/ingester/representation_info'
+    autoload :ConvertInfo, 'libis/ingester/convert_info'
+
+    autoload :Config, 'libis/ingester/config'
+    autoload :Database, 'libis/ingester/database'
 
     autoload :Item, 'libis/ingester/item'
     autoload :DirItem, 'libis/ingester/dir_item'
@@ -20,16 +33,6 @@ module Libis
     autoload :IntellectualEntity, 'libis/ingester/intellectual_entity'
     autoload :Division, 'libis/ingester/division'
     autoload :Representation, 'libis/ingester/representation'
-
-    autoload :Organization, 'libis/ingester/organization'
-    autoload :Account, 'libis/ingester/account'
-
-    autoload :IngestModel, 'libis/ingester/ingest_model'
-    autoload :Manifestation, 'libis/ingester/manifestation'
-    autoload :AccessRight, 'libis/ingester/access_right'
-    autoload :RetentionPeriod, 'libis/ingester/retention_period'
-    autoload :RepresentationInfo, 'libis/ingester/representation_info'
-    autoload :ConvertInfo, 'libis/ingester/convert_info'
 
     autoload :MetadataRecord, 'libis/ingester/metadata_record'
 

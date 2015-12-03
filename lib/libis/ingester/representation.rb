@@ -14,8 +14,8 @@ module Libis
       field :name
       field :label
 
-      belongs_to :representation_info, class_name: ::Libis::Ingester::RepresentationInfo.to_s, inverse_of: nil
       belongs_to :access_right, class_name: Libis::Ingester::AccessRight.to_s, inverse_of: nil
+      belongs_to :representation_info, class_name: ::Libis::Ingester::RepresentationInfo.to_s, inverse_of: nil
 
       def files
         self.items.select { |item| item.is_a? FileItem }
@@ -27,6 +27,11 @@ module Libis
 
       def all_files_recursive
         files + divisions.select { |div| div.all_files }.flatten
+      end
+
+      # noinspection RubyResolve
+      def info
+        super.merge(self.representation_info.info).merge(access_right_id: self.access_right.ar_id)
       end
 
     end

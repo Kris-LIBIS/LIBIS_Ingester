@@ -11,9 +11,16 @@ module Libis
       parameter formats: nil,
                 description: 'Format file to load.'
 
-      def process(item)
-        return unless item.is_a? ::Libis::Ingester::FileItem
+      parameter item_types: [Libis::Ingester::FileItem], frozen: true
 
+      protected
+
+      def pre_process(item)
+        super
+        skip_processing_item if item.properties[:mimetype] && item.properties[:puid]
+      end
+
+      def process(item)
         format = Libis::Format::Identifier.get(item.fullpath, formats: parameter(:formats)) rescue {}
 
         mimetype = format[:mimetype]

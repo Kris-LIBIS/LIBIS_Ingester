@@ -9,11 +9,11 @@ module Libis
       include Libis::Workflow::Mongoid::Base
 
       field :ingest_type, type: String, default: 'METS'
-      field :status
       field :entity_type
       field :user_a
       field :user_b
       field :user_c
+      field :status, type: String, default: 'Active'
 
       belongs_to :access_right, class_name: Libis::Ingester::AccessRight.to_s, inverse_of: nil
       belongs_to :retention_period, class_name: Libis::Ingester::RetentionPeriod.to_s, inverse_of: nil
@@ -30,7 +30,15 @@ module Libis
       end
 
       def originals
-        self.items.select { |item| !(item.is_a? ::Libis::Ingester::Representation) }
+        self.items.reject { |item| item.is_a? ::Libis::Ingester::Representation }
+      end
+
+      # noinspection RubyResolve
+      def info
+        super.merge(
+            access_right_id: self.access_right.ar_id,
+            retention_period_id: self.retention_period.rp_id
+        )
       end
 
     end

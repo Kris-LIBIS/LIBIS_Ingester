@@ -11,8 +11,10 @@ module Libis
       store_in collection: 'ingest_items'
       run_class Libis::Ingester::Run.to_s
 
-      embeds_one :metadata, class_name: Libis::Ingester::MetadataRecord.to_s, inverse_of: :item
+      embeds_one :metadata_record, class_name: Libis::Ingester::MetadataRecord.to_s, inverse_of: :item
       has_one :access_right, class_name: Libis::Ingester::AccessRight.to_s, inverse_of: nil
+
+      accepts_nested_attributes_for :metadata_record, :access_right
 
       def name=(value)
         self.properties[:name] = value

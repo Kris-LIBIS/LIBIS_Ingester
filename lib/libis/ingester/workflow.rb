@@ -8,9 +8,13 @@ module Libis
       include Libis::Workflow::Mongoid::Workflow
 
       store_in collection: 'ingest_flows'
-      run_class Libis::Ingester::Run.to_s
 
-      has_one :ingest_model, class_name: ::Libis::Ingester::IngestModel.to_s
+      has_many :jobs, inverse_of: :workflow, class_name: ::Libis::Ingester::Job.to_s
+
+      def workflow_runs
+        # noinspection RubyResolve
+        self.jobs.map {|job| job.runs.all }.flatten
+      end
 
     end
 

@@ -14,12 +14,16 @@ module Libis
       parameter checksum_file: nil,
                 description: 'File with pairs of file names and checksums.'
 
-      def process(item)
-        return unless item.is_a? ::Libis::Ingester::FileItem
+      parameter item_types: [Libis::Ingester::FileItem], frozen: true
 
+      protected
+
+      def process(item)
         check_exists item
         check_checksum item
       end
+
+      private
 
       def check_exists(item)
         raise ::Libis::WorkflowError, "File '#{item.fullpath}' does not exist." unless File.exists? item.fullpath
@@ -74,8 +78,9 @@ module Libis
       def test_checksum(item, checksum_type, expected = nil)
         expected ||= item.checksum(checksum_type)
         checksum = ::Libis::Tools::Checksum.hexdigest(item.fullpath, checksum_type.to_sym)
+        expected ||= item.set_checksum(checksum_type, checksum)
         return if expected == checksum
-        raise ::Libis::WorkflowError, "Calculated #{checksum_type} checksum does not match previously calculated checksum."
+        raise ::Libis::WorkflowError, "Calculated #{checksum_type} checksum does not match expected checksum."
       end
 
 

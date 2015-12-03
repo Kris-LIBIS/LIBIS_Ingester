@@ -1,6 +1,6 @@
 require 'libis-ingester'
 
-def check_data(item, names)
+def check_data(item, names, print_log = false)
   match_count = 0
   if item.respond_to? :namepath
     puts "Check item #{item.namepath}" if print_log
@@ -10,7 +10,7 @@ def check_data(item, names)
     match_count += 1
   end
   if item.items.length > 0
-    item.items.each { |i| match_count += check_data(i, names.select { |name| name =~ /^#{i.namepath}(\/|$)/ }) }
+    item.items.each { |i| match_count += check_data(i, names.select { |name| name =~ /^#{i.namepath}(\/|$)/ }, print_log) }
   end
   puts "check match_count (#{match_count}) against expected (#{names.length}) for #{item.namepath} ..." if print_log
   expect(match_count).to be names.length
@@ -121,23 +121,54 @@ FILE_WITH_IE_COMPLEX = files.lines.map { |line| line.chomp }
 files = <<STR
 - dir_a (2)
 - - dir_a1 (2)
-- - - abc.doc (1)
-- - - - Archiefkopie (1)
+- - - abc.doc (4)
+- - - - abc.doc [application/msword]
+- - - - Archive (1)
 - - - - - abc.doc [application/msword]
-- - - def.doc (1)
-- - - - Archiefkopie (1)
+- - - - HQ view (1)
+- - - - - abc.doc [application/msword]
+- - - - LQ watermarked (1)
+- - - - - abc.doc [application/pdf]
+- - - def.doc (4)
+- - - - def.doc [application/msword]
+- - - - Archive (1)
 - - - - - def.doc [application/msword]
+- - - - HQ view (1)
+- - - - - def.doc [application/msword]
+- - - - LQ watermarked (1)
+- - - - - def.doc [application/pdf]
 - - dir_a2 (2)
-- - - book-abc (1)
-- - - - Archiefkopie (2)
+- - - book-abc (3)
+- - - - page-1 [image/jpeg]
+- - - - page-2 [image/jpeg]
+- - - - Archive (2)
 - - - - - page-1 [image/jpeg]
 - - - - - page-2 [image/jpeg]
-- - - book-def (1)
-- - - - Archiefkopie (2)
+- - - - HQ view (2)
 - - - - - page-1 [image/jpeg]
 - - - - - page-2 [image/jpeg]
-- test.pdf (1)
-- - Archiefkopie (1)
+- - - - LQ watermarked (2)
+- - - - - page-1 [image/jpeg]
+- - - - - page-2 [image/jpeg]
+- - - book-def (3)
+- - - - page-1 [image/jpeg]
+- - - - page-2 [image/jpeg]
+- - - - Archive (2)
+- - - - - page-1 [image/jpeg]
+- - - - - page-2 [image/jpeg]
+- - - - HQ view (2)
+- - - - - page-1 [image/jpeg]
+- - - - - page-2 [image/jpeg]
+- - - - LQ watermarked (2)
+- - - - - page-1 [image/jpeg]
+- - - - - page-2 [image/jpeg]
+- test.pdf (4)
+- - test.pdf [application/pdf]
+- - Archive (1)
+- - - test.pdf [application/pdf]
+- - HQ view (1)
+- - - test.pdf [application/pdf]
+- - LQ watermarked (1)
 - - - test.pdf [application/pdf]
 STR
 COMPLEX_INGEST = files.lines.map { |line| line.chomp }

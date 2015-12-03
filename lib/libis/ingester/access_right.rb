@@ -15,15 +15,6 @@ module Libis
 
       index({name: 1}, {unique: true})
 
-      def info
-        {
-            name: self.name,
-            ar_id: self.ar_id,
-            ar_description: self.ar_description,
-            watermark: self.watermark,
-        }.cleanup
-      end
-
     end
 
   end

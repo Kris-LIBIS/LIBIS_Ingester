@@ -12,6 +12,17 @@
 *.o
 *.a
 mkmf.log
+
 /.idea/
+
+.ruby-gemset
+.ruby-version
+
 /spec/data
 /spec/work
+
+/site.config.yml
+*_retention_policy.cfg
+*_access_right.cfg
+*_organization.cfg
+

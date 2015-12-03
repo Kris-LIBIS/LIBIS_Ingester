@@ -6,52 +6,51 @@ require 'libis/ingester/run'
 
 require 'fileutils'
 
-module LIBIS
+module Libis
   module Ingester
 
     class Submitter < ::Libis::Ingester::Task
-      parameter login_name: nil,
-                description: 'Deposit user login name.'
-      parameter login_pass: nil,
-                description: 'Deposit user password.'
-      parameter login_inst: nil,
-                description: 'Rosetta institution.'
-      parameter flow_id: nil,
-                description: 'Id of the material flow to use.'
-      parameter producer_id: nil,
-                description: 'Id of the producer to use.'
+
+      parameter recursive: true, frozen: true
+      parameter subitems: true, frozen: true
+
+      protected
+
+      def pre_process(item)
+        skip_processing_item unless item.properties[:ingest_sub_dir]
+      end
 
       def process(item)
-        check_item_type ::Libis::Ingester::Run, item
-
-        check_ingestable(item)
-
+        submit_item(item)
+        stop_processing_subitems
       end
 
-      def check_ingestable(item)
-        item.properties[:ingest_sub_dir] ?
-            submit_item(item) :
-            item.items.map { |i| check_ingestable(i) }
-      end
+      private
 
       def submit_item(item)
         debug "Found ingestable item. Subdir: #{item.properties[:ingest_sub_dir]}", item
-        rosetta = Libis::Services::Rosetta.new
-        handle = rosetta.login(parameter(:login_name), parameter(:login_pass), parameter(:login_inst))
+        # noinspection RubyResolve
+        rosetta = Libis::Services::Rosetta::Service.new(Libis::Ingester::Config.base_url, Libis::Ingester::Config.pds_url)
+        producer_info = item.get_run.producer
+        handle = rosetta.login(producer_info[:agent], producer_info[:password], producer_info[:institution])
         raise Libis::WorkflowAbort, 'Could not log in into Rosetta.' if handle.nil?
 
-        deposit_result = rosetta.deposit_service.submit(
-            parameter(:flow_id),
-            item.properties[:ingest_sub_dir],
-            parameter(:producer_id)
-        )
-        raise Libis::WorkflowError, "SIP deposit failed: #{deposit_result[:error]}" if deposit_result[:error]
+        ingest_dir = File.join(item.get_run.ingest_sub_dir, item.properties[:ingest_sub_dir])
+        begin
+          deposit_result = rosetta.deposit_service.submit(
+              item.get_run.material_flow,
+              ingest_dir,
+              producer_info[:id]
+          )
+          item.properties[:ingest_sip] = deposit_result[:sip_id]
+          item.properties[:ingest_dip] = deposit_result[:deposit_activity_id]
+          item.properties[:ingest_date] = deposit_result[:creation_date]
+          item.save
+        rescue Libis::Services::ServiceError => e
+          raise Libis::WorkflowError, "SIP deposit failed: #{e.message}"
+        end
 
-        item.properties[:ingest_sip] = deposit_result['sip_id']
-        item.properties[:ingest_dip] = deposit_result['deposit_activity_id']
-        item.save
-
-        debug "Deposit ##{item.properties[:ingest_dip]} done. SIP: #{item.properties[:ingest_sip]}"
+        info "Deposit ##{item.properties[:ingest_dip]} done. SIP: #{item.properties[:ingest_sip]}"
       end
 
     end

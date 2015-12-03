@@ -17,22 +17,7 @@ module Libis
       field :user_b
       field :user_c
 
-      validates_presence_of :name
-      validates_uniqueness_of :name
-
-
-      def info
-        {
-            name: self.name,
-            preservation_type: self.preservation_type,
-            usage_type: self.usage_type,
-            representation_code: self.representation_code,
-            entity_type: self.entity_type,
-            user_a: self.user_a,
-            user_b: self.user_b,
-            user_c: self.user_c,
-        }
-      end
+      index({name: 1}, {unique: true})
 
     end
 
