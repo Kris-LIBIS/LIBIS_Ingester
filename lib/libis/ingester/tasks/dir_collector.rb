@@ -10,7 +10,7 @@ module Libis
     class DirCollector < Libis::Ingester::Task
 
       parameter location: '.',
-                description: 'Directory start scanning.'
+                description: 'Directory to start scanning in.'
 
       parameter sort: true, description: 'Sort entries.'
 

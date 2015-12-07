@@ -14,12 +14,12 @@ module Libis
       end
 
       def clear
-        ::Libis::Ingester::Run.destroy_all
+        ::Libis::Ingester::Run.destroy_all rescue nil
         Mongoid.purge!
         self
       end
 
-      def setup(cfg_dir = nil)
+      def setup(cfg_dir = nil, config_file = nil)
         ::Libis::Ingester::User.create_indexes
         ::Libis::Ingester::Organization.create_indexes
         ::Libis::Ingester::AccessRight.create_indexes
@@ -29,7 +29,10 @@ module Libis
         ::Libis::Ingester::Job.create_indexes
         ::Libis::Ingester::Run.create_indexes
         ::Libis::Ingester::Item.create_indexes
-        Seed.new(cfg_dir || File.join(Libis::Ingester::ROOT_DIR, 'db', 'data')).load_data
+        Seed.new(
+            cfg_dir || File.join(Libis::Ingester::ROOT_DIR, 'db', 'data'),
+            config_file || File.join(Libis::Ingester::ROOT_DIR, '..', 'site.config.yml'),
+        ).load_data
         self
       end
 
@@ -43,11 +46,12 @@ module Libis
 
       class Seed
 
-        attr_accessor :datadir, @config
+        attr_accessor :datadir, :config
 
         def initialize(dir, site_config = nil)
           @datadir = File.absolute_path(dir)
           @config = read_yaml(site_config) if site_config && File.exist?(site_config)
+          @config.key_strings_to_symbols!(recursive: true)
         end
 
         # noinspection RubyResolve
@@ -117,11 +121,11 @@ module Libis
             next unless filename =~ /_#{postfix}\.cfg$/
             read_yaml File.join(datadir, filename)
           end
-          if @config && @config[:seed] && @config[:seed][:postfix]
-              cfg_list += @config[:seed][:postfix] if @config[:seed][:postfix].is_a?(Array)
+          if @config && @config[:seed] && @config[:seed][postfix]
+              cfg_list += @config[:seed][postfix] if @config[:seed][postfix].is_a?(Array)
           end
-          cfg_list.map do |cfg|
-            block_given? ? yield cfg : cfg
+          cfg_list.compact.map do |cfg|
+            block_given? ? yield(cfg) : cfg
           end
         end
 

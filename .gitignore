@@ -22,7 +22,4 @@ mkmf.log
 /spec/work
 
 site.config.yml
-*_retention_policy.cfg
-*_access_right.cfg
-*_organization.cfg
 
