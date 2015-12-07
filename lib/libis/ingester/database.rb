@@ -43,10 +43,11 @@ module Libis
 
       class Seed
 
-        attr_accessor :datadir
+        attr_accessor :datadir, @config
 
-        def initialize(dir)
+        def initialize(dir, site_config = nil)
           @datadir = File.absolute_path(dir)
+          @config = read_yaml(site_config) if site_config && File.exist?(site_config)
         end
 
         # noinspection RubyResolve
@@ -112,18 +113,16 @@ module Libis
         end
 
         def each_config(postfix)
-          Dir.entries(datadir).map do |filename|
+          cfg_list = Dir.entries(datadir).map do |filename|
             next unless filename =~ /_#{postfix}\.cfg$/
-            cfg_file = Libis::Tools::ConfigFile.new
-            cfg_file << File.join(datadir, filename)
-            cfg = cfg_file.to_h
-            if block_given?
-              yield cfg
-            else
-              cfg
-            end
+            read_yaml File.join(datadir, filename)
           end
-          self
+          if @config && @config[:seed] && @config[:seed][:postfix]
+              cfg_list += @config[:seed][:postfix] if @config[:seed][:postfix].is_a?(Array)
+          end
+          cfg_list.map do |cfg|
+            block_given? ? yield cfg : cfg
+          end
         end
 
         def create_item(klass, cfg, id_tag, &block)
@@ -131,6 +130,12 @@ module Libis
           block.call(item, cfg) if block
           item.update_attributes(cfg)
           item.save!
+        end
+
+        def read_yaml(file)
+          config = Libis::Tools::ConfigFile.new
+          config << file
+          config.to_h
         end
 
       end
