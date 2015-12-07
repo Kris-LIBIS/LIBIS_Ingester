@@ -21,7 +21,7 @@ mkmf.log
 /spec/data
 /spec/work
 
-/site.config.yml
+site.config.yml
 *_retention_policy.cfg
 *_access_right.cfg
 *_organization.cfg
