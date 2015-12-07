@@ -20,7 +20,10 @@ describe 'Test' do
     end
     ::Libis::Ingester::Workflow.each { |wf| wf.destroy }
     ::Libis::Ingester::Config.require_all File.join(Libis::Ingester::ROOT_DIR, 'spec', 'tasks')
-    ::Libis::Ingester::Database.new(nil, :test).clear.setup(File.join(Libis::Ingester::ROOT_DIR, 'spec', 'seed'))
+    ::Libis::Ingester::Database.new(nil, :test).clear.setup(
+        File.join(Libis::Ingester::ROOT_DIR, 'spec', 'seed'),
+        File.join(Libis::Ingester::ROOT_DIR, 'site.config.yml')
+    )
   end
 
   let(:config_logger) {
