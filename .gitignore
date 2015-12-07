@@ -23,3 +23,8 @@ mkmf.log
 
 site.config.yml
 
+/check_*
+/test_*
+/*.log
+/data/
+/spec/coverage/
