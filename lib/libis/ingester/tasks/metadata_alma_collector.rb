@@ -20,7 +20,6 @@ module Libis
         term = get_search_term(item)
         return nil if term.blank?
 
-        RestClient.log = 'stdout'
         @alma ||= parameter(:host) ? Libis::Services::Alma::WebService.new(parameter(:host)) : Libis::Services::Alma::WebService.new
         result = @alma.get_marc(term).xpath('/bib/record').first rescue nil
 
