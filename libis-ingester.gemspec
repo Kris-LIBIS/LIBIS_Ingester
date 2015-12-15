@@ -5,36 +5,38 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 require 'libis/ingester/version'
 
-Gem::Specification.new do |gem|
-  gem.name          = 'libis-ingester'
-  gem.version       = Libis::Ingester::VERSION
-  gem.date          = Date.today.to_s
+Gem::Specification.new do |spec|
+  spec.name          = 'libis-ingester'
+  spec.version       = Libis::Ingester::VERSION
+  spec.date          = Date.today.to_s
 
-  gem.summary       = %q{Tool for ingesting digital documents in LIAS.}
-  gem.description   = %q{This gem contains the basic elements for the LIAS Ingester solution.}
+  spec.summary       = %q{Tool for ingesting digital documents in LIAS.}
+  spec.description   = %q{This gem contains the basic elements for the LIAS Ingester solution.}
 
-  gem.authors       = ['Kris Dekeyser']
-  gem.email         = ['kris.dekeyser@libis.be']
-  gem.homepage      = 'https://github.com/Kris-Libis/LIBIS_Ingester'
-  gem.license       = 'MIT'
+  spec.authors       = ['Kris Dekeyser']
+  spec.email         = ['kris.dekeyser@libis.be']
+  spec.homepage      = 'https://github.com/Kris-Libis/LIBIS_Ingester'
+  spec.license       = 'MIT'
 
-  gem.files         = `git ls-files -z`.split("\x0")
-  gem.executables   = gem.files.grep(%r{^bin/}) { |f| File.basename(f) }
-  gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
+  spec.platform     = Gem::Platform::JAVA if defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby'
 
-  gem.require_paths = ['lib']
+  spec.files         = `git ls-files -z`.split("\x0")
+  spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
+  spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
 
-  gem.add_runtime_dependency 'libis-tools', '~> 0.9'
-  gem.add_runtime_dependency 'libis-format', '~> 0.9'
-  gem.add_runtime_dependency 'libis-services', '~> 0.0'
-  gem.add_runtime_dependency 'libis-workflow-mongoid', '~> 2.0.beta'
-  gem.add_runtime_dependency 'mongoid-enum', '~> 0.3'
-  gem.add_runtime_dependency 'rubyzip', '~> 1.1'
-  gem.add_runtime_dependency 'naturally', '~> 2.1'
+  spec.require_paths = ['lib']
 
-  gem.add_development_dependency 'bundler', '~> 1.7'
-  gem.add_development_dependency 'rake', '~> 10.0'
-  gem.add_development_dependency 'rspec'
-  gem.add_development_dependency 'coveralls'
+  spec.add_runtime_dependency 'libis-tools', '~> 0.9'
+  spec.add_runtime_dependency 'libis-format', '~> 0.9'
+  spec.add_runtime_dependency 'libis-services', '~> 0.0'
+  spec.add_runtime_dependency 'libis-workflow-mongoid', '~> 2.0.beta'
+  spec.add_runtime_dependency 'mongoid-enum', '~> 0.3'
+  spec.add_runtime_dependency 'rubyzip', '~> 1.1'
+  spec.add_runtime_dependency 'naturally', '~> 2.1'
+
+  spec.add_development_dependency 'bundler', '~> 1.7'
+  spec.add_development_dependency 'rake', '~> 10.0'
+  spec.add_development_dependency 'rspec'
+  spec.add_development_dependency 'coveralls'
 
 end
