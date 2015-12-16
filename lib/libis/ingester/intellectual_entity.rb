@@ -9,11 +9,6 @@ module Libis
       include Libis::Workflow::Mongoid::Base
 
       field :ingest_type, type: String, default: 'METS'
-      field :entity_type
-      field :user_a
-      field :user_b
-      field :user_c
-      field :status, type: String, default: 'Active'
 
       belongs_to :access_right, class_name: Libis::Ingester::AccessRight.to_s, inverse_of: nil
       belongs_to :retention_period, class_name: Libis::Ingester::RetentionPeriod.to_s, inverse_of: nil

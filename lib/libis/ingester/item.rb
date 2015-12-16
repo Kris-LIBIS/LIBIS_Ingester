@@ -5,11 +5,7 @@ require 'libis/workflow/mongoid'
 module Libis
   module Ingester
 
-    class Item
-      include ::Libis::Workflow::Mongoid::WorkItem
-
-      store_in collection: 'ingest_items'
-      run_class Libis::Ingester::Run.to_s
+    class Item < ::Libis::Workflow::Mongoid::WorkItem
 
       embeds_one :metadata_record, class_name: Libis::Ingester::MetadataRecord.to_s, inverse_of: :item
       has_one :access_right, class_name: Libis::Ingester::AccessRight.to_s, inverse_of: nil

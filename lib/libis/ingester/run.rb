@@ -6,18 +6,13 @@ require 'fileutils'
 module Libis
   module Ingester
 
-    class Run
-      include ::Libis::Workflow::Mongoid::Run
-      store_in collection: 'ingest_runs'
+    class Run < ::Libis::Workflow::Mongoid::Run
 
       field :producer, type: Hash
       field :material_flow
       field :ingest_dir
 
-      belongs_to :job, inverse_of: :runs, class_name: Libis::Ingester::Job.to_s
       belongs_to :ingest_model, inverse_of: :runs, class_name:  Libis::Ingester::IngestModel.to_s
-
-      item_class Libis::Ingester::Item.to_s
 
       set_callback(:destroy, :before) do |document|
         dir = document.ingest_dir

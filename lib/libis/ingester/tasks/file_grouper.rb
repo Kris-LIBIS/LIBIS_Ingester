@@ -39,10 +39,7 @@ module Libis
               sub_parent.name = collection
               sub_parent.navigate = parameter(:collection_navigate)
               sub_parent.publish = parameter(:collection_publish)
-              # noinspection RubyResolve
-              target_parent.is_a?(Libis::Ingester::Run) ?
-                  sub_parent.run = target_parent : sub_parent.parent = target_parent
-              sub_parent.save
+              target_parent.add_item(sub_parent)
               debug 'Created new collection: %s', sub_parent, collection
             end
             target_parent = sub_parent
@@ -52,22 +49,14 @@ module Libis
           unless group
             group = Libis::Ingester::Division.new
             group.name = group_label
-            if target_parent.is_a?(Libis::Ingester::Run)
-              # noinspection RubyResolve
-              group.run = target_parent
-            else
-              group.parent = target_parent
-            end
-            group.save
+            target_parent.add_item(group)
             debug 'Created new group: %s', group, group_label
           end
           new_name = parameter(:file_label) ? eval(parameter(:file_label)) : item.name
-          debug 'Adding to group %s as %s', group.name, new_name
+          debug 'Adding to group %s as %s', item, group.name, new_name
           item.name = new_name
           item.properties[:group_id] = register_file(item.name)
-          item.parent = group
-          # noinspection RubyResolve
-          item.run = nil
+          group.add_item(item)
         end
       end
 

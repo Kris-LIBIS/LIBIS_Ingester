@@ -5,22 +5,16 @@ require_relative 'spec_helper'
 
 $:.unshift File.join(File.dirname(__FILE__), '..', 'lib')
 require 'libis/ingester'
+require 'libis/ingester/installer'
 
 require_relative 'data'
 
 describe 'Ingester' do
 
   before(:all) do
-    # noinspection RubyResolve
-    ::Libis::Ingester.configure do |cfg|
-      cfg.workdir = File.join(Libis::Ingester::ROOT_DIR, 'spec', 'work', 'scrap')
-      cfg.database_connect 'mongoid.yml', :test
-      cfg.base_url = 'http://libis-p-rosetta-3w.cc.kuleuven.be:1801'
-      cfg.pds_url = 'http://libis-p-rosetta-3w.cc.kuleuven.be:8991'
-    end
-    ::Libis::Ingester::Workflow.each { |wf| wf.destroy }
-    ::Libis::Ingester::Config.require_all File.join(Libis::Ingester::ROOT_DIR, 'spec', 'tasks')
-    ::Libis::Ingester::Database.new(nil, :test).clear.setup(File.join(Libis::Ingester::ROOT_DIR, 'spec', 'seed'))
+    config_file = File.join(Libis::Ingester::ROOT_DIR, 'site.config.yml')
+    installer = ::Libis::Ingester::Installer.new(config_file)
+    installer.create_database
   end
 
   let(:config_logger) {
@@ -88,6 +82,7 @@ describe 'Ingester' do
 
     it 'collect top level files' do
       run = job.execute location: datadir
+      expect(run.items.size).to be 1
       expect(run.items.count).to be 1
       expect(run.items[0].name).to eq 'test.pdf'
     end
@@ -130,11 +125,12 @@ describe 'Ingester' do
 
   context 'with FileGrouper and IeBuilder' do
 
-    let(:print_log) { false }
+    let(:print_log) { true }
     let(:job_name) { 'IeBuilder Test' }
 
     it 'in collections' do
       run = job.execute location: datadir
+      list_data(run)
       expect(run.items.count).to be 2
       check_data(run, FILE_WITH_IE_COLLECTIONS + [run.name], print_log)
       expect(run.items[0]).to be_a(Libis::Ingester::Collection)
@@ -143,6 +139,7 @@ describe 'Ingester' do
 
     it 'in complex IE' do
       run = job.execute location: datadir, subdirs: 'complex'
+      list_data(run)
       expect(run.items.count).to be 2
       check_data(run, FILE_WITH_IE_COMPLEX + [run.name], print_log)
       expect(run.items[0]).to be_a(Libis::Ingester::IntellectualEntity)

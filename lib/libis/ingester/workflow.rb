@@ -4,12 +4,7 @@ require 'libis/workflow/mongoid'
 module Libis
   module Ingester
 
-    class Workflow
-      include Libis::Workflow::Mongoid::Workflow
-
-      store_in collection: 'ingest_flows'
-
-      has_many :jobs, inverse_of: :workflow, class_name: ::Libis::Ingester::Job.to_s
+    class Workflow < Libis::Workflow::Mongoid::Workflow
 
       def workflow_runs
         # noinspection RubyResolve

@@ -6,14 +6,9 @@ require 'libis/ingester'
 module Libis
   module Ingester
 
-    class Job
-      include Libis::Workflow::Mongoid::Job
-      store_in collection: 'ingest_jobs'
+    class Job < Libis::Workflow::Mongoid::Job
 
       field :schedule
-
-      run_class Libis::Ingester::Run.to_s
-      workflow_class Libis::Ingester::Workflow.to_s
 
       belongs_to :organization, class_name: Libis::Ingester::Organization.to_s, inverse_of: :jobs
       belongs_to :ingest_model, class_name: Libis::Ingester::IngestModel.to_s, inverse_of: :jobs
