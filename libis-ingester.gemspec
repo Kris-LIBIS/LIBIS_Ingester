@@ -33,6 +33,8 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'mongoid-enum', '~> 0.3'
   spec.add_runtime_dependency 'rubyzip', '~> 1.1'
   spec.add_runtime_dependency 'naturally', '~> 2.1'
+  spec.add_runtime_dependency 'sidekiq'
+  spec.add_runtime_dependency 'highline'
 
   spec.add_development_dependency 'bundler', '~> 1.7'
   spec.add_development_dependency 'rake', '~> 10.0'

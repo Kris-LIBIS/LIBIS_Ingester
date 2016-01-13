@@ -12,8 +12,7 @@ module Libis
       field :entity_type
 
       def info
-        result = super.merge(self.properties)
-        self.properties.select {|k,_| k.to_s =~ /^checksum_/ }.map{|k,v|}
+        super.merge(self.properties.select {|k,_| k.to_s =~ /^checksum_/ }.map{|k,v| [k.to_sym, v]})
       end
 
     end

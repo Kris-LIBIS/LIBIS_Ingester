@@ -28,3 +28,4 @@ site.config.yml
 /*.log
 /data/
 /spec/coverage/
+/sidekiq.*

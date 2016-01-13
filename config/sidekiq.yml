@@ -1,0 +1,8 @@
+:verbose: false
+:pidfile: ./sidekiq.pid
+:logfile: ./sidekiq.log
+:concurrency: 1
+:daemon: true
+:strict: false
+:queues:
+  - [ingester, 1]

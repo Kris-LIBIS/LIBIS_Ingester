@@ -23,13 +23,6 @@ module Libis
 
       protected
 
-      def pre_process(item)
-        unless parameter(:term)
-          skip_processing_item
-          stop_processing_subitems
-        end
-      end
-
       def process(item)
         create_collection(item)
         stop_processing_subitems unless item.items.any? { |i| i.is_a?(Libis::Ingester::Collection) }

@@ -44,3 +44,5 @@ module Libis
 
   end
 end
+
+require_relative 'ingester/workers'

@@ -45,6 +45,36 @@ module Libis
         self.name
       end
 
+      def execute(options = {})
+        options[:action] = :run unless options[:action]
+        case options[:action]
+          when :run, :restart
+            self.action = :run
+            remove_work_dir
+            remove_items
+            run
+          when :continue
+            self.action = :continue
+            run
+          else
+            #nothing
+        end
+      end
+
+      private
+
+      def remove_work_dir
+        wd = self.work_dir
+        FileUtils.rmtree wd if wd && !wd.blank? && Dir.exist?(wd)
+      end
+
+      def remove_items
+        self.items.each do |item|
+          item.destroy!
+        end
+        self.items.clear
+      end
+
     end
 
   end

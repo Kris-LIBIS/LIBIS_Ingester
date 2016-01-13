@@ -20,15 +20,16 @@ module Libis
       end
 
       def setup
-        ::Libis::Ingester::User.create_indexes
-        ::Libis::Ingester::Organization.create_indexes
         ::Libis::Ingester::AccessRight.create_indexes
-        ::Libis::Ingester::RepresentationInfo.create_indexes
         ::Libis::Ingester::IngestModel.create_indexes
-        ::Libis::Ingester::Workflow.create_indexes
-        ::Libis::Ingester::Job.create_indexes
-        ::Libis::Ingester::Run.create_indexes
         ::Libis::Ingester::Item.create_indexes
+        ::Libis::Ingester::Job.create_indexes
+        ::Libis::Ingester::Organization.create_indexes
+        ::Libis::Ingester::RepresentationInfo.create_indexes
+        ::Libis::Ingester::RetentionPeriod.create_indexes
+        ::Libis::Ingester::Run.create_indexes
+        ::Libis::Ingester::User.create_indexes
+        ::Libis::Ingester::Workflow.create_indexes
         self
       end
 

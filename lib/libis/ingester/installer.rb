@@ -28,9 +28,23 @@ module Libis
           ::Libis::Ingester::Config.require_all(@config.ingester.task_dir)
         end
 
+        configure_database
+
       end
 
-      def create_database
+      def seed_database
+
+        @database.setup.seed
+        @database.seed(@config.database.seed_dir) if @config.database.seed_dir && Dir.exist?(@config.database.seed_dir)
+        @database.seed(@config.seed.to_h) if @config.seed
+
+        @database
+
+      end
+
+      private
+
+      def configure_database
 
         raise RuntimeError, "Missing section 'database' in site config." unless @config.database
 
@@ -38,14 +52,6 @@ module Libis
             (@config.database.config_file || File.join(Libis::Ingester::ROOT_DIR, 'mongoid.yml')),
             (@config.database.env || :test)
         )
-
-        ::Libis::Ingester::Workflow.each { |wf| wf.destroy }
-
-        @database.clear.setup.seed
-        @database.seed(@config.database.seed_dir) if @config.database.seed_dir && Dir.exist?(@config.database.seed_dir)
-        @database.seed(@config.seed.to_h) if @config.seed
-
-        @database
 
       end
 

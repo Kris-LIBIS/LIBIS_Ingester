@@ -86,7 +86,7 @@ module Libis
       end
 
       def move_file(file, to_parent)
-        debug "Moving '#{file.name}' to '#{parent.name}'"
+        debug "Moving '#{file.name}' to '#{to_parent.name}'"
         file.parent = to_parent
         file.save!
         if file.is_a?(Libis::Ingester::FileItem)
@@ -96,7 +96,7 @@ module Libis
       end
 
       def copy_file(file, to_parent)
-        debug "Copying '#{file.name}' to '#{parent.name}'"
+        debug "Copying '#{file.name}' to '#{to_parent.name}'"
         new_file = file.dup
         new_file.parent = to_parent
         new_file.save!

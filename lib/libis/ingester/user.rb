@@ -3,7 +3,7 @@ require 'digest'
 
 require 'libis/workflow/mongoid/base'
 require 'mongoid/enum'
-
+require 'libis/tools/checksum'
 require 'libis/ingester'
 
 module Libis
@@ -23,17 +23,22 @@ module Libis
 
       index({user_id: 1}, {unique: true})
 
-      has_and_belongs_to_many :organizations, class_name: Libis::Ingester::Organization.to_s, inverse_of: :users,
-                              order: :name.asc
+      has_and_belongs_to_many :organizations, class_name: Libis::Ingester::Organization.to_s,
+                              inverse_of: :users, order: :name.asc
+
+      def authenticate(password)
+        return true if self.password_hash.blank? && password.blank?
+        self.class.get_password_hash(password) == self.password_hash
+      end
 
       def self.authenticate(name, password)
         user = User.find_by(name: name)
-        return user if user && get_password_hash(password) == user.password
+        return user if user && user.authenticate(password)
         nil
       end
 
       def password=(password)
-        self.password_hash = get_password_hash(password)
+        self.password_hash = self.class.get_password_hash(password)
         nil
       end
 
@@ -41,10 +46,9 @@ module Libis
         self.password_hash
       end
 
-      private
-
       def self.get_password_hash(password)
-        Digest('SHA256').base64digest(password)
+        md5 = Libis::Tools::Checksum.hexdigest('LibisIngesterUser' + password, :MD5)
+        Libis::Tools::Checksum.hexdigest(md5 + password, :SHA256)
       end
 
     end

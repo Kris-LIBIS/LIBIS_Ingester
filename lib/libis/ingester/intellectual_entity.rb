@@ -1,6 +1,7 @@
 # encoding: utf-8
 
 require 'libis/ingester'
+require 'libis/tools/extend/hash'
 
 module Libis
   module Ingester
@@ -10,7 +11,6 @@ module Libis
 
       field :ingest_type, type: String, default: 'METS'
 
-      belongs_to :access_right, class_name: Libis::Ingester::AccessRight.to_s, inverse_of: nil
       belongs_to :retention_period, class_name: Libis::Ingester::RetentionPeriod.to_s, inverse_of: nil
 
       def representations
@@ -30,10 +30,9 @@ module Libis
 
       # noinspection RubyResolve
       def info
-        super.merge(
-            access_right_id: self.access_right.ar_id,
-            retention_period_id: self.retention_period.rp_id
-        )
+        result = super
+        result[:retention_period_id] = self.retention_period.rp_id if self.retention_period
+        result
       end
 
     end
