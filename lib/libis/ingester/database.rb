@@ -160,7 +160,7 @@ module Libis
           block.call(item, cfg) if block
           item.update_attributes(cfg)
           item.save!
-          puts "#{item.class} '#{item.name}' created/updated."
+          puts "#{item.class} #{item.respond_to?(:name) ? "'#{item.name}'" : ''} created/updated."
         end
 
         def read_yaml(file)
