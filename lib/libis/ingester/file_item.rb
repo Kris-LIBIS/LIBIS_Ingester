@@ -11,10 +11,6 @@ module Libis
 
       field :entity_type
 
-      def info
-        super.merge(self.properties.inject({}) {|h,x| x.first.to_s =~ /^checksum_(.*)$/ ? h["checksum_#{$1.upcase}".to_sym] = x.last : nil; h })
-      end
-
     end
 
   end

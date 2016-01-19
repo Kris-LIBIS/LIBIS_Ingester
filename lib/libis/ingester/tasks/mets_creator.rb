@@ -119,12 +119,22 @@ module Libis
       end
 
       def add_file(mets, rep, item, ie_ingest_dir)
-        config = item.info.merge(
-            label: item.name,
-            location: item.filepath,
-            target_location: item.filepath,
-            entity_type: item.entity_type,
-        )
+        config = item.info
+        properties = config.delete(:properties)
+        config[:creation_date] = properties[:creation_time]
+        config[:modification_date] = properties[:modification_time]
+        config[:entity_type] = item.entity_type
+        config[:location] = properties[:filename]
+        config[:target_location] = item.filepath
+        config[:mimetype] = properties[:mimetype]
+        config[:size] = properties[:size]
+        config[:puid] = properties[:puid]
+        config[:checksum_MD5] = properties[:checksum_md5]
+        config[:checksum_SHA1] = properties[:checksum_sha1]
+        config[:checksum_SHA256] = properties[:checksum_sha256]
+        config[:checksum_SHA384] = properties[:checksum_sha384]
+        config[:checksum_SHA512] = properties[:checksum_sha512]
+        config[:label] = item.name
 
         file = mets.file(config)
 
