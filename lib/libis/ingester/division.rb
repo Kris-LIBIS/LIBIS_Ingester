@@ -7,7 +7,7 @@ module Libis
     class Division < Libis::Ingester::Item
 
       def filename=(f)
-        self.properties[:name] = File.basename(f)
+        self.properties['name'] = File.basename(f)
       end
 
       def divisions

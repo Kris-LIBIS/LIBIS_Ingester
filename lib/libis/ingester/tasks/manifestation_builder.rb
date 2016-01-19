@@ -191,7 +191,7 @@ module Libis
               return if (info[:source_formats] & check_list).empty?
             end
 
-            options = info[:options]
+            options = info[:options] || {}
             if options[:copy_file]
               return copy_file(item, new_parent)
             end
@@ -200,7 +200,6 @@ module Libis
               return move_file(item, new_parent)
             end
 
-            options.key_strings_to_symbols!(recursive: true, downcase: true) if options && options.is_a?(Hash)
             converter = Libis::Format::Converter::Repository.get_converter_chain(
                 type_id, info[:target_format].to_sym, options
             )

@@ -119,7 +119,7 @@ module Libis
       end
 
       def add_file(mets, rep, item, ie_ingest_dir)
-        config = item.properties.attributes.merge(
+        config = item.info.merge(
             label: item.name,
             location: item.filepath,
             target_location: item.filepath,

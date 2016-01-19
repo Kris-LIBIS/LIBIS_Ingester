@@ -12,7 +12,7 @@ module Libis
       field :entity_type
 
       def info
-        super.merge(self.properties.select {|k,_| k.to_s =~ /^checksum_/ }.map{|k,v| [k.to_sym, v]})
+        super.merge(self.properties.inject({}) {|h,x| x.first.to_s =~ /^checksum_(.*)$/ ? h["checksum_#{$1.upcase}".to_sym] = x.last : nil; h })
       end
 
     end

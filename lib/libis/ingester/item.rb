@@ -13,7 +13,7 @@ module Libis
       accepts_nested_attributes_for :metadata_record, :access_right
 
       def name=(value)
-        self.properties[:name] = value
+        self.properties['name'] = value
       end
 
       def label

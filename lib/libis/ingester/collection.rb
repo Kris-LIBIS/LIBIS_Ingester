@@ -11,7 +11,7 @@ module Libis
       field :publish, type: Boolean, default: false
 
       def filename=(f)
-        self.properties[:name] = File.basename(f)
+        self.properties['name'] = File.basename(f)
       end
 
       def collections

@@ -14,7 +14,7 @@ describe 'Test' do
   before(:all) do
     config_file = File.join(Libis::Ingester::ROOT_DIR, 'site.config.yml')
     installer = ::Libis::Ingester::Installer.new(config_file)
-    installer.create_database
+    installer.seed_database
   end
 
   let(:config_logger) {
