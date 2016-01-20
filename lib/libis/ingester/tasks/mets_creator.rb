@@ -13,6 +13,9 @@ module Libis
       parameter collection: nil,
                 description: 'Collection to add the documents to.'
 
+      parameter copy_files: false,
+                description: 'Copy file info ingest dir instead of creating a symbolic link'
+
       parameter subitems: false, frozen: true
       parameter recursive: false, frozen: true
 
@@ -144,8 +147,13 @@ module Libis
         stream_dir = File.join(ie_ingest_dir, 'content', 'streams')
         FileUtils.mkpath stream_dir
         target_path = File.join(stream_dir, file.target)
-        FileUtils.copy_entry(item.fullpath, target_path)
-        debug "Copied file to #{target_path}.", item
+        if parameter(:copy_files) then
+          FileUtils.copy_entry(item.fullpath, target_path)
+          debug "Copied file to #{target_path}.", item
+        else
+          FileUtils.symlink(item.fullpath, target_path)
+          debug "Linked file to #{target_path}.", item
+        end
 
         # noinspection RubyResolve
         if item.metadata_record && item.metadata_record.format == 'DC'

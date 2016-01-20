@@ -108,19 +108,24 @@ module Libis
       end
 
       def assemble_images(items, representation, info)
+        target_format = info[:target_format].to_sym
         assemble(
             items, representation, info[:source_formats],
             "#{representation.parent.name}_#{info[:name]}." +
-                "#{Libis::Format::TypeDatabase.type_extentions(info[:target_format].to_sym).first}"
+                "#{Libis::Format::TypeDatabase.type_extentions(target_format).first}"
         ) do |sources, new_file|
           Libis::Format::Converter::ImageConverter.new.
-              assemble_and_convert(sources, new_file, info[:target_format])
+              assemble_and_convert(sources, new_file, target_format)
+          convert_file(new_file, new_file, target_format, target_format, info[:options]) unless info[:options].blank?
         end
       end
 
       def assemble_pdf(items, representation, info)
-        assemble(items, representation, [:PDF], "#{representation.parent.name}_#{info[:name]}.pdf") do |sources, new_file|
+        assemble(items, representation, [:PDF],
+                 "#{representation.parent.name}_#{info[:name]}.pdf"
+        ) do |sources, new_file|
           Libis::Format::PdfMerge.run(sources, new_file)
+          convert_file(new_file, new_file, :PDF, :PDF, info[:options]) unless info[:options].blank?
         end
       end
 
@@ -200,15 +205,6 @@ module Libis
               return move_file(item, new_parent)
             end
 
-            converter = Libis::Format::Converter::Repository.get_converter_chain(
-                type_id, info[:target_format].to_sym, options
-            )
-
-            unless converter
-              raise Libis::WorkflowError,
-                    "Could not find converter for #{type_id} -> #{info[:target_format]} with #{options}"
-            end
-
             new_file = File.join(
                 item.get_run.work_dir,
                 item.id.to_s,
@@ -216,12 +212,9 @@ module Libis
                 "#{File.basename(item.fullpath, '.*')}.#{info[:name]}." +
                     "#{Libis::Format::TypeDatabase.type_extentions(info[:target_format]).first}"
             )
-            new_file = converter.convert(item.fullpath, new_file)
 
-            unless new_file
-              error 'File conversion failed.'
-              return nil
-            end
+            new_file, converter = convert_file(item.fullpath, new_file, type_id, info[:target_format].to_sym, options)
+            return nil unless new_file
 
             @processed_files << item.id
 
@@ -229,7 +222,7 @@ module Libis
             new_item.filename = new_file
             new_item.name = item.name
             new_item.parent = new_parent
-            new_item.properties[:converter] = converter.to_s
+            new_item.properties[:converter] = converter
             new_item.properties[:group_id] = item.properties[:group_id] || item.id
             register_file(new_item)
             new_item.save!
@@ -259,6 +252,28 @@ module Libis
         @file_registry ||= {}
         return @file_registry[name] if @file_registry.has_key?(name)
         @file_registry[name] = @file_registry.count + 1
+      end
+
+      def convert_file(source_file, target_file, source_format, target_format, options = {})
+        converter = Libis::Format::Converter::Repository.get_converter_chain(
+            source_format, target_format, options
+        )
+
+        unless converter
+          raise Libis::WorkflowError,
+                "Could not find converter for #{source_format} -> #{target_format} with #{options}"
+        end
+
+        converter_name = converter.to_s
+        new_file = converter.convert(source_file, target_file)
+
+        unless new_file
+          error "File conversion failed (#{converter_name})."
+          return [nil, converter_name]
+        end
+
+        [new_file, converter_name]
+
       end
 
     end
