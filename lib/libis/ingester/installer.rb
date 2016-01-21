@@ -34,10 +34,10 @@ module Libis
 
       def seed_database
 
-        @database.setup.seed
-        @database.seed(@config.database.seed_dir) if @config.database.seed_dir && Dir.exist?(@config.database.seed_dir)
-        @database.seed(@config.seed.to_h) if @config.seed
-
+        sources = []
+        sources << @config.database.seed_dir if @config.database.seed_dir && Dir.exist?(@config.database.seed_dir)
+        sources << @config.seed.to_h if @config.seed
+        @database.setup.seed(*sources)
         @database
 
       end

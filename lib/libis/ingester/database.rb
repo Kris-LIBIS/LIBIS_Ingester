@@ -33,8 +33,9 @@ module Libis
         self
       end
 
-      def seed(dir_or_hash = nil)
-        Seed.new(dir_or_hash || File.join(Libis::Ingester::ROOT_DIR, 'db', 'data')).load_data
+      def seed(*args)
+        sources = [File.join(Libis::Ingester::ROOT_DIR, 'db', 'data')] + args
+        Seed.new(sources).load_data
         self
       end
 
@@ -57,22 +58,25 @@ module Libis
 
         attr_accessor :datadir, :config
 
-        def initialize(dir_or_hash)
-          @datadir = @config = nil
-          case dir_or_hash
-            when Hash
-              @config = dir_or_hash
-              @config.key_strings_to_symbols!(recursive: true)
-            when String
-              raise RuntimeError, "'#{dir_or_hash}' not found." unless File.exist?(dir_or_hash)
-              if File.directory?(dir_or_hash)
-                @datadir = dir_or_hash
-              elsif File.file?(dir_or_hash)
-                @config = read_yaml(dir_or_hash)
-                @config = @config.seed if @config.seed
-              end
-            else
-              raise RuntimeError, 'Should supply a hash or file/directory name.'
+        def initialize(sources)
+          @datadir = []
+          @config = {}
+          sources.each do |source|
+            case source
+              when Hash
+                @config.merge!(source.key_strings_to_symbols(recursive: true))
+              when String
+                raise RuntimeError, "'#{source}' not found." unless File.exist?(source)
+                if File.directory?(source)
+                  @datadir << source
+                elsif File.file?(source)
+                  cfg = read_yaml(source)
+                  cfg = cfg.seed if cfg.seed
+                  @config.merge(cfg)
+                end
+              else
+                raise RuntimeError, 'Should supply a hash or file/directory name.'
+            end
           end
         end
 
@@ -140,15 +144,19 @@ module Libis
 
         def each_config(postfix)
           cfg_list = []
-          if @datadir
-            Dir.entries(@datadir).each do |filename|
+          @datadir.each do |dir|
+            Dir.entries(dir).each do |filename|
               next unless filename =~ /_#{postfix}\.cfg$/
-              cfg_list << read_yaml(File.join(@datadir, filename))
+              cfg_list << read_yaml(File.join(dir, filename))
             end
           end
-          if @config && @config[postfix]
-            cfg_list += @config[postfix] if @config[postfix].is_a?(Array)
-            cfg_list << @config[postfix] if @config[postfix].is_a?(Hash)
+          case @config[postfix]
+            when Array
+              cfg_list += @config[postfix]
+            when  Hash
+              cfg_list << @config[postfix]
+            else
+              #skip
           end
           cfg_list.compact.map do |cfg|
             block_given? ? yield(cfg) : cfg
