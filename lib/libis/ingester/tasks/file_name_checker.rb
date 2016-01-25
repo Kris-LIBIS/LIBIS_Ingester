@@ -21,7 +21,8 @@ module Libis
         filter = Regexp.new(filter) unless filter.is_a? Regexp
 
         unless item.name =~ filter
-          log_failed(item, 'File did not pass file name check.')
+          error item, 'File did not pass file name check.'
+          set_status item, :FAILED
         end
 
       end

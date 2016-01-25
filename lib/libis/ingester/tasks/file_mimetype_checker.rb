@@ -26,7 +26,8 @@ module Libis
         end
 
         unless item.properties[:mimetype] =~ filter
-          log_failed(item, 'File did not pass mimetype check.')
+          error item, 'File did not pass mimetype check.'
+          set_status item, :FAILED
         end
 
       end
