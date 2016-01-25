@@ -21,7 +21,7 @@ module Libis
           when Libis::Ingester::FileItem
             ie = create_ie(item)
             ie.add_item(item)
-            debug 'File %s moved to IE %s', item, item.name, ie.name
+            debug 'File item %s moved to IE item %s', item, item.name, ie.name
           when ::Libis::Ingester::Division
             ie = create_ie(item)
             # Division objects are replaced with the IE
@@ -30,7 +30,7 @@ module Libis
             # move log info over to the IE
             # noinspection RubyResolve
             item.logs.to_a.each { |l| l.logger = ie }
-            debug 'Moved contents of %s from Division to IE.', item, item.name
+            debug 'Moved contents of %s from Division item to IE item.', item, item.name
             item.parent = nil
             item.destroy!
           else
@@ -46,7 +46,7 @@ module Libis
 
       def create_ie(item)
         # Create an the IE for this item
-        debug "Creating new IE for item #{item.name}"
+        debug "Creating new IE item for item #{item.name}"
         ie = ::Libis::Ingester::IntellectualEntity.new
         ie.name = item.name
 

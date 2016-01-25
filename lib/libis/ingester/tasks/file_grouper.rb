@@ -40,7 +40,7 @@ module Libis
               sub_parent.navigate = parameter(:collection_navigate)
               sub_parent.publish = parameter(:collection_publish)
               target_parent.add_item(sub_parent)
-              debug 'Created new collection: %s', sub_parent, collection
+              debug 'Created new Collection item: %s', sub_parent, collection
             end
             target_parent = sub_parent
           end
@@ -50,7 +50,7 @@ module Libis
             group = Libis::Ingester::Division.new
             group.name = group_label
             target_parent.add_item(group)
-            debug 'Created new group: %s', group, group_label
+            debug 'Created new Division item for group: %s', group, group_label
           end
           new_name = parameter(:file_label) ? eval(parameter(:file_label)) : item.name
           debug 'Adding to group %s as %s', item, group.name, new_name

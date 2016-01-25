@@ -66,13 +66,13 @@ module Libis
               child = Libis::Ingester::Collection.new
               child.extend Libis::Workflow::Base::DirItem
               child.filename = file
-              debug 'Created Collection `%s`', child.name
+              debug 'Created Collection item `%s`', child.name
               collect(child, file)
             when 'complex'
               child = Libis::Ingester::Division.new
               child.extend Libis::Workflow::Base::DirItem
               child.filename = file
-              debug 'Created Division `%s`', child.name
+              debug 'Created Division item `%s`', child.name
               collect(child, file)
             else
               info "Ignoring subdir #{file}."
@@ -80,7 +80,7 @@ module Libis
         elsif File.file?(file)
           child = Libis::Ingester::FileItem.new
           child.filename = file
-          debug 'Created File `%s`', child.name
+          debug 'Created File item `%s`', child.name
         end
         return unless child
         child.filename = file
