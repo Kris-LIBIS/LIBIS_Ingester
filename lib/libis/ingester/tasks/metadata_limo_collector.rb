@@ -22,7 +22,9 @@ module Libis
 
         @limo ||= Libis::Services::Primo::Limo.new(parameter(:host))
 
-        result = @limo.get_marc(term).root rescue nil
+        result = @limo.get_marc(term)
+        raise Exception, "#{result[:error_type]} - #{result[:error_name]}" if result.is_a?(Hash)
+        result = result.root rescue nil
 
         if result.blank?
           debug 'Metadata for item \'%s\' not found.', item.namepath
@@ -32,7 +34,7 @@ module Libis
         return Libis::Tools::Metadata::Marc21Record.new(result)
 
       rescue Exception => e
-        raise Libis::WorkflowError, "Failed to get metadata: #{e.message}"
+        raise Libis::WorkflowError, "Limo request failed: #{e.message}"
       end
 
     end

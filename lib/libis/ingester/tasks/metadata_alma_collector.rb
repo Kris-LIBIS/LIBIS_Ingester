@@ -21,7 +21,10 @@ module Libis
         return nil if term.blank?
 
         @alma ||= parameter(:host) ? Libis::Services::Alma::WebService.new(parameter(:host)) : Libis::Services::Alma::WebService.new
-        result = @alma.get_marc(term).xpath('/bib/record').first rescue nil
+
+        result = @alma.get_marc(term)
+        raise Exception, "#{result[:error_type]} - #{result[:error_name]}" if result.is_a?(Hash)
+        result = result.xpath('/bib/record').first rescue nil
 
         if result.blank?
           debug 'Metadata for item \'%s\' not found.', item.namepath
@@ -31,7 +34,7 @@ module Libis
         return Libis::Tools::Metadata::Marc21Record.new(result)
 
       rescue Exception => e
-        raise Libis::WorkflowError, "Failed to get metadata: #{e.message}"
+        raise Libis::WorkflowError, "Alma request failed: #{e.message}"
       end
 
     end

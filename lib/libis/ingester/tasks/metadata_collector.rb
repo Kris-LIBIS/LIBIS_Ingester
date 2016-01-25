@@ -40,6 +40,9 @@ module Libis
       parameter title_to_name: true,
                 description: 'Update the item name with the title in the metadata?'
 
+      parameter fail_on_not_found: false,
+                description: 'Raise a fatal error if a metadata record cannot be found?'
+
       def apply_options(opts)
         super(opts)
         @mapping = {}
@@ -74,7 +77,8 @@ module Libis
         record = convert_metadata(record)
         assign_metadata(item, record)
       rescue Exception => e
-        warn 'Failed to get metadata: %s', e.message
+        error 'Error getting metadata: %s', e.message
+        set_status(item, :FAILED)
       end
 
       def get_search_term(item)
