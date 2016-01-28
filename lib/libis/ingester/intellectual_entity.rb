@@ -10,6 +10,7 @@ module Libis
       include Libis::Workflow::Mongoid::Base
 
       field :ingest_type, type: String, default: 'METS'
+      field :pid, type: String
 
       belongs_to :retention_period, class_name: Libis::Ingester::RetentionPeriod.to_s, inverse_of: nil
 

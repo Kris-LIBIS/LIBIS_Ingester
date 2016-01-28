@@ -59,7 +59,7 @@ module Libis
         parent_id = item.parent.properties[:collection_id] if item.parent
         parent_id ||= create_collection_path(collection_list)
 
-        collection_id = find_collection((collection_list + [item.name]).join('/')) ||
+        collection_id = find_collection((collection_list + [item.name]).join('/'), item) ||
             create_collection_id(parent_id, collection_list, item.name, item.navigate, item.publish, item)
 
         item.properties[:collection_id] = collection_id
@@ -104,6 +104,8 @@ module Libis
         collection_data[:parent_id] = parent_id if parent_id
         collection_data[:navigate] = navigate
         collection_data[:publish] = publish
+        collection_data[:external_system] = item.external_system
+        collection_data[:external_id] = item.external_id
         collection_data[:md_dc] = {
             type: 'descriptive',
             sub_type: 'dc',
@@ -114,15 +116,39 @@ module Libis
         @collection_service.create(collection_info)
       end
 
-      def find_collection(path)
+      def find_collection(path, item = nil)
         return nil if path.blank?
+
         collection = @collection_service.find(path)
+        return nil unless collection
+
+        if item
+          # noinspection RubyResolve
+          dc_record = item.metadata_record ?
+              Libis::Tools::Metadata::DublinCoreRecord.new(item.metadata_record.data) :
+              nil
+          collection.description = item.description
+          collection.navigate = item.navigate
+          collection.publish = item.publish
+          collection.external_system = item.external_system
+          collection.external_id = item.external_id
+          if dc_record
+            collection.md_dc = Libis::Services::Rosetta::CollectionInfo::MetaData.new unless collection.md_dc
+            collection.md_dc.type = 'descriptive'
+            collection.md_dc.sub_type = 'dc'
+            collection.md_dc.content = dc_record.to_xml
+          end
+
+          @collection_service.update(collection)
+        end
+
         return collection.id
+
       rescue Libis::Services::SoapError => e
         unless e.message =~ /no_collection_found_exception/
-          warn 'Collection lookup failed: %s', e.message
-          nil
+          error 'Collection lookup failed: %s', e.message
         end
+        nil
       end
 
     end

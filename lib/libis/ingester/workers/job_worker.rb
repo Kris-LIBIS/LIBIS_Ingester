@@ -11,6 +11,8 @@ module Libis
       def perform(job_id, options = {})
         job = ::Libis::Ingester::Job.find_by(id: job_id)
         raise RuntimeError.new "Workflow #{job_id} not found" unless job.is_a? ::Libis::Ingester::Job
+        action = options.delete('action')
+        options[:action] = action.to_sym if action
         job.execute options
       end
 

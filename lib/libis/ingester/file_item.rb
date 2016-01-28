@@ -10,6 +10,7 @@ module Libis
       include Libis::Workflow::Base::FileItem
 
       field :entity_type
+      field :pid
 
     end
 

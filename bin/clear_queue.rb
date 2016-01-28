@@ -5,12 +5,10 @@ OptionParser.new do |opts|
   opts.banner = 'Usage: submit.rb [options]'
 
   common_opts(opts)
-  job_opts(opts)
 
 end.parse!
 
 get_installer
-get_job
 
 require 'sidekiq'
 Sidekiq.configure_client do |config|
@@ -18,5 +16,12 @@ Sidekiq.configure_client do |config|
   config.redis = {url: @installer.config.config.redis_url}
 end
 
-Libis::Ingester::JobWorker.perform_async(@options[:job].id)
-puts "Job #{@options[:job].name} submitted ..."
+require 'sidekiq/api'
+
+Sidekiq::Queue.all.each do |queue|
+  queue.each do |job|
+    job.delete
+  end
+end
+
+Sidekiq::Stats.new.reset

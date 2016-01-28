@@ -9,6 +9,9 @@ module Libis
 
       field :navigate, type: Boolean, default: true
       field :publish, type: Boolean, default: false
+      field :description, type: String
+      field :external_system, type: String
+      field :external_id, type: String
 
       def filename=(f)
         self.properties['name'] = File.basename(f)

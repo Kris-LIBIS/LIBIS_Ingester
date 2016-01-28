@@ -53,8 +53,8 @@ module Libis
             remove_work_dir
             remove_items
             run
-          when :continue
-            self.action = :continue
+          when :retry
+            self.action = :retry
             run
           else
             #nothing

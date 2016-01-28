@@ -5,18 +5,17 @@ OptionParser.new do |opts|
   opts.banner = 'Usage: submit.rb [options]'
 
   common_opts(opts)
-  job_opts(opts)
+  run_opts(opts)
 
 end.parse!
 
 get_installer
-get_job
+get_run
 
 require 'sidekiq'
 Sidekiq.configure_client do |config|
   # noinspection RubyResolve
   config.redis = {url: @installer.config.config.redis_url}
 end
-
-Libis::Ingester::JobWorker.perform_async(@options[:job].id)
-puts "Job #{@options[:job].name} submitted ..."
+Libis::Ingester::RunWorker.perform_async(@options[:run].id, action: :retry)
+puts "Retrying Run #{@options[:run].name} ..."
