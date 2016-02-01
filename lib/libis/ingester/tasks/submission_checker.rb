@@ -47,7 +47,7 @@ module Libis
                         else
                           :FAILED
                       end
-        info "SIP: #{sip_info.id} - Module: #{sip_info.module} Stage: #{sip_info.stage} Status: #{sip_info.status}"
+        info "SIP: #{item.properties[:ingest_sip]} - Module: #{sip_info.module} Stage: #{sip_info.stage} Status: #{sip_info.status}"
         assign_ie_numbers(item, sip_handler.get_ies(item.properties[:ingest_sip])) if item_status == :DONE
         set_status(item, item_status)
       end
