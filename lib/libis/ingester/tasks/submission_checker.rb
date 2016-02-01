@@ -28,6 +28,7 @@ module Libis
       private
 
       def check_item(item)
+        return if item.check_status(self.namepath) == :DONE
         # noinspection RubyResolve
         rosetta = Libis::Services::Rosetta::Service.new(Libis::Ingester::Config.base_url, Libis::Ingester::Config.pds_url)
         producer_info = item.get_run.producer
