@@ -47,7 +47,7 @@ module Libis
         unless @collection_service
           rosetta = Libis::Services::Rosetta::Service.new(
               Libis::Ingester::Config.base_url, Libis::Ingester::Config.pds_url,
-              log: Libis::Ingester::Config.logger, log_level: :debug
+              # log: Libis::Ingester::Config.logger, log_level: :debug
           )
 
           producer_info = item.get_run.producer
