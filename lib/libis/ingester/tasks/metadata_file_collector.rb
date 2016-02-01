@@ -14,15 +14,10 @@ module Libis
 
       protected
 
-      def get_record(item)
-        term = get_search_term(item)
-        return nil if term.blank?
-
+      def search(term)
         metadata_file = File.join(parameter(:location), term)
-        unless File.exist?(metadata_file)
-          debug 'Metadata file \'%s\' for item \'%s\' not found.', metadata_file, item.namepath
-          return nil
-        end
+        return nil unless File.exist?(metadata_file)
+
         begin
           return Libis::Tools::Metadata::DublinCoreRecord.new(metadata_file)
         rescue ArgumentError => e

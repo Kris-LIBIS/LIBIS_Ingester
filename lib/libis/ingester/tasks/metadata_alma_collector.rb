@@ -16,22 +16,14 @@ module Libis
 
       protected
 
-      def get_record(item)
-        term = get_search_term(item)
-        return nil if term.blank?
-
+      def search(term)
         @alma ||= parameter(:host) ? Libis::Services::Alma::WebService.new(parameter(:host)) : Libis::Services::Alma::WebService.new
 
         result = @alma.get_marc(term)
         raise Exception, "#{result[:error_type]} - #{result[:error_name]}" if result.is_a?(Hash)
         result = result.xpath('/bib/record').first rescue nil
 
-        if result.blank?
-          debug 'Metadata for item \'%s\' not found.', item.namepath
-          return nil
-        end
-
-        return Libis::Tools::Metadata::Marc21Record.new(result)
+        return result.blank? ? nil : Libis::Tools::Metadata::Marc21Record.new(result)
 
       rescue Exception => e
         raise Libis::WorkflowError, "Alma request failed: #{e.message}"

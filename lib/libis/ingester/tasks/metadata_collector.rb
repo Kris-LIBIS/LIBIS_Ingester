@@ -21,11 +21,11 @@ module Libis
       parameter term: nil,
                 description: 'Ruby expression that builds the search term to be used in the metadata lookup. ' +
                     'If no term is given, the item name will be used.'
-                    'Available data are: \n' +
-                    'item.filename: file name of the object, \n' +
-                    'item.filepath: relative path of the object, \n' +
-                    'item.fullpath: full path of the object, \n' +
-                    'item.name: name of the object.'
+      'Available data are: \n' +
+          'item.filename: file name of the object, \n' +
+          'item.filepath: relative path of the object, \n' +
+          'item.fullpath: full path of the object, \n' +
+          'item.name: name of the object.'
 
       parameter converter: nil,
                 description: 'Dublin Core metadata converter to use.',
@@ -95,6 +95,20 @@ module Libis
       private
 
       def get_record(item)
+        term = get_search_term(item)
+        return nil if term.blank?
+
+        @metadata_cache ||= {}
+
+        unless @metadata_cache[term]
+          @metadata_cache[term] = search(term)
+          debug 'Metadata for item \'%s\' not found.', item.namepath if @metadata_cache[term]
+        end
+
+        @metadata_cache[term]
+      end
+
+      def search(_)
         nil
       end
 
