@@ -47,7 +47,7 @@ module Libis
         unless @collection_service
           rosetta = Libis::Services::Rosetta::Service.new(
               Libis::Ingester::Config.base_url, Libis::Ingester::Config.pds_url,
-              # log: Libis::Ingester::Config.logger, log_level: :debug
+              log: Libis::Ingester::Config.logger, log_level: :debug
           )
 
           producer_info = item.get_run.producer
@@ -123,17 +123,14 @@ module Libis
         return nil unless collection
 
         if item
-          # noinspection RubyResolve
-          dc_record = item.metadata_record ?
-              Libis::Tools::Metadata::DublinCoreRecord.new(item.metadata_record.data) :
-              nil
           collection.description = item.description
           collection.navigate = item.navigate
           collection.publish = item.publish
           collection.external_system = item.external_system
           collection.external_id = item.external_id
-          if dc_record
-            collection.md_dc = Libis::Services::Rosetta::CollectionInfo::MetaData.new unless collection.md_dc
+          # noinspection RubyResolve
+          if item.metadata_record
+            dc_record = Libis::Tools::Metadata::DublinCoreRecord.new(item.metadata_record.data)
             collection.md_dc.type = 'descriptive'
             collection.md_dc.sub_type = 'dc'
             collection.md_dc.content = dc_record.to_xml
