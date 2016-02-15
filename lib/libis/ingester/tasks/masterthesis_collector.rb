@@ -94,6 +94,12 @@ module Libis
           return
         end
 
+        if hoofdtekst.first.blank?
+          error 'XML file has an empty main file entry (bestanden/hoofdtekst).', ie_item
+          # raise Libis::WorkflowError
+          return
+        end
+
         bijlagen = proef.search('bestanden/bijlage').map(&:text)
         files_from_xml = hoofdtekst + bijlagen
 
