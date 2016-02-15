@@ -25,6 +25,7 @@ module Libis
         ::Libis::Ingester::Item.create_indexes
         ::Libis::Ingester::Job.create_indexes
         ::Libis::Ingester::Organization.create_indexes
+        ::Libis::Ingester::PersistentStorage.create_indexes
         ::Libis::Ingester::RepresentationInfo.create_indexes
         ::Libis::Ingester::RetentionPeriod.create_indexes
         ::Libis::Ingester::Run.create_indexes

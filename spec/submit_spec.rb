@@ -32,11 +32,11 @@ describe 'Test' do
     Libis::Ingester::Job.find_by name: job_name
   }
 
-  let(:job_name) { 'KADOC - Kerk en Leven' }
+  let(:job_name) { 'E-Thesis' }
 
   it 'test job' do
     run = job.execute
-    puts logoutput.string.lines
+    puts logoutput.string.lines unless print_log
     expect(run.status).to be :DONE
     list_data(run)
   end

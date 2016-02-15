@@ -24,6 +24,7 @@ module Libis
 
     autoload :Config, 'libis/ingester/config'
     autoload :Database, 'libis/ingester/database'
+    autoload :PersistentStorage, 'libis/ingester/persistent_storage'
 
     autoload :Item, 'libis/ingester/item'
     autoload :DirItem, 'libis/ingester/dir_item'

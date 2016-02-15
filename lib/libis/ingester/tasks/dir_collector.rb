@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 require 'libis-workflow'
 require 'libis-ingester'
 require 'naturally'
