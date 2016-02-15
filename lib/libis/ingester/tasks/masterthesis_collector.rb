@@ -44,6 +44,8 @@ module Libis
 
       def process_dir(dir)
         dir_name = File.basename(dir)
+        info 'Processing dir %s', dir_name
+
         work_dir = File.join(@work_dir, dir_name)
         FileUtils.mkpath(work_dir)
         files = ftp_ls(dir)
@@ -53,10 +55,11 @@ module Libis
           local_file
         end
 
-        xml_file = files.find { |file| File.basename(file) == 'e_thesis.xml' }
+        xml_file_name = 'e_thesis.xml'
+        xml_file = files.find { |file| File.basename(file) == xml_file_name }
         unless xml_file
           error 'XML file missing in %s', dir_name
-          raise Libis::WorkflowError
+          #raise Libis::WorkflowError
         end
 
         xml_doc = Libis::Tools::XmlDocument.open(xml_file)
@@ -65,55 +68,72 @@ module Libis
         proef = proeven.first
 
         ie_item = Libis::Ingester::IntellectualEntity.new
-        ie_item.name = proef.find('/titel1/tekst').map(&:text).map(&:strip).first
-        if ie_item.name.nil?
-          error 'XML entry in %s/e_thesis.xml does not have a value for titel1/text.', dir_name
-          raise Libis::WorkflowError
+        ie_item.name = dir_name
+        ie_item.properties['title'] = proef.search('titel1/tekst').map(&:text).map(&:strip).first
+        workitem << ie_item
+        ie_item.save!
+        debug 'Added IE \'%s\'', ie_item.properties['title']
+
+        if ie_item.properties['title'].nil?
+          error 'XML entry in does not have a value for titel1/text.', ie_item
+          # raise Libis::WorkflowError
+          return
         end
 
-        hoofdtekst = proef.find('/bestanden/hoofdtekst').map(&:text)
+        hoofdtekst = proef.search('bestanden/hoofdtekst').map(&:text)
 
         if hoofdtekst.empty?
-          error 'XML file in %s missing a main file entry (bestanden/hoofdtekst).', dir_name
-          raise Libis::WorkflowError
+          error 'XML file missing a main file entry (bestanden/hoofdtekst).', ie_item
+          # raise Libis::WorkflowError
+          return
         end
 
         if hoofdtekst.size > 1
-          error 'XML file in %s has multiple a main file entries (bestanden/hoofdtekst).', dir_name
-          raise Libis::WorkflowError
+          error 'XML file has multiple a main file entries (bestanden/hoofdtekst).', ie_item
+          # raise Libis::WorkflowError
+          return
         end
 
-        bijlagen = proef.search('/bestanden/bijlagen').map(&:text)
+        bijlagen = proef.search('bestanden/bijlage').map(&:text)
         files_from_xml = hoofdtekst + bijlagen
+
+        ok = true
 
         files_from_xml.each do |fname|
           unless files.any? { |file| File.basename(file) == fname }
-            error 'A file\'%s\' listed in the XML is not found on FTP server in %s', fname, dir_name
-            raise Libis::WorkflowError
+            error 'A file \'%s\' listed in the XML is not found on FTP server', ie_item, fname
+            ok = false
+            next
           end
-        end
-
-        ok = true
-        files.each do |file|
-          next if files_from_xml.include?(File.basename(file))
-          error 'A file \'%s\' was found on the FTP in %s that was not listed in the XML', File.basename(file), dir_name
-          ok = false
-        end
-        raise Libis::WorkflowError unless ok
-
-        files_from_xml.each do |fname|
           file = Libis::Ingester::FileItem.new
           file.filename = File.join(dir, fname)
           ie_item << file
+          debug 'Added file \'%s\'.', ie_item, fname
         end
 
-        ie_item.save!
+        files.each do |file|
+          next if File.basename(file) == xml_file_name
+          next if files_from_xml.include?(File.basename(file))
+          error 'A file \'%s\' was found on the FTP that was not listed in the XML', ie_item, File.basename(file)
+          ok = false
+        end
 
+        # raise Libis::WorkflowError unless ok
+        return unless ok
+
+        file = Libis::Ingester::FileItem.new
+        file.filename = File.join(dir, xml_file_name)
+        ie_item << file
+        debug 'Added file \'%s\'.', ie_item, xml_file_name
+
+        ie_item.save!
       end
 
       def ftp_connect
         ftp_disconnect
         @ftp ||= DoubleBagFTPS.new
+        @ftp.open_timeout = 10.0
+        @ftp.read_timeout = 5.0
         @ftp.ftps_mode = DoubleBagFTPS::EXPLICIT
         @ftp.connect parameter(:ftp_host), parameter(:ftp_port)
         @ftp.login parameter(:ftp_user), parameter(:ftp_password)
@@ -126,27 +146,36 @@ module Libis
         @ftp.close
       end
 
-      def ftp_check_connection
+      def ftp_check
         begin
-          @ftp.pwd
-        rescue Net::FTPError
+          yield
+        rescue Net::FTPError => e
+          debug 'FTP Exception: %s - %s', e.class.name, e.message
           ftp_connect
+          yield
+        rescue Exception => e
+          debug 'Exception during FTP: %s - %s', e.class.name, e.message
+          ftp_connect
+          yield
         end
       end
 
       def ftp_chdir(dir)
-        ftp_check_connection
-        @ftp.chdir(dir)
+        ftp_check do
+          @ftp.chdir(dir)
+        end
       end
 
       def ftp_ls(dir)
-        ftp_check_connection
-        @ftp.nlst(dir)
+        ftp_check do
+          @ftp.nlst(dir)
+        end
       end
 
       def ftp_get_file(file, local_path)
-        ftp_check_connection
-        @ftp.getbinaryfile(file, local_path)
+        ftp_check do
+          @ftp.getbinaryfile(file, local_path)
+        end
       end
 
       def is_file?(entry)
