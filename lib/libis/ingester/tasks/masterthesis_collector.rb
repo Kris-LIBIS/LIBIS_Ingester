@@ -111,26 +111,23 @@ module Libis
             ok = false
             next
           end
-          file = Libis::Ingester::FileItem.new
-          file.filename = File.join(dir, fname)
-          ie_item << file
-          debug 'Added file \'%s\'.', ie_item, fname
         end
 
         files.each do |file|
-          next if File.basename(file) == xml_file_name
-          next if files_from_xml.include?(File.basename(file))
-          error 'A file \'%s\' was found on the FTP that was not listed in the XML', ie_item, File.basename(file)
-          ok = false
+          fname = File.basename(file)
+          unless fname == xml_file_name || files_from_xml.include?(File.basename(file))
+            error 'A file \'%s\' was found on the FTP that was not listed in the XML', ie_item, File.basename(file)
+            ok = false
+            next
+          end
+          file_item = Libis::Ingester::FileItem.new
+          file_item.filename = file
+          ie_item << file_item
+          debug 'Added file \'%s\'.', ie_item, fname
         end
 
         # raise Libis::WorkflowError unless ok
         return unless ok
-
-        file = Libis::Ingester::FileItem.new
-        file.filename = File.join(dir, xml_file_name)
-        ie_item << file
-        debug 'Added file \'%s\'.', ie_item, xml_file_name
 
         ie_item.save!
       end
@@ -139,11 +136,11 @@ module Libis
         ftp_disconnect
         @ftp ||= DoubleBagFTPS.new
         @ftp.open_timeout = 10.0
-        @ftp.read_timeout = 5.0
         @ftp.ftps_mode = DoubleBagFTPS::EXPLICIT
         @ftp.connect parameter(:ftp_host), parameter(:ftp_port)
         @ftp.login parameter(:ftp_user), parameter(:ftp_password)
         @ftp.passive = true
+        @ftp.read_timeout = 5.0
         debug 'Connected to FTP server.'
       end
 
@@ -155,12 +152,7 @@ module Libis
       def ftp_check
         begin
           yield
-        rescue Net::FTPError => e
-          debug 'FTP Exception: %s - %s', e.class.name, e.message
-          ftp_connect
-          yield
-        rescue Exception => e
-          debug 'Exception during FTP: %s - %s', e.class.name, e.message
+        rescue Errno::ETIMEDOUT => e
           ftp_connect
           yield
         end
