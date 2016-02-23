@@ -84,7 +84,7 @@ module Libis
         # noinspection RubyResolve
         def load_data
           load_organization
-          load_user(id_tag: [:user_id]) do |item, cfg|
+          load_user do |item, cfg|
             (cfg.delete(:organizations) || []).each do |org_name|
               # noinspection RubyResolve
               item.organizations << find_or_create_object(:organization, org_name)
