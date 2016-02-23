@@ -166,10 +166,11 @@ module Libis
 
         def create_item(klass, cfg, id_tag, &block)
           item = klass.find_or_initialize_by(cfg.select { |k, _| id_tag.include?(k.to_sym) })
+          is_new = item.new_record?
           block.call(item, cfg) if block
           item.update_attributes(cfg)
           item.save!
-          puts "#{item.class} #{item.respond_to?(:name) ? "'#{item.name}'" : ''} created/updated."
+          puts "#{item.class} #{item.respond_to?(:name) ? "'#{item.name}'" : ''} #{is_new ? 'created' : 'updated'}."
         end
 
         def read_yaml(file)
