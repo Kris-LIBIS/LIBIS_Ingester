@@ -17,11 +17,10 @@ module Libis
       store_in collection: 'users'
 
       field :name
-      field :user_id
       field :password_hash
       enum :role, [:submitter, :admin], default: :submitter
 
-      index({user_id: 1}, {unique: true})
+      index({name: 1}, {unique: true})
 
       has_and_belongs_to_many :organizations, class_name: Libis::Ingester::Organization.to_s,
                               inverse_of: :users, order: :name.asc
