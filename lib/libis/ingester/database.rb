@@ -177,6 +177,7 @@ module Libis
                      end
                    end
           puts "#{item.class} #{item.respond_to?(:name) ? "'#{item.name}'" : ''} #{status}."
+          item
         end
 
         def find_or_create_object(object, name)
