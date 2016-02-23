@@ -119,10 +119,6 @@ module Libis
 
         private
 
-        def find_or_create_object(object, name)
-          ::Libis::Ingester::Database.find_or_create_by_name(object, name)
-        end
-
         def method_missing(name, *args, &block)
           if name =~ /^load_(.*)$/
             options = {
@@ -164,7 +160,6 @@ module Libis
           end
         end
 
-        # noinspection RubyNestedTernaryOperatorsInspection
         def create_item(klass, cfg, id_tag, &block)
           item = klass.find_or_initialize_by(cfg.select { |k, _| id_tag.include?(k.to_sym) })
           is_new = item.new_record?
@@ -172,8 +167,22 @@ module Libis
           item.update_attributes(cfg)
           is_updated = item.changed?
           item.save!
-          puts "#{item.class} #{item.respond_to?(:name) ? "'#{item.name}'" : ''}" +
-                   " #{is_new ? 'created' : (is_updated ? 'updated' : 'not changed')}."
+          status = if is_new
+                     'created'
+                   else
+                     if is_updated
+                       'updated'
+                     else
+                       'not changed'
+                     end
+                   end
+          puts "#{item.class} #{item.respond_to?(:name) ? "'#{item.name}'" : ''} #{status}."
+        end
+
+        def find_or_create_object(object, name)
+          klass = object if object.is_a?(Class)
+          klass ||= "::Libis::Ingester::#{object.to_s.classify}".constantize
+          create_item(klass, {name: name}, [:name])
         end
 
         def read_yaml(file)
