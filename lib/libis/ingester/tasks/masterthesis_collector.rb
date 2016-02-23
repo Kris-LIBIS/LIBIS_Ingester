@@ -12,9 +12,9 @@ module Libis
                 description: 'FTP host where theses are uploaded.'
       parameter ftp_port: 990,
                 description: 'FTP port number.'
-      parameter ftp_user: 'plias',
+      parameter ftp_user: '',
                 description: 'FTP user account.'
-      parameter ftp_password: 'QiZYnEJSp',
+      parameter ftp_password: '',
                 description: 'FTP password.'
       parameter ftp_subdir: '/masterproef/out',
                 description: 'Path where theses are stored.'
@@ -152,7 +152,7 @@ module Libis
       def ftp_check
         begin
           yield
-        rescue Errno::ETIMEDOUT => e
+        rescue Errno::ETIMEDOUT
           ftp_connect
           yield
         end

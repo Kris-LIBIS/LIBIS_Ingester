@@ -1,8 +1,9 @@
 # encoding: utf-8
 
 require 'libis/ingester'
-require 'libis/services/alma/web_service'
+require 'libis/services/alma/sru_service'
 require 'libis/tools/metadata/marc21_record'
+require 'open-uri'
 
 require_relative 'metadata_collector'
 module Libis
@@ -17,13 +18,15 @@ module Libis
       protected
 
       def search(term)
-        @alma ||= parameter(:host) ? Libis::Services::Alma::WebService.new(parameter(:host)) : Libis::Services::Alma::WebService.new
+        @alma ||= parameter(:host) ?
+            Libis::Services::Alma::SruService.new(parameter(:host)) :
+            Libis::Services::Alma::SruService.new
 
-        result = @alma.get_marc(term)
-        raise Exception, "#{result[:error_type]} - #{result[:error_name]}" if result.is_a?(Hash)
-        result = result.xpath('/bib/record').first rescue nil
+        field = parameter(:field) || 'alma.mms_id'
+        result = @alma.search(field, URI::encode("\"#{term}\""))
+        warn "Multiple records found for #{field}=#{term}" if result.size > 1
 
-        return result.blank? ? nil : Libis::Tools::Metadata::Marc21Record.new(result)
+        return result.empty? ? nil : Libis::Tools::Metadata::Marc21Record.new(result.first.root)
 
       rescue Exception => e
         raise Libis::WorkflowError, "Alma request failed: #{e.message}"

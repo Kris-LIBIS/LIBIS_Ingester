@@ -125,7 +125,9 @@ module Libis
                  "#{representation.parent.name}_#{info[:name]}.pdf"
         ) do |sources, new_file|
           Libis::Format::PdfMerge.run(sources, new_file)
-          convert_file(new_file, new_file, :PDF, :PDF, info[:options]) unless info[:options].blank?
+          unless info[:options].blank?
+            convert_file(new_file, new_file, :PDF, :PDF, info[:options])
+          end
         end
       end
 
@@ -141,7 +143,8 @@ module Libis
               nil
           end
         end.flatten.compact.reject do |file|
-          @processed_files.include?(file.id)
+          # @processed_files.include?(file.id)
+          false
         end.select do |file|
           match_file(file, formats)
         end
@@ -182,7 +185,7 @@ module Libis
 
           when Libis::Ingester::FileItem
 
-            return if @processed_files.include?(item.id)
+            # return if @processed_files.include?(item.id)
 
             mimetype = item.properties[:mimetype]
             raise Libis::WorkflowError, 'File item %s format not identified.' % item unless mimetype
