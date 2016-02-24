@@ -87,7 +87,8 @@ module Libis
           load_user do |item, cfg|
             item.organizations.clear
             (cfg.delete(:organizations) || []).each do |org_name|
-              add_item(item.organizations, {name: org_name}, [:name])
+              # noinspection RubyResolve
+              item.organizations << find_or_create_object(:organization, org_name)
             end
           end
           load_access_right
