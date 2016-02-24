@@ -19,6 +19,13 @@ module Libis
         FileUtils.rmtree dir if dir && !dir.blank? && Dir.exist?(dir)
       end
 
+      set_callback(:destroy, :after) do |document|
+        job = document.job
+        # noinspection RubyResolve
+        job.runs.delete(document)
+        job.save!
+      end
+
       def workflow
         self.job.workflow
       end

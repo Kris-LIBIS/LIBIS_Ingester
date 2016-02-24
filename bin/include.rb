@@ -28,8 +28,9 @@ def option_menu(title, items)
     menu.header = "\n#{title}\n#{'_' * title.size}"
     menu.select_by = :index
     items.each do |i|
-      menu.choice("#{i}. #{i.name} (id: #{i.id})") { @options[title.downcase.to_sym] = i }
+      menu.choice("#{i.name} (id: #{i.id})") { @options[title.downcase.to_sym] = i }
     end
+    menu.choice('--EXIT--') { @options[title.downcase.to_sym] = nil }
   end
   true
 end
@@ -107,6 +108,8 @@ def get_user
     exit 1
   end
 
+  exit 1 unless @options[:user]
+
   loop do
     @options[:password] = @hl.ask('Password: ') { |q| q.echo = '.' } unless @options[:password]
     break if @options[:user].authenticate(@options[:password])
@@ -116,6 +119,8 @@ end
 
 def get_org
   get_user
+  exit 1 unless @options[:user]
+
   # noinspection RubyResolve
   unless option_menu('Organization', @options[:user].organizations)
     puts 'ERROR: No organization defined.'
@@ -124,7 +129,9 @@ def get_org
 end
 
 def get_job
-  get_org
+  get_org unless @options[:organization]
+  exit 1 unless @options[:organization]
+
   # noinspection RubyResolve
   unless option_menu('Job', @options[:organization].jobs)
     puts "ERROR: No jobs found for #{@options[:organization].name}"
@@ -133,7 +140,9 @@ def get_job
 end
 
 def get_run
-  get_job
+  get_job unless @options[:job]
+  exit 1 unless @options[:job]
+
   # noinspection RubyResolve
   unless option_menu('Run', @options[:job].runs)
     puts "ERROR: No runs found for #{@options[:job].name}"

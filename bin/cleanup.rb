@@ -18,8 +18,18 @@ if @options[:delete] || @options[:reset]
     run.destroy!
   end if @hl.agree('This will delete all runs. OK?', false)
 else
-  get_run
-  @options[:run].destroy! if @hl.agree("I will destroy all evidence of run #{@options[:run].name}. OK?", false)
+  loop do
+    get_job
+    break unless @options[:job]
+    loop do
+      get_run
+      break unless @options[:run]
+      @options[:run].destroy! if @hl.agree("I will destroy all evidence of run #{@options[:run].name}. OK?", false)
+      @options[:job].save!
+      @options[:run] = nil
+    end
+    @options[:job] = nil
+  end
   exit
 end
 
