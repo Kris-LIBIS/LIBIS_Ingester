@@ -9,11 +9,13 @@ require 'libis-tools'
 
 require 'libis/ingester/installer'
 
-require 'highline/import'
+require 'highline'
+@hl = HighLine.new
 
 @options = {}
 
 def option_menu(title, items)
+  return false if items.empty?
   if (name = @options["#{title.downcase}_name".to_sym])
     item = items.find_by(name: name)
     if item
@@ -21,12 +23,15 @@ def option_menu(title, items)
       return
     end
   end
-  puts ''
-  puts title
-  puts '_' * title.size
-  items.each_with_index { |item, i| puts "#{i}. #{item.name} (id: #{item.id})" }
-  item_nr = ask("#{title} number: ", Integer) { |q| q.in = 0...items.size }
-  @options[title.downcase.to_sym] = items[item_nr]
+  @hl.choose do |menu|
+    menu.prompt = "#{title} number: "
+    menu.header = "\n#{title}\n#{'_' * title.size}"
+    menu.select_by = :index
+    items.each do |i|
+      menu.choice("#{i}. #{i.name} (id: #{i.id})") { @options[title.downcase.to_sym] = i }
+    end
+  end
+  true
 end
 
 require 'optparse'
@@ -51,11 +56,11 @@ def common_opts(opts)
 end
 
 def db_opts(opts)
-  opts.on('-d', '--delete', 'Delete runs') do |v|
+  opts.on('-d', '--delete', 'Delete all runs') do |v|
     @options[:delete] = v
   end
 
-  opts.on('-r', '--reset', 'Reset database') do |v|
+  opts.on('-r', '--reset', 'Reset the complete database') do |v|
     @options[:reset] = v
   end
 end
@@ -96,10 +101,14 @@ def get_installer
 end
 
 def get_user
-  option_menu('User', Libis::Ingester::User.all) unless @options[:user]
+
+  unless option_menu('User', Libis::Ingester::User.all)
+    puts 'ERROR: No user defined.'
+    exit 1
+  end
 
   loop do
-    @options[:password] = ask('Password: ') { |q| q.echo = '.' } unless @options[:password]
+    @options[:password] = @hl.ask('Password: ') { |q| q.echo = '.' } unless @options[:password]
     break if @options[:user].authenticate(@options[:password])
     @options[:password] = nil
   end
@@ -108,19 +117,28 @@ end
 def get_org
   get_user
   # noinspection RubyResolve
-  option_menu('Organization', @options[:user].organizations)
+  unless option_menu('Organization', @options[:user].organizations)
+    puts 'ERROR: No organization defined.'
+    exit 1
+  end
 end
 
 def get_job
   get_org
   # noinspection RubyResolve
-  option_menu('Job', @options[:organization].jobs)
+  unless option_menu('Job', @options[:organization].jobs)
+    puts "ERROR: No jobs found for #{@options[:organization].name}"
+    exit 1
+  end
 end
 
 def get_run
   get_job
   # noinspection RubyResolve
-  option_menu('Run', @options[:job].runs)
+  unless option_menu('Run', @options[:job].runs)
+    puts "ERROR: No runs found for #{@options[:job].name}"
+    exit 1
+  end
 end
 
 ::Libis::Ingester.configure do |cfg|

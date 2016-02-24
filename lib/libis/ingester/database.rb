@@ -85,9 +85,9 @@ module Libis
         def load_data
           load_organization
           load_user do |item, cfg|
+            item.organizations.clear
             (cfg.delete(:organizations) || []).each do |org_name|
-              # noinspection RubyResolve
-              item.organizations << find_or_create_object(:organization, org_name)
+              add_item(item.organizations, {name: org_name}, [:name])
             end
           end
           load_access_right
@@ -96,12 +96,14 @@ module Libis
           load_ingest_model do |item, cfg|
             item.access_right = find_or_create_object :access_right, cfg.delete(:access_right)
             item.retention_period = find_or_create_object :retention_period, cfg.delete(:retention_period)
+            item.manifestations.clear
             (cfg.delete(:manifestations) || []).each do |mf_cfg|
-              create_item(item.manifestations, mf_cfg, [:name]) do |mf, cfg_mf|
+              add_item(item.manifestations, mf_cfg, [:name]) do |mf, cfg_mf|
                 mf.access_right = find_or_create_object :access_right, cfg_mf.delete(:access_right)
                 mf.representation_info = find_or_create_object :representation_info, cfg_mf.delete(:representation)
+                mf.convert_infos.clear
                 (cfg_mf.delete(:convert) || []).each do |cv_cfg|
-                  create_item(mf.convert_infos, cv_cfg, [:source_formats])
+                  add_item(mf.convert_infos, cv_cfg, [:source_formats])
                 end
               end
             end
@@ -121,6 +123,7 @@ module Libis
 
         def method_missing(name, *args, &block)
           if name =~ /^load_(.*)$/
+            puts "Loading #{$1}s ..."
             options = {
                 postfix: $1.to_sym,
                 klass: "Libis::Ingester::#{$1.classify}".constantize,
@@ -150,7 +153,7 @@ module Libis
           case @config[postfix]
             when Array
               cfg_list += @config[postfix]
-            when  Hash
+            when Hash
               cfg_list << @config[postfix]
             else
               #skip
@@ -160,27 +163,34 @@ module Libis
           end
         end
 
-        def create_item(klass, cfg, id_tag, &block)
+        def add_item(klass, cfg, id_tag, &block)
+          create_item(klass, cfg, id_tag, true, &block)
+        end
+
+        def create_item(klass, cfg, id_tag, adding = false, &block)
+          @indent ||= -1
+          @indent += 1
+          indent_txt = '  ' * @indent
           item = klass.find_or_initialize_by(cfg.select { |k, _| id_tag.include?(k.to_sym) })
+          item_txt = "#{item.class} #{item.respond_to?(:name) ? "'#{item.name}'" : ''}"
           is_new = item.new_record?
+          if is_new
+            action_txt = adding ? 'Adding' : 'Creating'
+            puts "  #{indent_txt}#{action_txt} #{item_txt}.#{' !!! CHECK !!!' if @indent > 0 && !adding}"
+          else
+            action_txt = (@indent == 0 || adding) ? 'Found' : 'Linking'
+            puts "  #{indent_txt}#{action_txt} #{item_txt}."
+          end
           block.call(item, cfg) if block
           item.update_attributes(cfg)
-          is_updated = item.changed?
+          puts "  #{indent_txt}Updated #{item_txt}." if item.changed? unless is_new
           item.save!
-          status = if is_new
-                     'created'
-                   else
-                     if is_updated
-                       'updated'
-                     else
-                       'not changed'
-                     end
-                   end
-          puts "#{item.class} #{item.respond_to?(:name) ? "'#{item.name}'" : ''} #{status}."
+          @indent -= 1
           item
         end
 
         def find_or_create_object(object, name)
+          return nil if name.nil?
           klass = object if object.is_a?(Class)
           klass ||= "::Libis::Ingester::#{object.to_s.classify}".constantize
           create_item(klass, {name: name}, [:name])

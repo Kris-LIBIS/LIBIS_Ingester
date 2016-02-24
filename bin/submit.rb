@@ -2,7 +2,7 @@
 require_relative 'include'
 
 OptionParser.new do |opts|
-  opts.banner = 'Usage: submit.rb [options]'
+  opts.banner = "Usage: #{$0} [options]"
 
   common_opts(opts)
   job_opts(opts)
