@@ -19,7 +19,7 @@ if @options[:delete] || @options[:reset]
   end if @hl.agree('This will delete all runs. OK?', false)
 else
   get_run
-  @options[:run].destroy! if @hl.agree("I will destroy all evidence of run #{options[:run].name}. OK?", false)
+  @options[:run].destroy! if @hl.agree("I will destroy all evidence of run #{@options[:run].name}. OK?", false)
   exit
 end
 
