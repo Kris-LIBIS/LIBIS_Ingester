@@ -21,11 +21,15 @@ module Libis
           cfg.workdir = @config.config.workdir || '/tmp'
           cfg.base_url = @config.config.base_url || 'http://depot.lias.be'
           cfg.pds_url = @config.config.pds_url || 'https://pds.libis.be'
-
         end
 
         if @config.ingester && @config.ingester.task_dir
           ::Libis::Ingester::Config.require_all(@config.ingester.task_dir)
+        end
+
+        if @config.format_config
+          Libis::Format::TypeDatabase.instance.load_types(@config.format_config.type_database) if @config.format_config.type_database
+          Libis::Format::Fido.add_format(@config.format_config.fido_formats) if @config.format_config.fido_formats
         end
 
         configure_database

@@ -187,6 +187,15 @@ module Libis
 
             # return if @processed_files.include?(item.id)
 
+            options = info[:options] || {}
+            if options[:copy_file]
+              return copy_file(item, new_parent)
+            end
+
+            if options[:move_file]
+              return move_file(item, new_parent)
+            end
+
             mimetype = item.properties[:mimetype]
             raise Libis::WorkflowError, 'File item %s format not identified.' % item unless mimetype
 
@@ -197,15 +206,6 @@ module Libis
               group = Libis::Format::TypeDatabase.type_group(type_id)
               check_list = [type_id, group].compact.map { |v| [v.to_s, v.to_sym] }.flatten
               return if (info[:source_formats] & check_list).empty?
-            end
-
-            options = info[:options] || {}
-            if options[:copy_file]
-              return copy_file(item, new_parent)
-            end
-
-            if options[:move_file]
-              return move_file(item, new_parent)
             end
 
             new_file = File.join(

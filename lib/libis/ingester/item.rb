@@ -40,6 +40,13 @@ module Libis
         result
       end
 
+      def log_message(severity, msg, *args)
+        if self.get_run && self.get_run.properties['job_id']
+          msg = "(#{get_run.properties['job_id']}) #{msg}"
+        end
+        super(severity, msg, *args)
+      end
+
     end
 
   end

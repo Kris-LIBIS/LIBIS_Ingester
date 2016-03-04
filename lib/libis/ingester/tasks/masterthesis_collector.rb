@@ -18,6 +18,8 @@ module Libis
                 description: 'FTP password.'
       parameter ftp_subdir: '/masterproef/out',
                 description: 'Path where theses are stored.'
+      parameter selection_regex: nil,
+                description: 'RegEx for selection only part of the directories'
 
       parameter item_types: [Libis::Ingester::Run], frozen: true
 
@@ -32,6 +34,7 @@ module Libis
         dirs.each do |dir|
           next if is_file?(dir)
           name = File.basename(dir)
+          next unless parameter(:selection_regex).nil? or Regex.new(parameter(:selection_regex)) =~ name
           if loaded.has_key?(name)
             warn 'Thesis found that is already ingested: \'%s\' [%s]', name, loaded[name]
             next
