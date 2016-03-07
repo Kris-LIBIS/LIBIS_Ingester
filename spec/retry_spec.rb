@@ -17,18 +17,7 @@ describe 'Test' do
     installer.seed_database
   end
 
-  let(:config_logger) {
-    ::Libis::Ingester.configure do |cfg|
-      cfg.logger = ::Logger.new(print_log ? STDOUT : logoutput)
-      cfg.set_log_formatter
-      cfg.logger.level = Logger::DEBUG
-    end
-  }
-  let(:print_log) { true }
-  let(:logoutput) { StringIO.new }
-
   let(:job) {
-    config_logger
     Libis::Ingester::Job.find_by name: job_name
   }
 
@@ -38,7 +27,6 @@ describe 'Test' do
     # noinspection RubyResolve
     run = job.runs.last
     run.execute action: :retry
-    puts logoutput.string.lines
     expect(run.status).to be :DONE
     list_data(run)
   end

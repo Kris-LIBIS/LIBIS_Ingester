@@ -14,21 +14,11 @@ describe 'Ingester' do
   before(:all) do
     config_file = File.join(Libis::Ingester::ROOT_DIR, 'site.config.yml')
     installer = ::Libis::Ingester::Installer.new(config_file)
-    installer.create_database
+    installer.seed_database
   end
 
-  let(:config_logger) {
-    ::Libis::Ingester.configure do |cfg|
-      cfg.logger = ::Logger.new(print_log ? STDOUT : logoutput)
-      cfg.set_log_formatter
-      cfg.logger.level = Logger::DEBUG
-    end
-  }
   let(:datadir) { File.join(Libis::Ingester::ROOT_DIR, 'spec', 'test_data') }
-  let(:logoutput) { StringIO.new }
-  let(:print_log) { true }
   let(:job) {
-    config_logger
     Libis::Ingester::Job.find_by name: job_name
   }
 
@@ -146,21 +136,6 @@ describe 'Ingester' do
       expect(run.items[1]).to be_a(Libis::Ingester::IntellectualEntity)
     end
 
-  end
-
-  context 'Complex ingest' do
-
-    let(:print_log) { true }
-    let(:job_name) { 'Complex Test Job' }
-
-    it 'full test ingest' do
-      # run = job.execute
-      #
-      # puts logoutput.string.lines
-      # expect(run.status).to be :DONE
-      # list_data(run)
-      # run.items.each { |item| check_list(item, COMPLEX_INGEST, 1) }
-    end
   end
 
 end

@@ -22,18 +22,7 @@ describe 'Test' do
     installer.seed_database
   end
 
-  let(:config_logger) {
-    ::Libis::Ingester.configure do |cfg|
-      cfg.logger = ::Logger.new(print_log ? STDOUT : logoutput)
-      cfg.set_log_formatter
-      cfg.logger.level = Logger::DEBUG
-    end
-  }
-  let(:print_log) { true }
-  let(:logoutput) { StringIO.new }
-
   let(:job) {
-    config_logger
     Libis::Ingester::Job.find_by name: job_name
   }
 
@@ -42,7 +31,6 @@ describe 'Test' do
 
   it 'test job' do
     run = job.execute
-    puts logoutput.string.lines unless print_log
     expect(run.status).to be :DONE
     list_data(run)
   end

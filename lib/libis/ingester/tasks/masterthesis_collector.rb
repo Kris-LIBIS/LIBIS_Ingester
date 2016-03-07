@@ -34,7 +34,7 @@ module Libis
         dirs.each do |dir|
           next if is_file?(dir)
           name = File.basename(dir)
-          next unless parameter(:selection_regex).nil? or Regex.new(parameter(:selection_regex)) =~ name
+          next unless parameter(:selection_regex).nil? or Regexp.new(parameter(:selection_regex)) =~ name
           if loaded.has_key?(name)
             warn 'Thesis found that is already ingested: \'%s\' [%s]', name, loaded[name]
             next
@@ -62,12 +62,16 @@ module Libis
         xml_file = files.find { |file| File.basename(file) == xml_file_name }
         unless xml_file
           error 'XML file missing in %s', dir_name
-          #raise Libis::WorkflowError
+          return
         end
 
         xml_doc = Libis::Tools::XmlDocument.open(xml_file)
+        xml_doc.save(xml_file)
         proeven = xml_doc.root.search('/proeven/proef')
-        warn 'XML file in %s contains multiple theses. Only using first item.', dir_name if proeven.size > 1
+        if proeven.size > 1
+          error 'XML file in %s contains multiple theses.', dir_name
+          return
+        end
         proef = proeven.first
 
         ie_item = Libis::Ingester::IntellectualEntity.new
@@ -79,7 +83,6 @@ module Libis
 
         if ie_item.properties['title'].nil?
           error 'XML entry in does not have a value for titel1/text.', ie_item
-          # raise Libis::WorkflowError
           return
         end
 
@@ -87,19 +90,16 @@ module Libis
 
         if hoofdtekst.empty?
           error 'XML file missing a main file entry (bestanden/hoofdtekst).', ie_item
-          # raise Libis::WorkflowError
           return
         end
 
         if hoofdtekst.size > 1
           error 'XML file has multiple a main file entries (bestanden/hoofdtekst).', ie_item
-          # raise Libis::WorkflowError
           return
         end
 
         if hoofdtekst.first.blank?
           error 'XML file has an empty main file entry (bestanden/hoofdtekst).', ie_item
-          # raise Libis::WorkflowError
           return
         end
 
@@ -129,7 +129,6 @@ module Libis
           debug 'Added file \'%s\'.', ie_item, fname
         end
 
-        # raise Libis::WorkflowError unless ok
         return unless ok
 
         ie_item.save!

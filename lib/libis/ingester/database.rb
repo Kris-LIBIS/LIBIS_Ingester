@@ -4,7 +4,7 @@ require 'libis/tools/extend/hash'
 module Libis
   module Ingester
     class Database
-      include ::Libis::Workflow::Base::Logger
+      include ::Libis::Tools::Logger
 
       def initialize(cfg_file = nil, env = :production)
         ::Libis::Ingester.configure do |cfg|

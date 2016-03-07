@@ -73,19 +73,10 @@ end
 
 describe 'DAV Ingester' do
 
-  before :each do
-    @logoutput.reopen
-  end
-
   before :all do
-
-    @logoutput = StringIO.new
 
     ::Libis::Ingester.configure do |cfg|
       cfg.workdir = File.join(File.dirname(__FILE__), 'work')
-      #cfg.logger = Logger.new @logoutput
-      cfg.set_formatter
-      cfg.logger.level = Logger::DEBUG
       cfg.database_connect 'mongoid.yml', :test
     end
 
@@ -155,7 +146,6 @@ describe 'DAV Ingester' do
   # end
 
   it 'should create a sub-dir' do
-    puts @logoutput.string
     run = @dav_mets.run(
         folder: '/nas/vol04/upload/flandrica/DAV/poc3/000003',
         ingest_type: 'METS', access_right: '361547',
