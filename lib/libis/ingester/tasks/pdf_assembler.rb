@@ -40,7 +40,7 @@ module Libis
         target_rep.access_right = ar
 
         target_rep.parent = item
-        target_rep.save
+        target_rep.save!
 
         generator = Libis::Format::PdfMerge
 

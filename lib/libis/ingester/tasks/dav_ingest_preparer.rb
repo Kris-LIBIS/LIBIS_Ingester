@@ -62,7 +62,7 @@ module Libis
         @dossier_dir = File.join(@dirname, item.filename)
         FileUtils.mkdir_p File.join(@dossier_dir, 'content', 'streams')
         item.properties[:ingest_sub_dir] = Pathname.new(@dossier_dir).relative_path_from(Pathname.new(parameter(:ingest_dir))).to_s
-        item.save
+        item.save!
 
         @mets = Libis::Tools::MetsFile.new
 

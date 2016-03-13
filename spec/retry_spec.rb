@@ -21,12 +21,13 @@ describe 'Test' do
     Libis::Ingester::Job.find_by name: job_name
   }
 
-  let(:job_name) { 'KADOC - Kerk en Leven' }
+  let(:job_name) { 'E-Thesis' }
+  # let(:job_name) { 'KADOC - Kerk en Leven' }
 
   it 'retry run' do
     # noinspection RubyResolve
     run = job.runs.last
-    run.execute action: :retry
+    run.execute 'action' => :retry
     expect(run.status).to be :DONE
     list_data(run)
   end

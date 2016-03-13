@@ -15,7 +15,7 @@ get_job
 require 'sidekiq'
 Sidekiq.configure_client do |config|
   # noinspection RubyResolve
-  config.redis = {url: @installer.config.config.redis_url}
+  config.redis = {url: @installer.config.sidekiq.redis_url}
 end
 
 Libis::Ingester::JobWorker.perform_async(@options[:job].id)

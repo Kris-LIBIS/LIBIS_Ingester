@@ -32,7 +32,7 @@ module Libis
           rep.label = manifestation.label
           rep.parent = item
           build_manifestation(rep, manifestation)
-          rep.save
+          rep.save!
         end
 
         stop_processing_subitems
@@ -66,20 +66,20 @@ module Libis
               representation.parent.representation(from_manifestation.name)
           source_items = source && source.items.dup || representation.parent.originals
 
-          info = convert_info.info
-          info[:name] = representation.name
+          convert_hash = convert_info.to_hash
+          convert_hash[:name] = representation.name
           # Check if a generator is given
           case convert_info.generator
             when 'assemble_images'
               # The image assembly generator
-              assemble_images source_items, representation, info
+              assemble_images source_items, representation, convert_hash
             when 'assemble_pdf'
               # The PDF assembly generator
-              assemble_pdf source_items, representation, info
+              assemble_pdf source_items, representation, convert_hash
             else
               # No generator - convert each source file according to the specifications
               source_items.each do |item|
-                convert item, representation, info
+                convert item, representation, convert_hash
               end
           end
         end
@@ -107,26 +107,26 @@ module Libis
         file.items.each { |item| copy_file(item, new_file) }
       end
 
-      def assemble_images(items, representation, info)
-        target_format = info[:target_format].to_sym
+      def assemble_images(items, representation, convert_hash)
+        target_format = convert_hash[:target_format].to_sym
         assemble(
-            items, representation, info[:source_formats],
-            "#{representation.parent.name}_#{info[:name]}." +
+            items, representation, convert_hash[:source_formats],
+            "#{representation.parent.name}_#{convert_hash[:name]}." +
                 "#{Libis::Format::TypeDatabase.type_extentions(target_format).first}"
         ) do |sources, new_file|
           Libis::Format::Converter::ImageConverter.new.
               assemble_and_convert(sources, new_file, target_format)
-          convert_file(new_file, new_file, target_format, target_format, info[:options]) unless info[:options].blank?
+          convert_file(new_file, new_file, target_format, target_format, convert_hash[:options]) unless convert_hash[:options].blank?
         end
       end
 
-      def assemble_pdf(items, representation, info)
+      def assemble_pdf(items, representation, convert_hash)
         assemble(items, representation, [:PDF],
-                 "#{representation.parent.name}_#{info[:name]}.pdf"
+                 "#{representation.parent.name}_#{convert_hash[:name]}.pdf"
         ) do |sources, new_file|
           Libis::Format::PdfMerge.run(sources, new_file)
-          unless info[:options].blank?
-            convert_file(new_file, new_file, :PDF, :PDF, info[:options])
+          unless convert_hash[:options].blank?
+            convert_file(new_file, new_file, :PDF, :PDF, convert_hash[:options])
           end
         end
       end
@@ -174,20 +174,20 @@ module Libis
         assembly
       end
 
-      def convert(item, new_parent, info)
+      def convert(item, new_parent, convert_hash)
         case item
 
           when Libis::Ingester::Division
             div = item.dup
             div.parent = new_parent
             div.save!
-            item.items.each { |child| convert(child, div, info) }
+            item.items.each { |child| convert(child, div, convert_hash) }
 
           when Libis::Ingester::FileItem
 
             # return if @processed_files.include?(item.id)
 
-            options = info[:options] || {}
+            options = convert_hash[:options] || {}
             if options[:copy_file]
               return copy_file(item, new_parent)
             end
@@ -196,27 +196,27 @@ module Libis
               return move_file(item, new_parent)
             end
 
-            mimetype = item.properties[:mimetype]
+            mimetype = item.properties['mimetype']
             raise Libis::WorkflowError, 'File item %s format not identified.' % item unless mimetype
 
             type_id = Libis::Format::TypeDatabase.mime_types(mimetype).first
             raise Libis::WorkflowError, 'File item %s format (%s) is not supported.' % [item, mimetype] unless type_id
 
-            unless info[:source_formats].blank?
+            unless convert_hash[:source_formats].blank?
               group = Libis::Format::TypeDatabase.type_group(type_id)
               check_list = [type_id, group].compact.map { |v| [v.to_s, v.to_sym] }.flatten
-              return if (info[:source_formats] & check_list).empty?
+              return if (convert_hash[:source_formats] & check_list).empty?
             end
 
             new_file = File.join(
                 item.get_run.work_dir,
                 item.id.to_s,
                 new_parent.id.to_s,
-                "#{File.basename(item.fullpath, '.*')}.#{info[:name]}." +
-                    "#{Libis::Format::TypeDatabase.type_extentions(info[:target_format]).first}"
+                "#{File.basename(item.fullpath, '.*')}.#{convert_hash[:name]}." +
+                    "#{Libis::Format::TypeDatabase.type_extentions(convert_hash[:target_format]).first}"
             )
 
-            new_file, converter = convert_file(item.fullpath, new_file, type_id, info[:target_format].to_sym, options)
+            new_file, converter = convert_file(item.fullpath, new_file, type_id, convert_hash[:target_format].to_sym, options)
             return nil unless new_file
 
             @processed_files << item.id
@@ -225,8 +225,8 @@ module Libis
             new_item.filename = new_file
             new_item.name = item.name
             new_item.parent = new_parent
-            new_item.properties[:converter] = converter
-            new_item.properties[:group_id] = item.properties[:group_id] || item.id
+            new_item.properties['converter'] = converter
+            new_item.properties['group_id'] = item.properties['group_id'] || item.id
             register_file(new_item)
             new_item.save!
 
@@ -237,7 +237,7 @@ module Libis
 
       def match_file(file, formats)
         return true if formats.blank?
-        mimetype = file.properties[:mimetype]
+        mimetype = file.properties['mimetype']
         type_id = Libis::Format::TypeDatabase.mime_types(mimetype).first
         group = Libis::Format::TypeDatabase.type_group(type_id.to_s)
         check_list = [type_id, group].compact.map { |v| [v.to_s, v.to_sym] }.flatten
@@ -248,7 +248,7 @@ module Libis
       private
 
       def register_file(new_file)
-        new_file.properties[:group_id] = add_file_to_registry(new_file.name)
+        new_file.properties['group_id'] = add_file_to_registry(new_file.name)
       end
 
       def add_file_to_registry(name)

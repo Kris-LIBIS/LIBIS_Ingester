@@ -13,7 +13,7 @@ get_installer
 require 'sidekiq'
 Sidekiq.configure_client do |config|
   # noinspection RubyResolve
-  config.redis = {url: @installer.config.config.redis_url}
+  config.redis = {url: @installer.config.sidekiq.redis_url}
 end
 
 require 'sidekiq/api'

@@ -9,9 +9,19 @@ module Libis
     class Job < Libis::Workflow::Mongoid::Job
 
       field :schedule
+      field :material_flow
 
       belongs_to :organization, class_name: Libis::Ingester::Organization.to_s, inverse_of: :jobs
       belongs_to :ingest_model, class_name: Libis::Ingester::IngestModel.to_s, inverse_of: :jobs
+
+      def self.from_hash(hash)
+        # noinspection RubyResolve
+        self.create_from_hash(hash, [:name]) do |item, cfg|
+          item.workflow = Libis::Ingester::Workflow.from_hash(name: cfg.delete('workflow'))
+          item.organization = Libis::Ingester::Organization.from_hash(name: cfg.delete('organization'))
+          item.ingest_model = Libis::Ingester::IngestModel.from_hash(name: cfg.delete('ingest_model'))
+        end
+      end
 
       # noinspection RubyResolve
       def producer
@@ -19,7 +29,7 @@ module Libis
       end
 
       def material_flow
-        self.organization.material_flow
+        self.organization.material_flow[self.read_attribute(:material_flow) || 'default']
       end
 
       def ingest_dir

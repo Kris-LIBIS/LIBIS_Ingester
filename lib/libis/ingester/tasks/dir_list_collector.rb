@@ -18,7 +18,7 @@ module Libis
         return unless File.exist?(dirlist)
         debug 'Collecting files from \'%s\'', dirlist
         add_files(item, dir, File.readlines(dirlist))
-        item.save
+        item.save!
       end
 
     end

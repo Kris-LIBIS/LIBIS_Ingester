@@ -17,7 +17,7 @@ module Libis
 
       def pre_process(item)
         super
-        skip_processing_item if item.properties[:mimetype] && item.properties[:puid]
+        skip_processing_item if item.properties['mimetype'] && item.properties['puid']
       end
 
       def process(item)
@@ -32,8 +32,8 @@ module Libis
           mimetype = 'application/octet-stream'
         end
 
-        item.properties[:mimetype] = mimetype
-        item.properties[:puid] = format[:puid]
+        item.properties['mimetype'] = mimetype
+        item.properties['puid'] = format[:puid]
       end
 
     end

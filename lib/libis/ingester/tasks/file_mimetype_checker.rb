@@ -20,12 +20,12 @@ module Libis
         debug "Checking MIME type against '/#{filter}/'."
         filter = Regexp.new(filter) unless filter.is_a? Regexp
 
-        unless item.properties[:mimetype]
+        unless item.properties['mimetype']
           warn 'Skipping file. MIME type not identified yet.'
           return
         end
 
-        unless item.properties[:mimetype] =~ filter
+        unless item.properties['mimetype'] =~ filter
           error item, 'File did not pass mimetype check.'
           set_status item, :FAILED
         end

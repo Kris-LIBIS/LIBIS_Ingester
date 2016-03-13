@@ -15,10 +15,10 @@ describe 'Test' do
     config_file = File.join(Libis::Ingester::ROOT_DIR, 'site.config.yml')
     installer = ::Libis::Ingester::Installer.new(config_file)
     ::Libis::Ingester::Run.each do |run|
-      puts '  ' + run.name
+      puts ' x ' + run.name
       run.destroy!
     end
-    installer.database.clear
+    # installer.database.clear
     installer.seed_database
   end
 

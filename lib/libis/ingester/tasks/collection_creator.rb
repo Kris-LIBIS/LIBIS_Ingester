@@ -56,13 +56,13 @@ module Libis
           @collection_service = rosetta.collection_service
         end
 
-        parent_id = item.parent.properties[:collection_id] if item.parent
+        parent_id = item.parent.properties['collection_id'] if item.parent
         parent_id ||= create_collection_path(collection_list)
 
         collection_id = find_collection((collection_list + [item.name]).join('/'), item) ||
             create_collection_id(parent_id, collection_list, item.name, item.navigate, item.publish, item)
 
-        item.properties[:collection_id] = collection_id
+        item.properties['collection_id'] = collection_id
 
         debug "Created/found collection '#{item.name}' with id #{collection_id} in Rosetta.", item
       end

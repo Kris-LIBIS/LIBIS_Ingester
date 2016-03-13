@@ -7,7 +7,7 @@ module Libis
     Config = ::Libis::Workflow::Mongoid::Config
 
     Config.require_all(File.join(File.dirname(__FILE__), 'tasks'))
-    Config[:virusscanner] = {command: 'echo', options: {}}
+    Config[:virusscanner] = {command: 'echo', options: []}
 
   end
 end

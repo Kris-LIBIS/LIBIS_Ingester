@@ -30,10 +30,10 @@ module Libis
       end
 
       # noinspection RubyResolve
-      def info
+      def to_hash
         result = super
         result[:retention_period_id] = self.retention_period.rp_id if self.retention_period
-        result
+        result.cleanup
       end
 
     end

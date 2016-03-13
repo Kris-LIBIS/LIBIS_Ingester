@@ -24,7 +24,19 @@ module Libis
       validates_presence_of :name
       validates_uniqueness_of :name
 
-    end
+      def self.from_hash(hash)
+        # noinspection RubyResolve
+        self.create_from_hash(hash, [:name]) do |item, cfg|
+          item.access_right = Libis::Ingester::AccessRight.from_hash(name: cfg.delete('access_right'))
+          item.representation_info = Libis::Ingester::RepresentationInfo.from_hash(name: cfg.delete('representation'))
+          item.convert_infos.clear
+          (cfg.delete('convert') || []).each do |cv_cfg|
+            item.convert_infos << Libis::Ingester::ConvertInfo.from_hash(cv_cfg)
+          end
+        end
+      end
 
+    end
   end
+
 end

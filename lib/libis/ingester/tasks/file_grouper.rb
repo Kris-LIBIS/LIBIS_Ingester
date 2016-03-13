@@ -55,7 +55,7 @@ module Libis
           new_name = parameter(:file_label) ? eval(parameter(:file_label)) : item.name
           debug 'Adding to group %s as %s', item, group.name, new_name
           item.name = new_name
-          item.properties[:group_id] = register_file(item.name)
+          item.properties['group_id'] = register_file(item.name)
           group.add_item(item)
         end
       end

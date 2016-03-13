@@ -18,9 +18,9 @@ module Libis
         raise RuntimeError, "Missing section 'config' in site config." unless @config.config
 
         ::Libis::Ingester.configure do |cfg|
-          cfg.workdir = @config.config.workdir || '/tmp'
-          cfg.base_url = @config.config.base_url || 'http://depot.lias.be'
-          cfg.pds_url = @config.config.pds_url || 'https://pds.libis.be'
+          @config.config.each do |key, value|
+            cfg.send("#{key}=", value)
+          end
         end
 
         if @config.ingester && @config.ingester.task_dir

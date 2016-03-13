@@ -31,9 +31,9 @@ module Libis
       end
 
       def producer
-        result = self[:producer] || self.job.producer
+        result = self[:producer] || self.job.producer.key_symbols_to_strings
         self[:producer] ||= result unless self.frozen?
-        result
+        result.key_strings_to_symbols
       end
 
       def material_flow
@@ -53,16 +53,17 @@ module Libis
       end
 
       def execute(options = {})
-        options[:action] = :run unless options[:action]
-        case options[:action]
+        action = options.delete('action') || :run
+        options.each { |key,value| self.send(key, value) }
+        case action.to_sym
           when :run, :restart
             self.action = :run
-            remove_work_dir
-            remove_items
-            run
+            self.remove_work_dir
+            self.remove_items
+            self.run :run
           when :retry
             self.action = :retry
-            run
+            self.run :retry
           else
             #nothing
         end

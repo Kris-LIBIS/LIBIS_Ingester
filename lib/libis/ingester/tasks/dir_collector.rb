@@ -36,7 +36,7 @@ module Libis
       def collect(item, dir)
         debug 'Collecting files in \'%s\'', dir
         add_files(item, dir, Dir.entries(dir))
-        item.save
+        item.save!
       end
 
       def add_files(item, dir, list)
@@ -82,7 +82,7 @@ module Libis
         end
         return unless child
         child.filename = file
-        child.save
+        child.save!
         child.parent = item
       end
 

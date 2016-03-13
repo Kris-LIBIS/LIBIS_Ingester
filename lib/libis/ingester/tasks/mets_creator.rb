@@ -47,8 +47,8 @@ module Libis
 
       # noinspection RubyResolve
       def create_ie(item)
-        item.properties[:ingest_sub_dir] = "#{item._id}.#{item.name}"
-        item.save
+        item.properties['ingest_sub_dir'] = "#{item._id}.#{item.name}"
+        item.save!
 
         mets = Libis::Tools::MetsFile.new
 
@@ -63,7 +63,7 @@ module Libis
                       Libis::Tools::Metadata::DublinCoreRecord.new
                     end
 
-        dc_record.title = item.name
+        dc_record.title = item.label if dc_record.title.blank?
 
         collection_list = item.ancestors.select do |i|
           i.is_a? Libis::Ingester::Collection
@@ -79,23 +79,29 @@ module Libis
         ingest_model = item.get_run.ingest_model
 
         amd = {
-            entity_type: ingest_model.entity_type,
-            user_a: ingest_model.user_a,
-            user_b: ingest_model.user_b,
-            user_c: ingest_model.user_c,
+            entity_type: item.properties['entity_type'] || ingest_model.entity_type,
+            user_a: item.properties['user_a'] || ingest_model.user_a,
+            user_b: item.properties['user_b'] || ingest_model.user_b,
+            user_c: item.properties['user_c'] || ingest_model.user_c,
         }
 
         access_right = ingest_model.access_right
+        if item.properties['access_right']
+          access_right = ::Libis::Ingester::AccessRight.find_by(name: item.properties['access_right'])
+        end
         amd[:access_right] = access_right.ar_id if access_right
 
         retention_period = ingest_model.retention_period
+        if item.properties['retention_period']
+          retention_period = ::Libis::Ingester::RetentionPeriod.find_by(name: item.properties['retention_period'])
+        end
         amd[:retention_period] = retention_period.rp_id if retention_period
 
-        amd[:collection_id] = item.parent.properties[:collection_id] if item.parent.is_a?(Libis::Ingester::Collection)
+        amd[:collection_id] = item.parent.properties['collection_id'] if item.parent.is_a?(Libis::Ingester::Collection)
 
         mets.amd_info = amd
 
-        ie_ingest_dir = File.join item.get_run.ingest_dir, item.properties[:ingest_sub_dir]
+        ie_ingest_dir = File.join item.get_run.ingest_dir, item.properties['ingest_sub_dir']
 
         item.representations.each { |rep| add_rep(mets, rep, ie_ingest_dir) }
 
@@ -107,7 +113,7 @@ module Libis
 
       def add_rep(mets, item, ie_ingest_dir)
 
-        rep = mets.representation(item.info)
+        rep = mets.representation(item.to_hash)
         div = mets.div label: item.parent.name
         mets.map(rep, div)
 
@@ -122,7 +128,7 @@ module Libis
       end
 
       def add_file(mets, rep, item, ie_ingest_dir)
-        config = item.info
+        config = item.to_hash
         properties = config.delete(:properties)
         config[:creation_date] = properties[:creation_time]
         config[:modification_date] = properties[:modification_time]
@@ -137,7 +143,7 @@ module Libis
         config[:checksum_SHA256] = properties[:checksum_sha256]
         config[:checksum_SHA384] = properties[:checksum_sha384]
         config[:checksum_SHA512] = properties[:checksum_sha512]
-        config[:label] = item.name
+        config[:label] = properties[:label] || item.name
 
         file = mets.file(config)
 
@@ -147,7 +153,7 @@ module Libis
         stream_dir = File.join(ie_ingest_dir, 'content', 'streams')
         FileUtils.mkpath stream_dir
         target_path = File.join(stream_dir, file.target)
-        if parameter(:copy_files) then
+        if parameter(:copy_files)
           FileUtils.copy_entry(item.fullpath, target_path)
           debug "Copied file to #{target_path}.", item
         else

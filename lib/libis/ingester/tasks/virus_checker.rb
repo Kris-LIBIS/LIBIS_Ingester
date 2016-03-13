@@ -12,7 +12,7 @@ module Libis
 
         def pre_process(item)
           super
-          skip_processing_item if item.options[:virus_check]
+          skip_processing_item if item.options['virus_checked']
         end
 
         def process(item)
@@ -20,12 +20,12 @@ module Libis
           debug 'Scanning file for viruses'
 
           # noinspection RubyResolve
-          cmd_options = Config.virusscanner[:options]
+          cmd_options = Libis::Ingester::Config.virusscanner['options']
           # noinspection RubyResolve
-          result = Libis::Tools::Command.run Config.virusscanner[:command], *cmd_options, item.fullpath
+          result = Libis::Tools::Command.run Libis::Ingester::Config.virusscanner[:command], *cmd_options, item.fullpath
           raise Libis::WorkflowError, "Error during viruscheck: #{result[:err]}" unless result[:status]
 
-          item.options[:virus_check] = true
+          item.options['virus_checked'] = true
           info 'File is clean'
 
         end

@@ -9,13 +9,12 @@ require 'libis/ingester'
 module Libis
   module Ingester
 
-    class PersistentStorage
+    class DomainStorage
 
       include Libis::Workflow::Mongoid::Base
       include ::Mongoid::Timestamps::Updated::Short
-      include Mongoid::Attributes::Dynamic
 
-      store_in collection: 'storage'
+      store_in collection: 'domain_storage'
 
       field :domain
       field :name

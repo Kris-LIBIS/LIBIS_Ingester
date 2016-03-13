@@ -30,8 +30,8 @@ module Libis
       end
 
       # noinspection RubyResolve
-      def info
-        super.merge(self.representation_info.info)
+      def to_hash
+        super.merge(self.representation_info.to_hash)
       end
 
     end

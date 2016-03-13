@@ -25,6 +25,16 @@ module Libis
       has_and_belongs_to_many :organizations, class_name: Libis::Ingester::Organization.to_s,
                               inverse_of: :users, order: :name.asc
 
+      def self.from_hash(hash)
+        # noinspection RubyResolve
+        self.create_from_hash(hash, [:name]) do |item, cfg|
+          item.organizations.clear
+          (cfg.delete('organizations') || []).each do |org_name|
+            item.organizations << Libis::Ingester::Organization.from_hash(name: org_name)
+          end
+        end
+      end
+
       def authenticate(password)
         return true if self.password_hash.blank? && password.blank?
         self.class.get_password_hash(password) == self.password_hash

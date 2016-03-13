@@ -14,7 +14,6 @@ module Libis
       field :from_manifestation
 
       embedded_in :manifestation, class_name: Libis::Ingester::Manifestation.to_s
-
     end
 
   end

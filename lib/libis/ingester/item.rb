@@ -17,7 +17,7 @@ module Libis
       end
 
       def label
-        File.basename(self.name, '.*')
+        self.properties['label'] || File.basename(self.name, '.*')
       end
 
       def ancestors
@@ -33,11 +33,12 @@ module Libis
         self.parent || self.run
       end
 
-      def info
+      def to_hash
         result = super
         # noinspection RubyResolve
         result[:access_right_id] = self.access_right.ar_id if self.access_right
-        result
+        result[:metadata_record] = self.metadata_record.to_hash if self.metadata_record
+        result.cleanup
       end
 
     end

@@ -46,13 +46,13 @@ module Libis
         target_rep.access_right = ar
 
         target_rep.parent = item
-        target_rep.save
+        target_rep.save!
 
         generator = Libis::Format::Converter::ImageConverter.new
 
         files = source_rep.files.select do |file|
           next(true) if parameter(:source_formats).nil? || parameter(:source_formats).empty?
-          mimetype = file.properties[:mimetype]
+          mimetype = file.properties['mimetype']
           next(false) unless mimetype
           type_id = Libis::Format::TypeDatabase.mime_types(mimetype).first
           next(false) unless type_id

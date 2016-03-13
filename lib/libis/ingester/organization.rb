@@ -1,4 +1,3 @@
-# encoding: utf-8
 require 'libis/workflow/mongoid/base'
 
 require 'libis/ingester'
@@ -15,7 +14,7 @@ module Libis
       field :producer_id
       field :producer_agent
       field :producer_pwd
-      field :material_flow
+      field :material_flow, type: Hash, default: -> { Hash.new }
       field :ingest_dir
 
       index({name: 1}, {unique: 1})
@@ -25,6 +24,15 @@ module Libis
       has_many :jobs, class_name: Libis::Ingester::Job.to_s, inverse_of: :organization,
                dependent: :destroy, autosave: true, order: :name.asc
 
+      def self.from_hash(hash)
+        # noinspection RubyResolve
+        self.create_from_hash(hash, [:name]) do |_, cfg|
+          unless cfg['material_flow'].is_a?(Hash)
+            cfg['material_flow'] = {'default' => cfg['material_flow']}
+          end
+        end
+      end
+
       def producer
         {
             id: self.producer_id,
@@ -32,7 +40,6 @@ module Libis
             password: self.producer_pwd,
             institution: self.code
         }
-
       end
     end
 
