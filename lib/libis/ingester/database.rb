@@ -90,7 +90,9 @@ module Libis
           load_representation_info
           load_ingest_model
           load_workflow
-          load_job
+          load_job do |cfg|
+            cfg['log_to_file'] = true
+          end
         end
 
         private
@@ -103,7 +105,7 @@ module Libis
                 klass: "Libis::Ingester::#{$1.classify}".constantize
             }
             options.merge!(args[0]) if args[0] && args[0].is_a?(Hash)
-            load_config options
+            load_config options, &block
           else
             super
           end
@@ -111,6 +113,7 @@ module Libis
 
         def load_config(options = {})
           each_config(options[:postfix]) do |cfg|
+            yield(cfg) if block_given?
             options[:klass].from_hash(cfg)
           end
         end
