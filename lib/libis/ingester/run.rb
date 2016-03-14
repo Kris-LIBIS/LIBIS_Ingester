@@ -54,6 +54,10 @@ module Libis
 
       def execute(options = {})
         action = options.delete('action') || :run
+        if self.options.empty?
+          self.options = self.job.input
+          self.save!
+        end
         options.each { |key,value| self.send(key, value) }
         case action.to_sym
           when :run, :restart
