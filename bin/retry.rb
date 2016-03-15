@@ -15,7 +15,7 @@ get_run
 require 'sidekiq'
 Sidekiq.configure_client do |config|
   # noinspection RubyResolve
-  config.redis = {url: @installer.config.sizekiq.redis_url}
+  config.redis = {url: @installer.config.sidekiq.redis_url}
 end
 Libis::Ingester::RunWorker.perform_async(@options[:run].id, action: :retry)
 puts "Retrying Run #{@options[:run].name} ..."
