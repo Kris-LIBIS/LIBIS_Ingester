@@ -14,6 +14,11 @@ module Libis
       field :from_manifestation
 
       embedded_in :manifestation, class_name: Libis::Ingester::Manifestation.to_s
+
+      def self.from_hash(hash)
+        self.create_from_hash(hash.cleanup, [])
+      end
+
     end
 
   end
