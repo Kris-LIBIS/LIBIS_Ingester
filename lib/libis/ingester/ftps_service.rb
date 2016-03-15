@@ -103,6 +103,7 @@ module Libis
         begin
           yield
         rescue Errno::ETIMEDOUT
+          disconnect
           connect
           yield
         end
