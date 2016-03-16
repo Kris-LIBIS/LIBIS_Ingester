@@ -90,9 +90,7 @@ module Libis
           load_representation_info
           load_ingest_model
           load_workflow
-          load_job do |cfg|
-            cfg['log_to_file'] = true
-          end
+          load_job
         end
 
         private
