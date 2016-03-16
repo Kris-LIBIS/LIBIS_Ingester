@@ -12,6 +12,8 @@ module Libis
       field :ingest_type, type: String, default: 'METS'
       field :pid, type: String
 
+      index({pid: 1}, {sparse: true, name: 'by_pid'})
+
       belongs_to :retention_period, class_name: Libis::Ingester::RetentionPeriod.to_s, inverse_of: nil
 
       def representations

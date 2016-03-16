@@ -13,7 +13,7 @@ module Libis
       field :ar_description, type: String
       field :watermark, type: String
 
-      index({name: 1}, {unique: true})
+      index({name: 1}, {unique: true, name: 'by_name'})
 
     end
 

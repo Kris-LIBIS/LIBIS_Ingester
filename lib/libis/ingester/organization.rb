@@ -17,7 +17,8 @@ module Libis
       field :material_flow, type: Hash, default: -> { Hash.new }
       field :ingest_dir
 
-      index({name: 1}, {unique: 1})
+      index({name: 1}, {unique: 1, name: 'by_name'})
+      index({user_id: 1}, {name: 'by_user'})
 
       has_and_belongs_to_many :users, class_name: Libis::Ingester::User.to_s, inverse_of: :organizations,
                               order: :name.asc

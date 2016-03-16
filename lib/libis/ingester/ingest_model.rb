@@ -21,7 +21,8 @@ module Libis
       field :user_c
       field :status
 
-      has_many :jobs, class_name: Libis::Ingester::Job.to_s, inverse_of: :ingest_model
+      has_many :jobs, class_name: Libis::Ingester::Job.to_s, inverse_of: :ingest_model,
+               dependent: :restrict, autosave: true, order: :name.asc
 
       belongs_to :access_right, class_name: Libis::Ingester::AccessRight.to_s, inverse_of: nil
       belongs_to :retention_period, class_name: Libis::Ingester::RetentionPeriod.to_s, inverse_of: nil
@@ -30,7 +31,7 @@ module Libis
 
       validates :name, presence: true, allow_nil: false
 
-      index({name: 1}, {unique: true})
+      index({name: 1}, {unique: true, name: 'by_name'})
 
       def self.from_hash(hash)
         # noinspection RubyResolve

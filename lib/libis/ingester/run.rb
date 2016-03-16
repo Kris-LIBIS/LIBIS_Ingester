@@ -12,8 +12,6 @@ module Libis
       field :material_flow
       field :ingest_dir
 
-      belongs_to :ingest_model, inverse_of: :runs, class_name:  Libis::Ingester::IngestModel.to_s
-
       set_callback(:destroy, :before) do |document|
         dir = document.ingest_dir
         FileUtils.rmtree dir if dir && !dir.blank? && Dir.exist?(dir)
@@ -28,6 +26,10 @@ module Libis
 
       def workflow
         self.job.workflow
+      end
+
+      def ingest_model
+        self.job.ingest_model
       end
 
       def producer
@@ -56,7 +58,7 @@ module Libis
         action = options.delete('action') || :run
         self.options = self.job.input
         self.save!
-        options.each { |key,value| self.send(key, value) }
+        options.each { |key,value| self.send("#{key}=", value) }
         case action.to_sym
           when :run, :restart
             self.action = :run

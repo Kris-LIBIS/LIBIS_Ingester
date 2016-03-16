@@ -17,7 +17,7 @@ module Libis
       field :user_b
       field :user_c
 
-      index({name: 1}, {unique: true})
+      index({name: 1}, {unique: true, name: 'by_name'})
 
     end
 

@@ -20,7 +20,7 @@ module Libis
       field :name
       field :data, type: Hash, default: -> { Hash.new }
 
-      index({domain: 1, name: 1}, {unique: true})
+      index({domain: 1, name: 1}, {unique: true, name: 'by_domain_name'})
 
       protected
 

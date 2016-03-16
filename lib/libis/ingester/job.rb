@@ -14,6 +14,9 @@ module Libis
       belongs_to :organization, class_name: Libis::Ingester::Organization.to_s, inverse_of: :jobs
       belongs_to :ingest_model, class_name: Libis::Ingester::IngestModel.to_s, inverse_of: :jobs
 
+      index({organization_id: 1, name: 1}, {name: 'by_organization'})
+      index({ingest_model_id: 1, name: 1}, {name: 'by_ingest_model'})
+
       def self.from_hash(hash)
         # noinspection RubyResolve
         self.create_from_hash(hash, [:name]) do |item, cfg|
@@ -39,9 +42,7 @@ module Libis
       # noinspection RubyResolve
       def create_run_object
         self.run_object = 'Libis::Ingester::Run'
-        run = super
-        run.ingest_model = self.ingest_model
-        run
+        super
       end
 
     end

@@ -11,7 +11,7 @@ module Libis
       field :name, type: String
       field :rp_id, type: String
 
-      index({name: 1}, {unique: true})
+      index({name: 1}, {unique: true, name: 'by_name'})
 
     end
 
