@@ -13,11 +13,11 @@ require 'highline'
 
 @options = {}
 
-def option_menu(title, items)
-  if items.empty?
-    puts "No #{title}s found."
-    return false
-  end
+def option_menu(title, items, parent_name = nil)
+  # if items.empty?
+  #   puts "No more #{title}s found."
+  #   return false
+  # end
   return true if @options[title.downcase.to_sym]
   if (name = @options["#{title.downcase}_name".to_sym])
     item = items.find_by(name: name)
@@ -28,12 +28,12 @@ def option_menu(title, items)
   end
   @hl.choose do |menu|
     menu.prompt = "#{title} number: "
-    menu.header = "\n#{title.upcase}"
-    menu.select_by = :index
+    menu.header = "\n#{title.upcase}#{parent_name ? ' for ' + parent_name : ''}"
+    menu.select_by = :index_or_name
     items.each do |i|
       menu.choice("#{i.name} (id: #{i.id})") { @options[title.downcase.to_sym] = i }
     end
-    menu.choice('--EXIT--') { @options[title.downcase.to_sym] = nil }
+    menu.choice('--RETURN--') { @options[title.downcase.to_sym] = nil }
   end
   !!@options[title.downcase.to_sym]
 end
@@ -121,7 +121,7 @@ def get_org
   return false unless get_user
 
   # noinspection RubyResolve
-  option_menu('Organization', @options[:user].organizations)
+  option_menu('Organization', @options[:user].organizations, @options[:user].name)
 end
 
 def get_job
@@ -129,12 +129,12 @@ def get_job
   return false unless get_org
 
   # noinspection RubyResolve
-  option_menu('Job', @options[:organization].jobs)
+  option_menu('Job', @options[:organization].jobs, @options[:organization].name)
 end
 
 def get_run
   return unless get_job
 
   # noinspection RubyResolve
-  option_menu('Run', @options[:job].runs)
+  option_menu('Run', @options[:job].runs, @options[:job].name)
 end
