@@ -33,7 +33,10 @@ module Libis
         rosetta = Libis::Services::Rosetta::Service.new(Libis::Ingester::Config.base_url, Libis::Ingester::Config.pds_url)
         producer_info = item.get_run.producer
         handle = rosetta.login(producer_info[:agent], producer_info[:password], producer_info[:institution])
-        raise Libis::WorkflowAbort, 'Could not log in into Rosetta.' if handle.nil?
+        if handle.nil?
+          fatal 'PDS login failed.'
+          raise Libis::WorkflowAbort, 'Could not log in into Rosetta.'
+        end
 
         ingest_dir = File.join(item.get_run.ingest_sub_dir, item.properties['ingest_sub_dir'])
         begin
