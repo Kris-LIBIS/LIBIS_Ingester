@@ -8,6 +8,7 @@ module Libis
       include Libis::Workflow::Mongoid::Base
 
       field :generator
+      field :generated_file
       field :source_formats, type: Array
       field :target_format
       field :options, type: Hash, default: -> { Hash.new }

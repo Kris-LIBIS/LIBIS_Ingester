@@ -63,12 +63,12 @@ module Libis
                       Libis::Tools::Metadata::DublinCoreRecord.new
                     end
 
-        dc_record.title = item.label if dc_record.title.blank?
+        dc_record.title = item.label if item.label != item.name
 
         collection_list = item.ancestors.select do |i|
           i.is_a? Libis::Ingester::Collection
         end.map do |collection|
-          collection.name
+          collection.label
         end
         collection_list << parameter(:collection) if parameter(:collection)
 
@@ -114,7 +114,8 @@ module Libis
       def add_rep(mets, item, ie_ingest_dir)
 
         rep = mets.representation(item.to_hash)
-        div = mets.div label: item.parent.name
+        rep.label = item.label
+        div = mets.div label: item.parent.label
         mets.map(rep, div)
 
         add_children(mets, rep, div, item, ie_ingest_dir)
@@ -143,7 +144,7 @@ module Libis
         config[:checksum_SHA256] = properties[:checksum_sha256]
         config[:checksum_SHA384] = properties[:checksum_sha384]
         config[:checksum_SHA512] = properties[:checksum_sha512]
-        config[:label] = properties[:label] || item.name
+        config[:label] = item.label
 
         file = mets.file(config)
 

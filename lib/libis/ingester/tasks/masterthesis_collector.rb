@@ -96,7 +96,7 @@ module Libis
         # Create IE for thesis
         ie_item = Libis::Ingester::IntellectualEntity.new
         ie_item.name = dir_name
-        ie_item.properties['label'] = xml_doc['//titel1/tekst'].strip
+        ie_item.label = xml_doc['//titel1/tekst'].strip
         ie_item.properties['identifier'] = dir_name
         embargo = xml_doc['//embargo'].to_i
         ie_item.properties['access_right'] = parameter(:embargo_ar) if parameter(:embargo_ar) && embargo != 0
@@ -220,7 +220,7 @@ module Libis
         xml.date = "#{pub_date}"
         xml.type! 'BK'
         xml.type! 'Dissertation'
-        xml.type! 'Accademic collection'
+        xml.type! 'Academic collection'
         xml.type! 'ETD_KUL'
         xml
       end

@@ -11,9 +11,13 @@ module Libis
       parameter collection_label: nil,
                 description: 'A Ruby expression for the collection path to put the target in.'
       parameter group_label: '$1',
-                description: 'A Ruby expression for the label (name) of the group; default: $1.'
+                description: 'A Ruby expression for the label of the group; default: $1.'
       parameter file_label: nil,
-                description: 'A Ruby expression for the label (name) of the files; default: file name.'
+                description: 'A Ruby expression for the label of the files; default: file name.'
+      parameter group_name: nil,
+                description: 'A Ruby expression for the name of the group; default: same as group_label.'
+      parameter file_name: nil,
+                description: 'A Ruby expression for the name of the files; default: don\'t change.'
       parameter collection_navigate: true,
                 description: 'Allow navigation through the collections.'
       parameter collection_publish: true,
@@ -45,16 +49,19 @@ module Libis
             target_parent = sub_parent
           end
           group_label = eval(parameter(:group_label))
-          group = target_parent.items.select { |g| g.name == group_label }.first
+          group_name = parameter(:group_name) ? eval(parameter(:group_name)) : group_label
+          group = target_parent.items.select { |g| g.name == group_name }.first
           unless group
             group = Libis::Ingester::Division.new
-            group.name = group_label
+            group.name = group_name
+            group.label = group_label
             target_parent.add_item(group)
             debug 'Created new Division item for group: %s', group, group_label
           end
-          new_name = parameter(:file_label) ? eval(parameter(:file_label)) : item.name
-          debug 'Adding to group %s as %s', item, group.name, new_name
-          item.name = new_name
+          file_label = parameter(:file_label) ? eval(parameter(:file_label)) : item.name
+          debug 'Adding to group %s as %s', item, group.name, file_label
+          item.name = eval(parameter(:file_name)) if parameter(:file_name)
+          item.label = file_label
           item.properties['group_id'] = register_file(item.name)
           group.add_item(item)
         end

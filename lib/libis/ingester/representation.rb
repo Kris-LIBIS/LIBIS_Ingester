@@ -12,7 +12,6 @@ module Libis
     class Representation < Libis::Ingester::Item
 
       field :name
-      field :label
       field :pid
 
       belongs_to :representation_info, class_name: ::Libis::Ingester::RepresentationInfo.to_s, inverse_of: nil

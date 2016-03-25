@@ -121,9 +121,11 @@ module Libis
       end
 
       def assemble_pdf(items, representation, convert_hash)
-        assemble(items, representation, [:PDF],
-                 "#{representation.parent.name}_#{convert_hash[:name]}.pdf"
-        ) do |sources, new_file|
+        file_name = "#{convert_hash[:generated_file] ?
+            eval(convert_hash[:generated_file]) :
+            "#{representation.parent.name}_#{convert_hash[:name]}"
+        }.pdf"
+        assemble(items, representation, [:PDF], file_name) do |sources, new_file|
           Libis::Format::PdfMerge.run(sources, new_file)
           unless convert_hash[:options].blank?
             convert_file(new_file, new_file, :PDF, :PDF, convert_hash[:options])
@@ -187,15 +189,6 @@ module Libis
 
             # return if @processed_files.include?(item.id)
 
-            options = convert_hash[:options] || {}
-            if options[:copy_file]
-              return copy_file(item, new_parent)
-            end
-
-            if options[:move_file]
-              return move_file(item, new_parent)
-            end
-
             mimetype = item.properties['mimetype']
             raise Libis::WorkflowError, 'File item %s format not identified.' % item unless mimetype
 
@@ -206,6 +199,15 @@ module Libis
               group = Libis::Format::TypeDatabase.type_group(type_id)
               check_list = [type_id, group].compact.map { |v| [v.to_s, v.to_sym] }.flatten
               return if (convert_hash[:source_formats] & check_list).empty?
+            end
+
+            options = convert_hash[:options] || {}
+            if options[:copy_file]
+              return copy_file(item, new_parent)
+            end
+
+            if options[:move_file]
+              return move_file(item, new_parent)
             end
 
             new_file = File.join(
@@ -248,7 +250,7 @@ module Libis
       private
 
       def register_file(new_file)
-        new_file.properties['group_id'] = add_file_to_registry(new_file.name)
+        new_file.properties['group_id'] = add_file_to_registry(new_file.label)
       end
 
       def add_file_to_registry(name)

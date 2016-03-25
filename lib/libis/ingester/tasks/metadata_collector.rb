@@ -19,11 +19,11 @@ module Libis
                 description: 'Ruby expression that builds the search term to be used in the metadata lookup. ' +
                     'If no term is given, the item name will be used. Use match_regex and match_term to create ' +
                     'a term dynamically.'
-                    'Available data are: \n' +
-                    '- item.filename: file name of the object, \n' +
-                    '- item.filepath: relative path of the object, \n' +
-                    '- item.fullpath: full path of the object, \n' +
-                    '- item.name: name of the object.'
+      'Available data are: \n' +
+          '- item.filename: file name of the object, \n' +
+          '- item.filepath: relative path of the object, \n' +
+          '- item.fullpath: full path of the object, \n' +
+          '- item.name: name of the object.'
 
       parameter match_regex: nil,
                 description: 'Regular expression to check against the \'match_term\' value. \n' +
@@ -45,6 +45,15 @@ module Libis
 
       parameter title_to_name: true,
                 description: 'Update the item name with the title in the metadata?'
+
+      parameter title_to_label: true,
+                description: 'Update the item label with the title in the metadata?'
+
+      parameter new_name: nil,
+                description: 'Ruby expression that transforms the name.'
+
+      parameter new_label: nil,
+                description: 'Ruby expression that transforms the label.'
 
       parameter fail_on_not_found: false,
                 description: 'Raise an error if a metadata record cannot be found?'
@@ -84,6 +93,7 @@ module Libis
         assign_metadata(item, record)
       rescue Exception => e
         error 'Error getting metadata: %s', e.message
+        debug 'At: %s', e.backtrace.first
         set_status(item, :FAILED)
       end
 
@@ -92,9 +102,7 @@ module Libis
           match_term = eval parameter(:match_term)
           return nil unless match_term =~ Regexp.new(parameter(:match_regex))
         end
-        search_term = parameter(:term).blank? ?
-            eval(parameter(:term)) :
-            item.name
+        search_term = parameter(:term).blank? ? item.name : eval(parameter(:term))
         lookup search_term
       end
 
@@ -124,9 +132,16 @@ module Libis
         metadata_record.data = record.to_xml
         # noinspection RubyResolve
         item.metadata_record = metadata_record
-        item.name = record.title.content if parameter(:title_to_name)
         info 'Metadata added to \'%s\'', item, item.name
+        transform_item(item, record.title.content)
         item.save
+      end
+
+      def transform_item(item, title)
+        item.name = title if parameter(:title_to_name)
+        item.name = eval(parameter(:new_name)) if parameter(:new_name)
+        item.label = title if parameter(:title_to_label)
+        item.label = eval(parameter(:new_label)) if parameter(:new_label)
       end
 
       def convert_metadata(record)

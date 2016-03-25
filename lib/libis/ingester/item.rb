@@ -17,7 +17,11 @@ module Libis
       end
 
       def label
-        self.properties['label'] || File.basename(self.name, '.*')
+        self.properties['label'] || self.name
+      end
+
+      def label=(value)
+        self.properties['label'] = value
       end
 
       def ancestors

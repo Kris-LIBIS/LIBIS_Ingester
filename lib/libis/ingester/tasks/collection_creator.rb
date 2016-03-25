@@ -38,9 +38,9 @@ module Libis
           collection_list = item.ancestors.select do |i|
             i.is_a? Libis::Ingester::Collection
           end.map do |collection|
-            collection.name
+            collection.label
           end
-          collection_list << parameter(:collection) if parameter(:collection)
+          collection_list += parameter(:collection).split('/').reverse if parameter(:collection)
           collection_list = collection_list.reverse
         end
 
@@ -59,12 +59,12 @@ module Libis
         parent_id = item.parent.properties['collection_id'] if item.parent
         parent_id ||= create_collection_path(collection_list)
 
-        collection_id = find_collection((collection_list + [item.name]).join('/'), item) ||
-            create_collection_id(parent_id, collection_list, item.name, item.navigate, item.publish, item)
+        collection_id = find_collection((collection_list + [item.label]).join('/'), item) ||
+            create_collection_id(parent_id, collection_list, item.label, item.navigate, item.publish, item)
 
         item.properties['collection_id'] = collection_id
 
-        debug "Created/found collection '#{item.name}' with id #{collection_id} in Rosetta.", item
+        debug "Created/found collection '#{item.label}' with id #{collection_id} in Rosetta.", item
       end
 
       def create_collection_path(list)
@@ -104,8 +104,10 @@ module Libis
         collection_data[:parent_id] = parent_id if parent_id
         collection_data[:navigate] = navigate
         collection_data[:publish] = publish
-        collection_data[:external_system] = item.external_system
-        collection_data[:external_id] = item.external_id
+        if item
+          collection_data[:external_system] = item.external_system
+          collection_data[:external_id] = item.external_id
+        end
         collection_data[:md_dc] = {
             type: 'descriptive',
             sub_type: 'dc',

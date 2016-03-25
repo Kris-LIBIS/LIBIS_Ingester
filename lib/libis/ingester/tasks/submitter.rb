@@ -40,8 +40,10 @@ module Libis
           deposit_result = rosetta.deposit_service.submit(
               item.get_run.material_flow,
               ingest_dir,
-              producer_info[:id]
+              producer_info[:id],
+              item.get_run.id
           )
+          debug 'Deposit result: %s', item , deposit_result
           item.properties['ingest_sip'] = deposit_result[:sip_id]
           item.properties['ingest_dip'] = deposit_result[:deposit_activity_id]
           item.properties['ingest_date'] = deposit_result[:creation_date]
@@ -50,7 +52,7 @@ module Libis
           raise Libis::WorkflowError, "SIP deposit failed: #{e.message}"
         end
 
-        info "Deposit ##{item.properties['ingest_dip']} done. SIP: #{item.properties['ingest_sip']}"
+        info "Deposit ##{item.properties['ingest_dip']} done. SIP: #{item.properties['ingest_sip']}", item
       end
 
     end

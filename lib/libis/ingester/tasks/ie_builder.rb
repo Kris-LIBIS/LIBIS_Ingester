@@ -49,6 +49,7 @@ module Libis
         debug "Creating new IE item for item #{item.name}"
         ie = ::Libis::Ingester::IntellectualEntity.new
         ie.name = item.name
+        ie.label = item.label
 
         # Add IE to item's parent
         item.parent.add_item(ie)
