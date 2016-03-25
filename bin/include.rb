@@ -14,24 +14,28 @@ require 'highline'
 @options = {}
 
 def option_menu(title, items)
-  return false if items.empty?
+  if items.empty?
+    puts "No #{title}s found."
+    return false
+  end
+  return true if @options[title.downcase.to_sym]
   if (name = @options["#{title.downcase}_name".to_sym])
     item = items.find_by(name: name)
     if item
       @options[title.downcase.to_sym] = item
-      return
+      return true
     end
   end
   @hl.choose do |menu|
     menu.prompt = "#{title} number: "
-    menu.header = "\n#{title}\n#{'_' * title.size}"
+    menu.header = "\n#{title.upcase}"
     menu.select_by = :index
     items.each do |i|
       menu.choice("#{i.name} (id: #{i.id})") { @options[title.downcase.to_sym] = i }
     end
     menu.choice('--EXIT--') { @options[title.downcase.to_sym] = nil }
   end
-  true
+  !!@options[title.downcase.to_sym]
 end
 
 require 'optparse'
@@ -102,49 +106,35 @@ end
 
 def get_user
 
-  unless option_menu('User', Libis::Ingester::User.all)
-    puts 'ERROR: No user defined.'
-    exit 1
-  end
-
-  exit 1 unless @options[:user]
+  return false unless option_menu('User', Libis::Ingester::User.all)
 
   loop do
     @options[:password] = @hl.ask('Password: ') { |q| q.echo = '.' } unless @options[:password]
-    break if @options[:user].authenticate(@options[:password])
+    return true if @options[:user].authenticate(@options[:password])
     @options[:password] = nil
   end
+
 end
 
 def get_org
-  get_user
-  exit 1 unless @options[:user]
+
+  return false unless get_user
 
   # noinspection RubyResolve
-  unless option_menu('Organization', @options[:user].organizations)
-    puts 'ERROR: No organization defined.'
-    exit 1
-  end
+  option_menu('Organization', @options[:user].organizations)
 end
 
 def get_job
-  get_org unless @options[:organization]
-  exit 1 unless @options[:organization]
+
+  return false unless get_org
 
   # noinspection RubyResolve
-  unless option_menu('Job', @options[:organization].jobs)
-    puts "ERROR: No jobs found for #{@options[:organization].name}"
-    exit 1
-  end
+  option_menu('Job', @options[:organization].jobs)
 end
 
 def get_run
-  get_job unless @options[:job]
-  exit 1 unless @options[:job]
+  return unless get_job
 
   # noinspection RubyResolve
-  unless option_menu('Run', @options[:job].runs)
-    puts "ERROR: No runs found for #{@options[:job].name}"
-    exit 1
-  end
+  option_menu('Run', @options[:job].runs)
 end

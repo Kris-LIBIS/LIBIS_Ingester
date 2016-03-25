@@ -10,7 +10,7 @@ OptionParser.new do |opts|
 end.parse!
 
 get_installer
-get_job
+exit unless get_job
 
 require 'sidekiq'
 Sidekiq.configure_client do |config|
