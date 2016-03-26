@@ -28,6 +28,10 @@ module Libis
       private
 
       def submit_item(item)
+        if item.properties['ingest_sip']
+          debug "Item already submitted: Deposit ##{item.properties['ingest_dip']} SIP: #{item.properties['ingest_sip']}", item
+          return
+        end
         debug "Found ingestable item. Subdir: #{item.properties['ingest_sub_dir']}", item
         # noinspection RubyResolve
         rosetta = Libis::Services::Rosetta::Service.new(Libis::Ingester::Config.base_url, Libis::Ingester::Config.pds_url)
