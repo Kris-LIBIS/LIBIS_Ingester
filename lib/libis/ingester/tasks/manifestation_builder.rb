@@ -12,7 +12,6 @@ module Libis
 
     class ManifestationBuilder < Libis::Ingester::Task
 
-      parameter subitems: true, frozen: true
       parameter recursive: true, frozen: true
 
       parameter item_types: [Libis::Ingester::IntellectualEntity], frozen: true
