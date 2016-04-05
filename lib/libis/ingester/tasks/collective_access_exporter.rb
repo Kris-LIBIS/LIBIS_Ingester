@@ -34,7 +34,7 @@ module Libis
         FileUtils.mkdir_p(parameter(:export_dir))
         export_file = File.join(parameter(:export_dir), "#{item.get_run.name}.csv")
         open(export_file, 'a') do |f|
-          f.puts "#{item.name}\t#{item.pid}"
+          f.puts "#{item.label}\t#{item.pid}"
         end
 
       end
