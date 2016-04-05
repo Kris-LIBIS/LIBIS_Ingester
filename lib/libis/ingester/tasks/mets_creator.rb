@@ -144,6 +144,7 @@ module Libis
         config[:checksum_SHA256] = properties[:checksum_sha256]
         config[:checksum_SHA384] = properties[:checksum_sha384]
         config[:checksum_SHA512] = properties[:checksum_sha512]
+        config[:group_id] = properties[:group_id]
         config[:label] = item.label
 
         file = mets.file(config)
