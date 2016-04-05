@@ -1,6 +1,4 @@
 :verbose: false
-:pidfile: ./sidekiq.pid
-:logfile: ./sidekiq.log
 :concurrency: 5
 :daemon: true
 :strict: false

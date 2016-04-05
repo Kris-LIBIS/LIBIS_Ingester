@@ -12,11 +12,6 @@ end.parse!
 get_installer
 exit unless get_job
 
-require 'sidekiq'
-Sidekiq.configure_client do |config|
-  # noinspection RubyResolve
-  config.redis = {url: @installer.config.sidekiq.redis_url}
-end
-
+require_relative 'sidekiq.config'
 Libis::Ingester::JobWorker.perform_async(@options[:job].id)
 puts "Job #{@options[:job].name} submitted ..."

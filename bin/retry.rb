@@ -13,10 +13,6 @@ get_installer
 
 exit unless get_run
 
-require 'sidekiq'
-Sidekiq.configure_client do |config|
-  # noinspection RubyResolve
-  config.redis = {url: @installer.config.sidekiq.redis_url}
-end
+require_relative 'sidekiq.config'
 Libis::Ingester::RunWorker.perform_async(@options[:run].id, action: :retry)
 puts "Retrying Run #{@options[:run].name} ..."
