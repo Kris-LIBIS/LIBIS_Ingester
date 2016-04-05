@@ -31,7 +31,7 @@ def option_menu(title, items, parent_name = nil)
     menu.header = "\n#{title.upcase}#{parent_name ? ' for ' + parent_name : ''}"
     menu.select_by = :index_or_name
     items.each do |i|
-      menu.choice("#{i.name} (id: #{i.id})") { @options[title.downcase.to_sym] = i }
+      menu.choice("#{i.name} (id: #{i.id}) #{yield i if block_given?}") { @options[title.downcase.to_sym] = i }
     end
     menu.choice('--RETURN--') { @options[title.downcase.to_sym] = nil }
   end
@@ -136,5 +136,7 @@ def get_run
   return unless get_job
 
   # noinspection RubyResolve
-  option_menu('Run', @options[:job].runs, @options[:job].name)
+  option_menu('Run', @options[:job].runs, @options[:job].name) do |run|
+    run.status_label
+  end
 end
