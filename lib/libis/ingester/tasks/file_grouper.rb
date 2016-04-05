@@ -7,15 +7,15 @@ module Libis
     class FileGrouper < Libis::Ingester::Task
 
       parameter group_regex: nil,
-                description: 'Regular expression for matching against the file names; no grouping if nil.'
+                description: 'Regular expression for matching against the file names; nothing happens if nil.'
       parameter collection_label: nil,
                 description: 'A Ruby expression for the collection path to put the target in.'
       parameter group_label: nil,
                 description: 'A Ruby expression for the label of the group; default: nil, meaning no grouping.'
-      parameter file_label: nil,
-                description: 'A Ruby expression for the label of the files; default: file name.'
       parameter group_name: nil,
                 description: 'A Ruby expression for the name of the group; default: same as group_label.'
+      parameter file_label: nil,
+                description: 'A Ruby expression for the label of the files; default: file name.'
       parameter file_name: nil,
                 description: 'A Ruby expression for the name of the files; default: don\'t change.'
       parameter collection_navigate: true,
@@ -68,6 +68,7 @@ module Libis
             debug 'Adding to group %s as %s', item, group.name, file_label
             group.add_item(item)
           end
+          item.save!
         end
       end
 
