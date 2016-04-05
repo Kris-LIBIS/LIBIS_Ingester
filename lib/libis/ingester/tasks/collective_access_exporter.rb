@@ -37,6 +37,8 @@ module Libis
           f.puts "#{item.label}\t#{item.pid}"
         end
 
+        info 'Item %s with pid %s exported.', item.label, item.pid
+
       end
 
     end
