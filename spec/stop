@@ -3,4 +3,4 @@ cd `dirname $0`
 mkdir -p ./data/db
 DATA="$PWD/data"
 mongod --shutdown --config "$DATA/mongod.conf" --logpath "$DATA/mongod.log" --pidfilepath "$DATA/mongod.pid" --dbpath "$DATA/db"
-
+cd -
