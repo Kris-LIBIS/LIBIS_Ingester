@@ -64,7 +64,6 @@ module Libis
           file_label = parameter(:file_label) ? eval(parameter(:file_label)) : item.name
           item.name = eval(parameter(:file_name)) if parameter(:file_name)
           item.label = file_label
-          item.properties['group_id'] = register_file(item.label)
           if group
             debug 'Adding to group %s as %s', item, group.name, file_label
             group.add_item(item)
@@ -75,12 +74,6 @@ module Libis
       private
 
       attr_accessor :file_registry
-
-      def register_file(name)
-        @file_registry ||= {}
-        return @file_registry[name] if @file_registry.has_key?(name)
-        @file_registry[name] = @file_registry.count + 1
-      end
 
     end
 
