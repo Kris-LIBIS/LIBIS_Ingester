@@ -61,11 +61,17 @@ module Libis
               debug 'Created new Division item for group: %s', group, group_label
             end
           end
-          file_label = parameter(:file_label) ? eval(parameter(:file_label)) : item.name
-          item.name = eval(parameter(:file_name)) if parameter(:file_name)
-          item.label = file_label
+          if parameter(:file_label)
+            item.label = eval(parameter(:file_label))
+            debug 'Assigning label %s', item, item.label
+          end
+          if parameter(:file_name)
+            file_name = eval(parameter(:file_name))
+            debug 'Renaming to %s', item, file_name
+            item.name = file_name
+          end
           if group
-            debug 'Adding to group %s as %s', item, group.name, file_label
+            debug 'Adding to group %s', item, group.name
             group.add_item(item)
           end
           item.save!
