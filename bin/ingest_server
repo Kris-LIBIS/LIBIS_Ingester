@@ -1,166 +1,125 @@
-#!/usr/bin/env bash
+#!/usr/bin/env ruby
 
-INSTANCE="_Ingester"
-INSTANCE_ID="Ingester"
+require 'highline'
+@hl = HighLine.new
 
-SOURCE="${BASH_SOURCE[0]}"
-# resolve $SOURCE until the file is no longer a symlink
-while [ -h "${SOURCE}" ]; do
-  DIR="$( cd -P "$( dirname "${SOURCE}" )" && pwd )"
-  SOURCE="$(readlink "$SOURCE")"
-  # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
-  [[ ${SOURCE} != /* ]] && SOURCE="${DIR}/${SOURCE}"
-done
-DIR="$( cd -P "$( dirname "${SOURCE}" )" && pwd )"
-APP_DIR=$(readlink -m "${DIR}/..")
+@options = {}
 
-function pid_file_name {
-  echo "${APP_DIR}/sidekiq${INSTANCE}.pid"
-}
+APP_DIR = File.absolute_path(File.join(File.dirname(__FILE__), '..'))
 
-function log_file_name {
-  echo "${APP_DIR}/sidekiq${INSTANCE}.log"
-}
+def pid_file_name(instance)
+  File.join(APP_DIR, "sidekiq#{instance.empty? ? '' : "_#{instance}"}.pid")
+end
 
-function get_pid {
-  pid_file="$1"
-  if [[ -f ${pid_file} ]]; then
-    pid=`cat ${pid_file}`
-    ps ${pid} > /dev/null
-    if [[ $? == 0 ]]; then
-      echo ${pid}
-      return 0
-    else
-      rm ${pid_file}
-    fi
-  fi
-  return 1
-}
+def log_file_name(instance)
+  File.join(APP_DIR, "sidekiq#{instance.empty? ? '' : "_#{instance}"}.log")
+end
 
-function sidekiq_pid {
-  get_pid $(pid_file_name)
-}
+def get_pid(pid_file = nil)
+  return nil unless pid_file && File.exists?(pid_file)
+  pid = File.readlines(pid_file).first.strip
+  ps = `ps -p #{pid}`.stripundle
+  if ps.empty?
+    File.delete(pid_file)
+    return nil
+  end
+  pid.to_i
+end
 
-function quiet_sidekiq {
-  pid=$(sidekiq_pid)
-  if [[ "$pid" != "" ]]; then
-    echo "Blocking Sidekiq ${INSTANCE_ID} process $pid."
-    cdir=$PWD
-    cd ${APP_DIR}
-    bundle exec sidekiqctl quiet $(pid_file_name)
-    cd ${cdir}
-  fi
-  return 0
-}
+def sidekiq_pid(instance)
+  get_pid(pid_file_name(instance))
+end
 
-function stop_sidekiq {
-  pid=$(sidekiq_pid)
-  if [[ "$pid" != "" ]]; then
-    echo "Stopping Sidekiq ${INSTANCE_ID} process $pid."
-    cdir=$PWD
-    cd ${APP_DIR}
-    bundle exec sidekiqctl stop $(pid_file_name) 60
-    cd ${cdir}
-    pid=$(sidekiq_pid)
-    if [[ "$pid" != "" ]]; then
-      return 1
-    fi
-  fi
-  return 0
-}
+def quiet_sidekiq(instance)
+  instance ||= @hl.ask('Instance name: ') { |q| q.validate = /\A[A-Za-z0-9_]*\Z/ }
+  return unless (pid = sidekiq_pid(instance))
+  puts "Stopping Sidekiq #{instance} process #{pid}."
+  dir = Dir.pwd
+  Dir.chdir(APP_DIR)
+  `bundle exec sidekiqctl quiet #{pid_file_name(instance)}`
+  Dir.chdir(dir)
+end
 
-function start_sidekiq {
-  pid=$(sidekiq_pid)
-  if [[ "$pid" != "" ]]; then
-    echo "Sidekiq ${INSTANCE_ID} aleady running as process $pid."
-    return 0
-  fi
-  cdir=$PWD
-  cd ${APP_DIR}
-  rm -f $(log_file_name)
-  bundle exec sidekiq -C config/sidekiq.yml -P $(pid_file_name) -L $(log_file_name) -g ${INSTANCE_ID} -r ./bin/server.rb
-  cd ${cdir}
-  sleep 1
-  pid=$(sidekiq_pid)
-  if [[ "$pid" != "" ]] ; then
-    echo "Sidekiq ${INSTANCE_ID} started. Process id: $pid."
-    return 0
-  fi
-  echo "Sidekiq ${INSTANCE_ID} failed to start."
-  return 1
-}
+def stop_sidekiq(instance)
+  instance ||= @hl.ask('Instance name: ') { |q| q.validate = /\A[A-Za-z0-9_]*\Z/ }
+  return unless (pid = sidekiq_pid(instance))
+  puts "Stopping Sidekiq #{instance} process #{pid}."
+  dir = Dir.pwd
+  Dir.chdir(APP_DIR)
+  `bundle exec sidekiqctl stop #{pid_file_name(instance)} 60`
+  Dir.chdir(dir)
+  !sidekiq_pid(instance)
+end
 
-function check_sidekiq {
-  for f in ${APP_DIR}/sidekiq*.pid
-  do
-    pid=$(get_pid ${f})
-    [[ $? == 0 ]] || continue
-    status=`ps -fp ${pid} | grep -oP "sidekiq.*" | sed -e 's/[[:space:]]*$//' | sed -e 's/^sidekiq\s*[0-9\.]*\s*//'`
-    echo "[$pid]: ${status}"
-  done
-}
+def start_sidekiq(instance = nil)
+  instance ||= @hl.ask('Instance name: ') { |q| q.validate = /\A[A-Za-z0-9_]*\Z/ }
+  pid = sidekiq_pid(instance)
+  if pid
+    puts "Sidekiq #{instance} already running as process #{pid}."
+    return false
+  end
+  dir = Dir.pwd
+  Dir.chdir(APP_DIR)
+  `bundle exec sidekiq -C config/sidekiq.yml -P #{pid_file_name(instance)} -L #{log_file_name(instance)} -g #{instance} -r ./bin/server.rb`
+  Dir.chdir(dir)
+  sleep(2)
+  pid = sidekiq_pid(instance)
+  if pid
+    puts "Sidekiq #{instance} started. Process id: #{pid}."
+  else
+    puts "Sidekiq #{instance} failed to start."
+  end
+  !!pid
+end
 
-function start_ingest_server {
-  start_sidekiq
-}
+def restart_sidekiq(instance)
+  instance ||= @hl.ask('Instance name: ') { |q| q.validate = /\A[A-Za-z0-9_]*\Z/ }
+  stop_sidekiq(instance)
+  start_sidekiq(instance)
+end
 
-function quiet_ingest_server {
-  quiet_sidekiq
-}
+def get_sidekiqs
+  Dir.glob("#{APP_DIR}/sidekiq*.pid").sort.map do |f|
+    pid = get_pid(f)
+    next unless pid
+    status = `ps -fp #{pid} | grep sidekiq`.strip.gsub(/^.*sidekiq[\s0-9.]*/,'').gsub(/\s*$/,'')
+    "[#{pid}]: #{status}"
+  end
+end
 
-function stop_ingest_server {
-  stop_sidekiq
-}
+def action_menu(instance)
+  @hl.choose do |menu|
+    menu.prompt = 'Select action: '
+    menu.layout = :one_line
+    menu.select_by = :index_or_name
+    menu.choice('halt') { quiet_sidekiq instance }
+    menu.choice('stop') { stop_sidekiq instance; return false }
+    menu.choice('restart') { restart_sidekiq instance}
+    menu.hidden('') { return false }
+  end
+  true
+end
 
-function check_ingest_server {
-  check_sidekiq
-}
+def select_instance
+  @hl.choose do |menu|
+    menu.prompt = 'Select instance: '
+    menu.header = "\nRunning instances"
+    menu.select_by = :index_or_name
+    get_sidekiqs.each do |instance|
+      menu.choice(instance) do
+        inst = instance.gsub(/^\[[\s\d.]+\]:\s*/, '').gsub(/\s*\[.*$/, '')
+        loop do
+          break unless action_menu(inst)
+        end
+      end
+    end
+    menu.choice('refresh') {}
+    menu.choice('start new instance') { start_sidekiq }
+    menu.hidden('') { return false }
+  end
+  true
+end
 
-valid_actions="sidekiq|start|quiet|stop|restart|status|help"
-function usage {
-  echo "Usage: $0 [{$valid_actions} ...]" >&2
-  exit 3
-}
-
-PROGRAM="ingest_server"
-
-for arg in "$@"
-do
-  case "$arg" in
-
-    server)
-      PROGRAM="ingest_server"
-      ;;
-    ingest_server)
-      PROGRAM="ingest_server"
-      ;;
-    sidekiq)
-      PROGRAM="sidekiq"
-      ;;
-    start)
-      start_${PROGRAM}
-      ;;
-    quiet)
-      quiet_${PROGRAM}
-      ;;
-    stop)
-      stop_${PROGRAM}
-      ;;
-    restart)
-      stop_${PROGRAM}
-      start_${PROGRAM}
-      ;;
-    status)
-      check_${PROGRAM}
-      ;;
-    help)
-      usage
-      ;;
-    *)
-      INSTANCE_ID="${arg}"
-      INSTANCE="_${INSTANCE_ID}"
-      ;;
-
-  esac
-
-done
+loop do
+  break unless select_instance
+end
