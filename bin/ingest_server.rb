@@ -18,7 +18,7 @@ end
 def get_pid(pid_file = nil)
   return nil unless pid_file && File.exists?(pid_file)
   pid = File.readlines(pid_file).first.strip
-  ps = `ps -h #{pid}`.strip
+  ps = `ps -p #{pid}`.strip
   if ps.empty?
     File.delete(pid_file)
     return nil
