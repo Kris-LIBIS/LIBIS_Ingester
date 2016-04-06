@@ -16,7 +16,6 @@ module Libis
       parameter copy_files: true,
                 description: 'Copy file info ingest dir instead of creating a symbolic link'
 
-      parameter subitems: false, frozen: true
       parameter recursive: false, frozen: true
 
       parameter item_types: [Libis::Ingester::Run], frozen: true

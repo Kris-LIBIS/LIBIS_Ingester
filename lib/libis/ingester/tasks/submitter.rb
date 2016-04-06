@@ -12,7 +12,6 @@ module Libis
     class Submitter < ::Libis::Ingester::Task
 
       parameter recursive: true, frozen: true
-      parameter subitems: true, frozen: true
 
       protected
 
