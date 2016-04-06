@@ -82,7 +82,7 @@ def get_sidekiqs
   Dir.glob("#{APP_DIR}/sidekiq*.pid").sort.map do |f|
     pid = get_pid(f)
     next unless pid
-    status = `ps -hfp #{pid}`.strip.gsub(/^.*sidekiq[\s0-9.]*/,'').gsub(/\s*$/,'')
+    status = `ps -fp #{pid} | grep sidekiq`.strip.gsub(/^.*sidekiq[\s0-9.]*/,'').gsub(/\s*$/,'')
     "[#{pid}]: #{status}"
   end
 end
