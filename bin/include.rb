@@ -33,7 +33,7 @@ def option_menu(title, items, parent_name = nil)
     items.each do |i|
       menu.choice("#{i.name} (id: #{i.id}) #{yield i if block_given?}") { @options[title.downcase.to_sym] = i }
     end
-    menu.choice('--RETURN--') { @options[title.downcase.to_sym] = nil }
+    menu.hidden('') { @options[title.downcase.to_sym] = nil }
   end
   !!@options[title.downcase.to_sym]
 end

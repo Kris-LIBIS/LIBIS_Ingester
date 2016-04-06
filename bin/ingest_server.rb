@@ -92,10 +92,10 @@ def action_menu(instance)
     menu.prompt = 'Select action: '
     menu.layout = :one_line
     menu.select_by = :index_or_name
-    menu.choice('pauze') { quiet_sidekiq instance }
+    menu.choice('halt') { quiet_sidekiq instance }
     menu.choice('stop') { stop_sidekiq instance; return false }
     menu.choice('restart') { restart_sidekiq instance}
-    menu.choice('exit') { return false }
+    menu.hidden('') { return false }
   end
   true
 end
@@ -115,7 +115,7 @@ def select_instance
     end
     menu.choice('refresh') {}
     menu.choice('start new instance') { start_sidekiq }
-    menu.choice('exit') { return false }
+    menu.hidden('') { return false }
   end
   true
 end
