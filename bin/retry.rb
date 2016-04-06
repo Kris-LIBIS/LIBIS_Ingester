@@ -9,10 +9,9 @@ OptionParser.new do |opts|
 
 end.parse!
 
-get_installer
+get_initializer
 
 exit unless get_run
 
-require_relative 'sidekiq.config'
 Libis::Ingester::RunWorker.perform_async(@options[:run].id, action: :retry)
 puts "Retrying Run #{@options[:run].name} ..."

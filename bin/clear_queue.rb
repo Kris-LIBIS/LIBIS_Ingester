@@ -8,9 +8,8 @@ OptionParser.new do |opts|
 
 end.parse!
 
-get_installer
+get_initializer
 
-require_relative 'sidekiq.config'
 Sidekiq::Queue.all.each do |queue|
   queue.each do |job|
     job.delete

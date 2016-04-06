@@ -1,8 +1,6 @@
 $:.unshift File.join(File.dirname(__FILE__), '..', 'lib')
 require 'libis-ingester'
 
-require 'libis/ingester/installer'
+require 'libis/ingester/initializer'
 
-@installer = ::Libis::Ingester::Installer.new('site.config.yml')
-
-require_relative 'sidekiq.server.config'
+::Libis::Ingester::Initializer.new('site.config.yml')

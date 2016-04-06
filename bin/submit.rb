@@ -9,9 +9,8 @@ OptionParser.new do |opts|
 
 end.parse!
 
-get_installer
+get_initializer
 exit unless get_job
 
-require_relative 'sidekiq.config'
 Libis::Ingester::JobWorker.perform_async(@options[:job].id)
 puts "Job #{@options[:job].name} submitted ..."

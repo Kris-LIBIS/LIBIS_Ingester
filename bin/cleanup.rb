@@ -10,7 +10,7 @@ OptionParser.new do |opts|
 
 end.parse!
 
-get_installer
+get_initializer
 if @options[:delete] || @options[:reset]
   ::Libis::Ingester::Run.each do |run|
     next unless run.check_status(:DONE)
@@ -42,10 +42,10 @@ end
 
 if @options[:reset] && @hl.agree('This will reset the complete database to its initial state. OK?', false)
   puts 'Clearing database ...'
-  @installer.database.clear
+  @initializer.database.clear
 end
 
 puts 'Seeding database ...'
-@installer.seed_database
+@initializer.seed_database
 
 puts 'Done.'

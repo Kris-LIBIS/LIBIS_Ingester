@@ -6,7 +6,7 @@ require 'libis-format'
 require 'libis-services'
 require 'libis-tools'
 
-require 'libis/ingester/installer'
+require 'libis/ingester/initializer'
 
 require 'highline'
 @hl = HighLine.new
@@ -100,8 +100,8 @@ def run_opts(opts)
 
 end
 
-def get_installer
-  @installer = ::Libis::Ingester::Installer.new(@options[:config] || 'site.config.yml')
+def get_initializer
+  @initializer = ::Libis::Ingester::Initializer.new(@options[:config] || 'site.config.yml')
 end
 
 def get_user

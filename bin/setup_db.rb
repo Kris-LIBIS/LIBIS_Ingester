@@ -8,9 +8,9 @@ OptionParser.new do |opts|
 
 end.parse!
 
-get_installer
+get_initializer
 
 puts 'Seeding database ...'
-@installer.seed_database
+@initializer.seed_database
 
 puts 'Done.'

@@ -8,5 +8,5 @@ require_relative 'include'
   @options[:config] = file
   break
 end
-get_installer
+get_initializer
 puts 'Ingester console ready.'

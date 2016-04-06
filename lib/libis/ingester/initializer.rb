@@ -1,17 +1,21 @@
 require 'libis-ingester'
 require 'libis-tools'
+require 'libis/tools/extend/hash'
+
+require 'sidekiq'
+require 'sidekiq/api'
 
 module Libis
   module Ingester
 
     # noinspection RubyResolve
-    class Installer
+    class Initializer
 
       attr_accessor :config, :database
 
       def initialize(config_file)
 
-        @config = Installer.load_config(config_file)
+        @config = Initializer.load_config(config_file)
 
         raise RuntimeError, "Configuration file '#{config_file}' not found." unless @config
 
@@ -33,6 +37,7 @@ module Libis
         end
 
         configure_database
+        configure_sidekiq
 
       end
 
@@ -56,6 +61,25 @@ module Libis
             (@config.database.config_file || File.join(Libis::Ingester::ROOT_DIR, 'mongoid.yml')),
             (@config.database.env || :test)
         )
+
+      end
+
+      def configure_sidekiq
+        raise RuntimeError, 'Missing sidekiq section in configuration.' unless @config.sidekiq
+
+        Sidekiq.configure_client do |config|
+          config.redis = {
+              url: @config.sidekiq.redis_url,
+              namespace: @config.sidekiq.namespace,
+          }.cleanup
+        end
+
+        Sidekiq.configure_server do |config|
+          config.redis = {
+              url: @config.sidekiq.redis_url,
+              namespace: @config.sidekiq.namespace,
+          }.cleanup
+        end
 
       end
 
