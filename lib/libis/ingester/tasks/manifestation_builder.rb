@@ -143,8 +143,8 @@ module Libis
             else
               nil
           end
-        end.flatten.compact.reject do |file|
-          # @processed_files.include?(file.id)
+        end.flatten.compact.reject do |_file|
+          # @processed_files.include?(_file.id)
           false
         end.select do |file|
           match_file(file, formats)
@@ -170,6 +170,7 @@ module Libis
         assembly = Libis::Ingester::FileItem.new
         assembly.filename = new_file
         assembly.parent = representation
+        format_identifier(assembly)
         register_file(assembly)
         assembly.save!
         assembly
@@ -226,9 +227,10 @@ module Libis
             new_item = Libis::Ingester::FileItem.new
             new_item.filename = new_file
             new_item.name = item.name
+            new_item.label = item.label
             new_item.parent = new_parent
             new_item.properties['converter'] = converter
-            new_item.properties['group_id'] = item.properties['group_id'] || item.id
+            format_identifier(new_item)
             register_file(new_item)
             new_item.save!
 
@@ -279,6 +281,20 @@ module Libis
 
         [new_file, converter_name]
 
+      end
+
+      def format_identifier(item)
+        format = Libis::Format::Identifier.get(item.fullpath) rescue {}
+
+        mimetype = format[:mimetype]
+
+        unless mimetype
+          warn "Could not determine MIME type. Using default 'application/octet-stream'."
+          mimetype = 'application/octet-stream'
+        end
+
+        item.properties['mimetype'] = mimetype
+        item.properties['puid'] = format[:puid]
       end
 
     end
