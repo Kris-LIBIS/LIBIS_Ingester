@@ -26,7 +26,7 @@ module Libis
           raise Libis::WorkflowError, "Error during viruscheck: #{result[:err]}" unless result[:status]
 
           item.options['virus_checked'] = true
-          info 'File is clean'
+          debug 'File is clean'
 
         end
 
