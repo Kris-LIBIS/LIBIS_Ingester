@@ -20,7 +20,7 @@ module Libis
           debug 'Scanning directory %s for viruses', parameter(:location)
 
           # noinspection RubyResolve
-          cmd_options = Libis::Ingester::Config.virusscanner['options'] + '-r'
+          cmd_options = Libis::Ingester::Config.virusscanner['options'] + ['-r']
           # noinspection RubyResolve
           result = Libis::Tools::Command.run Libis::Ingester::Config.virusscanner[:command], *cmd_options, parameter(:location)
           raise Libis::WorkflowError, "Error during viruscheck: #{result[:err]}" unless result[:status]
