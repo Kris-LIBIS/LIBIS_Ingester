@@ -46,7 +46,7 @@ module Libis
         end
 
         parameter(:value_files).each_with_index do |csv_file, index|
-          process_csv(csv_file, parameter(:access_rights)[index])
+          process_csv(File.join(location, csv_file), parameter(:access_rights)[index])
         end
 
       end
