@@ -80,7 +80,7 @@ module Libis
             end
             files.sort! { |f1, f2| f2[:order] <=> f1[:order] }
             ie_item = Libis::Ingester::IntellectualEntity.new
-            ie_item.name = row['label']
+            ie_item.name = row['label'].gsub('/', '_')
             ie_item.label = row['label']
             ie_item.properties['entity_type'] = parameter(:entity_type)
             ie_item.properties['access_right'] = ar
