@@ -22,8 +22,11 @@ module Libis
       parameter access_rights: %w(AR_PUBLIC AR_PRIVATE),
                 description: 'List of access right names, one for each CSV file passed'
 
+      parameter entity_type: 'ETD_KUL',
+                description: 'Entity type for the IEs'
+
       parameter user_c: 'ETD',
-                description: 'Value for each IE\'s user_c field'
+                description: 'Value for the user_c field'
 
       parameter item_types: [Libis::Ingester::Run], frozen: true
       parameter recursive: false, frozen: true
@@ -79,6 +82,7 @@ module Libis
             ie_item = Libis::Ingester::IntellectualEntity.new
             ie_item.name = row['label']
             ie_item.label = row['label']
+            ie_item.properties['entity_type'] = parameter(:entity_type)
             ie_item.properties['access_right'] = ar
             ie_item.properties['vpid'] = vpid
             ie_item.properties['user_a'] = 'Ingest from Toledo'
