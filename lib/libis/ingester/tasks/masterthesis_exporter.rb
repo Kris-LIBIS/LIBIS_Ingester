@@ -69,7 +69,7 @@ module Libis
         @ftp_service ||= Libis::Ingester::FtpsService.new(
             parameter(:ftp_host), parameter(:ftp_port), parameter(:ftp_user), parameter(:ftp_password)
         )
-        done_file = File.join(parameter(:done_dir), "#{identifier}.in")
+        done_file = File.join(parameter(:done_dir), "#{identifier}.out")
         @ftp_service.put_file(
             done_file,
             ["Geingest op #{Time.now.strftime('%d/%m/%Y')} met id #{item.pid}."]
