@@ -13,11 +13,6 @@ module Libis
 
         parameter item_types: [Libis::Ingester::Run], frozen: true
 
-        def pre_process(item)
-          super
-          skip_processing_item if item.options['virus_checked']
-        end
-
         def process(item)
 
           raise Libis::Workflow::AbortError, "Location does not exist: #{parameter(:location)}." unless Dir.exists?(parameter(:location))
