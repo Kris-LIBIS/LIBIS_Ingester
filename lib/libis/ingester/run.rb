@@ -24,6 +24,14 @@ module Libis
         job.save!
       end
 
+      def labels
+        Array.new
+      end
+
+      def labelpath;
+        self.name;
+      end
+
       def workflow
         self.job.workflow
       end

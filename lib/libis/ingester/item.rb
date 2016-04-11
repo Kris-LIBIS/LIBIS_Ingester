@@ -24,6 +24,14 @@ module Libis
         self.properties['label'] = value
       end
 
+      def labels
+        (self.parent.labels rescue Array.new).push(label).compact
+      end
+
+      def labelpath;
+        self.labels.join('/');
+      end
+
       def ancestors
         item, item_list = self, []
         while (parent = item.parent) && parent.is_a?(::Libis::Ingester::Item)

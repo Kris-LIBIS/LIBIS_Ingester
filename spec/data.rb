@@ -5,12 +5,12 @@ def check_data(item, names, print_log = false)
   if item.respond_to? :namepath
     puts "Check item #{item.namepath}" if print_log
     expect(names).to be_a Array
-    found = names.select { |n| n == item.namepath }
+    found = names.select { |n| n == item.labelpath }
     expect(found.length).to be 1
     match_count += 1
   end
   if item.items.length > 0
-    item.items.each { |i| match_count += check_data(i, names.select { |name| name =~ /^#{i.namepath}(\/|$)/ }, print_log) }
+    item.items.each { |i| match_count += check_data(i, names.select { |name| name =~ /^#{i.labelpath}(\/|$)/ }, print_log) }
   end
   puts "check match_count (#{match_count}) against expected (#{names.length}) for #{item.namepath} ..." if print_log
   expect(match_count).to be names.length
@@ -23,7 +23,7 @@ def check_list(item, list, level = 0)
   value = list.shift
   expect('%s%s%s%s' % [
              '- ' * level,
-             item.name,
+             item.label,
              count > 0 ? " (#{count})" : '',
              item.is_a?(Libis::Ingester::FileItem) ? ' [' + item.properties[:mimetype].to_s + ']' : ''
          ]).to eq value
