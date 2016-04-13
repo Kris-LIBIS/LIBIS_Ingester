@@ -61,6 +61,9 @@ module Libis
         xml_doc.save(xml_path)
         debug 'XML document saved in %s.', item, xml_path
 
+        item.properties['export_file'] = xml_path
+        item.save!
+
         storage = DomainStorage.where(domain: 'Masterthesis').find_by(name: 'Loaded')
         storage.data[identifier] = { date: DateTime.now.iso8601, pid: item.pid }
         storage.save!

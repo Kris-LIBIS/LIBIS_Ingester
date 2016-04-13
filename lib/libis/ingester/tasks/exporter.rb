@@ -38,6 +38,12 @@ module Libis
 
         FileUtils.mkdir_p(parameter(:export_dir))
         export_file = File.join(parameter(:export_dir), "#{item.get_run.name}.#{parameter(:export_format)}")
+
+        run_item = item.get_run
+        unless run_item.nil? || run_item.properties['export_file']
+          run_item.properties['export_file'] = export_file
+          run_item.save!
+        end
         key_value = eval(parameter(:export_key))
 
         open(export_file, 'a') do |f|
