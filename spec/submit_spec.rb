@@ -26,8 +26,9 @@ describe 'Test' do
     Libis::Ingester::Job.find_by name: job_name
   }
 
-  let(:job_name) { 'KADOC - Kerk en Leven' }
+  # let(:job_name) { 'KADOC - Kerk en Leven' }
   # let(:job_name) { 'E-Thesis' }
+  let(:job_name) { 'ETD_VIVES' }
 
   it 'test job' do
     run = job.execute

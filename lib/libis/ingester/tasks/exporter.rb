@@ -47,7 +47,7 @@ module Libis
               f.puts "#{key_value}\t#{item.pid}"
             when :csv
               f.puts 'KEY,PID' if f.size == 0 && parameter(:export_header)
-              f.puts "'#{key_value}','#{item.pid}'"
+              f.puts "'#{key_value.gsub('\'','\'\'')}','#{item.pid.gsub('\'','\'\'')}'"
             when :xml
               f.puts '<?xml version="1.0" encoding="UTF-8"?>' if f.size == 0 && parameter(:export_header)
               f.puts "<item key=\"#{key_value}\">#{item.pid}</item>"

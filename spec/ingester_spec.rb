@@ -115,7 +115,7 @@ describe 'Ingester' do
 
   context 'with FileGrouper and IeBuilder' do
 
-    let(:print_log) { true }
+    let(:print_log) { false }
     let(:job_name) { 'IeBuilder Test' }
 
     it 'in collections' do
