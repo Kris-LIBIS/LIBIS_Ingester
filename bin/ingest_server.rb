@@ -105,6 +105,8 @@ def select_instance
     menu.prompt = 'Select instance: '
     menu.header = "\nRunning instances"
     menu.select_by = :index_or_name
+    menu.choice('start new instance') { start_sidekiq }
+    menu.choice('refresh') {}
     get_sidekiqs.each do |instance|
       menu.choice(instance) do
         inst = instance.gsub(/^\[[\s\d.]+\]:\s*/, '').gsub(/\s*\[.*$/, '')
@@ -113,8 +115,6 @@ def select_instance
         end
       end
     end
-    menu.choice('refresh') {}
-    menu.choice('start new instance') { start_sidekiq }
     menu.hidden('') { return false }
   end
   true
