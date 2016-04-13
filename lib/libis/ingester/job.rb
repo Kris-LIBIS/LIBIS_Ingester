@@ -18,6 +18,7 @@ module Libis
       index({ingest_model_id: 1, name: 1}, {name: 'by_ingest_model'})
 
       def self.from_hash(hash)
+        hash['log_level'] ||= 'INFO'
         # noinspection RubyResolve
         self.create_from_hash(hash, [:name]) do |item, cfg|
           item.workflow = Libis::Ingester::Workflow.from_hash(name: cfg.delete('workflow'))
