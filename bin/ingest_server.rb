@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'highline'
+require 'fileutils'
 @hl = HighLine.new
 
 @options = {}
@@ -60,6 +61,7 @@ def start_sidekiq(instance = nil)
   end
   dir = Dir.pwd
   Dir.chdir(APP_DIR)
+  FileUtils.rm(log_file_name(instance), force: true)
   `bundle exec sidekiq -C config/sidekiq.yml -P #{pid_file_name(instance)} -L #{log_file_name(instance)} -g #{instance} -r ./bin/server.rb`
   Dir.chdir(dir)
   sleep(2)
