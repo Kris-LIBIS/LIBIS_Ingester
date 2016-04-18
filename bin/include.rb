@@ -31,7 +31,7 @@ def option_menu(title, items, parent_name = nil)
     menu.header = "\n#{title.upcase}#{parent_name ? ' for ' + parent_name : ''}"
     menu.select_by = :index_or_name
     items.each do |i|
-      menu.choice("#{i.name} (id: #{i.id}) #{yield i if block_given?}") { @options[title.downcase.to_sym] = i }
+      menu.choice("#{i.name} #{yield i if block_given?}") { @options[title.downcase.to_sym] = i }
     end
     menu.hidden('') { @options[title.downcase.to_sym] = nil }
   end
