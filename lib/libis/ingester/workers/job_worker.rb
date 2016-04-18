@@ -10,7 +10,7 @@ module Libis
       sidekiq_options queue: :ingester, :retry => false
 
       def perform(job_id, options = {})
-        job = ::Libis::Ingester::Job.find_by(job_id)
+        job = ::Libis::Ingester::Job.find_by(id: job_id)
         raise RuntimeError.new "Workflow #{job_id} not found" unless job.is_a? ::Libis::Ingester::Job
         job.execute options.key_symbols_to_strings(recursive: true)
       end
