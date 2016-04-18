@@ -13,5 +13,5 @@ get_initializer
 
 exit unless get_run
 
-Libis::Ingester::RunWorker.perform_async(@options[:run].id, action: :retry)
+Libis::Ingester::RunWorker.perform_async(@options[:run].id.to_s, action: :retry)
 puts "Retrying Run #{@options[:run].name} ..."

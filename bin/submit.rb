@@ -12,5 +12,5 @@ end.parse!
 get_initializer
 exit unless get_job
 
-Libis::Ingester::JobWorker.perform_async(@options[:job].id)
+Libis::Ingester::JobWorker.perform_async(@options[:job].id.to_s)
 puts "Job #{@options[:job].name} submitted ..."

@@ -29,7 +29,7 @@ module Libis
             item.get_items.each { |i| ie.add_item(i) }
             # move log info over to the IE
             # noinspection RubyResolve
-            item.logs.to_a.each { |l| l.logger = ie }
+            item.status_log.each { |l| ie.status_log << l }
             debug 'Moved contents of %s from Division item to IE item.', item, item.name
             item.parent = nil
             item.destroy!

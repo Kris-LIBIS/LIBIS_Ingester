@@ -10,7 +10,7 @@ module Libis
       sidekiq_options queue: :ingester, :retry => false
 
       def perform(run_id, options = {})
-        run = ::Libis::Ingester::Run.find_by(id: run_id)
+        run = ::Libis::Ingester::Run.find_by(run_id)
         raise RuntimeError.new "Run #{run_id} not found" unless run.is_a? ::Libis::Ingester::Run
         run.execute options.key_symbols_to_strings(recursive: true)
       end
