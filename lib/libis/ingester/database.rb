@@ -30,7 +30,6 @@ module Libis
         ::Libis::Ingester::RetentionPeriod.create_indexes
         ::Libis::Ingester::User.create_indexes
         ::Libis::Ingester::Workflow.create_indexes
-        ::Libis::Workflow::Mongoid::LogEntry.create_indexes
         self
       end
 
