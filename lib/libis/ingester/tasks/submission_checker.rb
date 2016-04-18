@@ -18,6 +18,7 @@ module Libis
       protected
 
       def pre_process(item)
+        skip_processing_item if item.check_status(self.namepath) == :DONE
         skip_processing_item unless item.properties['ingest_sip']
       end
 
@@ -29,7 +30,6 @@ module Libis
       private
 
       def check_item(item)
-        return if item.check_status(self.namepath) == :DONE
         # noinspection RubyResolve
         rosetta = Libis::Services::Rosetta::Service.new(Libis::Ingester::Config.base_url, Libis::Ingester::Config.pds_url)
         producer_info = item.get_run.producer
