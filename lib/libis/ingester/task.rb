@@ -6,7 +6,7 @@ module Libis
     class Task < ::Libis::Workflow::Task
 
       parameter item_types: nil, datatype: Array,
-                description: 'Items types to process.'
+                description: 'Item types to process.'
 
       protected
 
