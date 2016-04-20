@@ -27,7 +27,7 @@ else
         loop do
           @options[:job].reload_relations
           break unless get_run
-          @options[:run].destroy! if @hl.agree("I will destroy all evidence of run #{@options[:run].name}. OK?", false)
+          @options[:run].destroy! if @hl.agree("This will destroy all evidence of run #{@options[:run].name}. OK?", false)
           @options[:job].save!
           @options[:run] = nil
         end
