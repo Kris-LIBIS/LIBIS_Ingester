@@ -13,7 +13,7 @@ module Libis
       parameter collection: nil,
                 description: 'Collection to add the documents to.'
 
-      parameter copy_files: true,
+      parameter copy_files: false,
                 description: 'Copy file info ingest dir instead of creating a symbolic link'
 
       parameter recursive: false, frozen: true
