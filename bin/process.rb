@@ -79,7 +79,7 @@ ensure
 end
 
 def start_sidekiq(tag = nil, queue_names = [])
-  tag ||= @hl.ask('name: ') { |q| q.validate = /\A[a-zA-Z][a-z0-9_ ]*\Z/ }
+  tag ||= @hl.ask('name: ') { |q| q.validate = /\A[a-zA-Z][a-zA-Z0-9_ ]*\Z/ }
   dir = Dir.pwd
   Dir.chdir(APP_DIR)
   pid_file = pid_file_name(tag)
