@@ -26,9 +26,9 @@ module Libis
         mimetype = format[:mimetype]
 
         if mimetype
-          debug "MIME type '#{mimetype}' detected."
+          debug "MIME type '#{mimetype}' detected.", item
         else
-          warn "Could not determine MIME type. Using default 'application/octet-stream'."
+          warn "Could not determine MIME type. Using default 'application/octet-stream'.", item
           mimetype = 'application/octet-stream'
         end
 
