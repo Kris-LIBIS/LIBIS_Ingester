@@ -3,4 +3,4 @@ require 'libis-ingester'
 
 require 'libis/ingester/initializer'
 
-::Libis::Ingester::Initializer.new('site.config.yml')
+::Libis::Ingester::Initializer.init('site.config.yml')

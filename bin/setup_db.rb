@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-require_relative 'include'
+require_relative '../lib/libis/ingester/console/include'
 
 OptionParser.new do |opts|
   opts.banner = "Usage: #{$0} [options]"

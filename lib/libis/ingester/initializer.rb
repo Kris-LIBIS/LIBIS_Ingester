@@ -5,15 +5,31 @@ require 'libis/tools/extend/hash'
 require 'sidekiq'
 require 'sidekiq/api'
 
+require 'singleton'
+
 module Libis
   module Ingester
 
     # noinspection RubyResolve
     class Initializer
+      include Singleton
 
       attr_accessor :config, :database
 
-      def initialize(config_file)
+      def initialize
+        @config = nil
+        @database = nil
+      end
+
+      def self.init(config_file)
+        initializer = self.instance
+        initializer.configure(config_file)
+        initializer.database
+        initializer.sidekiq
+        initializer
+      end
+
+      def configure(config_file)
 
         @config = Initializer.load_config(config_file)
 
@@ -36,12 +52,53 @@ module Libis
           Libis::Format::Fido.add_format(@config.format_config.fido_formats) if @config.format_config.fido_formats
         end
 
-        configure_database
-        configure_sidekiq
+        self
+      end
+
+      def database
+
+        return @database if @database
+
+        raise RuntimeError, "Missing section 'database' in site config." unless @config && @config.database
+
+        @database = ::Libis::Ingester::Database.new(
+            (@config.database.config_file || File.join(Libis::Ingester::ROOT_DIR, 'mongoid.yml')),
+            (@config.database.env || :test)
+        )
+
+      end
+
+      def sidekiq
+
+        return @sidekiq if @sidekiq
+
+        raise RuntimeError, 'Missing sidekiq section in configuration.' unless @config && @config.sidekiq
+
+        id = (@config.sidekiq.namespace.gsub(/\s/, '') || 'Ingester' rescue 'Ingester')
+
+        Sidekiq.configure_client do |config|
+          config.redis = {
+              url: @config.sidekiq.redis_url,
+              namespace: @config.sidekiq.namespace,
+              id: "#{id}Client"
+          }.cleanup
+        end
+
+        Sidekiq.configure_server do |config|
+          config.redis = {
+              url: @config.sidekiq.redis_url,
+              namespace: @config.sidekiq.namespace,
+              id: "#{id}Server"
+          }.cleanup
+        end
+
+        @sidekiq = Sidekiq::Client.new
 
       end
 
       def seed_database
+
+        raise RuntimeError, 'Database not initialized.' unless @database
 
         sources = []
         sources << @config.database.seed_dir if @config.database.seed_dir && Dir.exist?(@config.database.seed_dir)
@@ -52,36 +109,6 @@ module Libis
       end
 
       private
-
-      def configure_database
-
-        raise RuntimeError, "Missing section 'database' in site config." unless @config.database
-
-        @database = ::Libis::Ingester::Database.new(
-            (@config.database.config_file || File.join(Libis::Ingester::ROOT_DIR, 'mongoid.yml')),
-            (@config.database.env || :test)
-        )
-
-      end
-
-      def configure_sidekiq
-        raise RuntimeError, 'Missing sidekiq section in configuration.' unless @config.sidekiq
-
-        Sidekiq.configure_client do |config|
-          config.redis = {
-              url: @config.sidekiq.redis_url,
-              namespace: @config.sidekiq.namespace,
-          }.cleanup
-        end
-
-        Sidekiq.configure_server do |config|
-          config.redis = {
-              url: @config.sidekiq.redis_url,
-              namespace: @config.sidekiq.namespace,
-          }.cleanup
-        end
-
-      end
 
       def self.load_config(config_file)
 

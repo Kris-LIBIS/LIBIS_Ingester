@@ -13,13 +13,13 @@ describe 'Test' do
 
   before(:all) do
     config_file = File.join(Libis::Ingester::ROOT_DIR, 'site.config.yml')
-    installer = ::Libis::Ingester::Initializer.new(config_file)
+    initializer = ::Libis::Ingester::Initializer.init(config_file)
     ::Libis::Ingester::Run.each do |run|
       puts ' x ' + run.name
       run.destroy!
     end
     # installer.database.clear
-    installer.seed_database
+    initializer.seed_database
   end
 
   let(:job) {

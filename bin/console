@@ -11,4 +11,4 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 APP_DIR=$(readlink -m "$DIR/..")
 
-irb -r "$APP_DIR/bin/console.rb"
+irb -r "$APP_DIR/lib/libis/ingester/console/console.rb"

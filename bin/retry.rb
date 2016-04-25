@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-require_relative 'include'
+require_relative '../lib/libis/ingester/console/include'
 
 OptionParser.new do |opts|
   opts.banner = "Usage: #{$0} [options]"
@@ -11,7 +11,7 @@ end.parse!
 
 get_initializer
 
-exit unless get_run
+exit unless select_run
 
 Libis::Ingester::RunWorker.perform_async(@options[:run].id.to_s, action: :retry)
 puts "Retrying Run #{@options[:run].name} ..."

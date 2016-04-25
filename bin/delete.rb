@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-require_relative 'include'
+require_relative '../lib/libis/ingester/console/include'
 
 OptionParser.new do |opts|
   opts.banner = "Usage: #{$0} [options]"
@@ -11,6 +11,7 @@ OptionParser.new do |opts|
 end.parse!
 
 get_initializer
+
 if @options[:delete] || @options[:reset]
   ::Libis::Ingester::Run.each do |run|
     next unless run.check_status(:DONE)
@@ -19,14 +20,14 @@ if @options[:delete] || @options[:reset]
   end if @hl.agree('This will delete all runs. OK?', false)
 else
   loop do
-    break unless get_user
+    break unless select_user
     loop do
-      break unless get_org
+      break unless select_organization
       loop do
-        break unless get_job
+        break unless select_job
         loop do
           @options[:job].reload_relations
-          break unless get_run
+          break unless select_run
           @options[:run].destroy! if @hl.agree("This will destroy all evidence of run #{@options[:run].name}. OK?", false)
           @options[:job].save!
           @options[:run] = nil
@@ -35,7 +36,7 @@ else
       end
       @options[:organization] = nil
     end
-    @options[:user] = nil
+    exit
   end
   exit
 end

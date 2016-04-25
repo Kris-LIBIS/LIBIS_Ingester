@@ -6,7 +6,7 @@ module Libis
 
     class Server
       def initialize(config_file = 'site.config.yml')
-        Initializer.new(config_file)
+        Initializer.init(config_file)
       end
 
     end

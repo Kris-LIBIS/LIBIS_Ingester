@@ -9,6 +9,9 @@ module Libis
 
     class DirListCollector < DirCollector
 
+      parameter file_list: 'files.list',
+                description: 'Name of the file containing the file names'
+
       protected
 
       def collect(item, dir)

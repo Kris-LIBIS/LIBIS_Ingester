@@ -7,3 +7,7 @@ desc 'run tests'
 task :default => :spec
 
 require 'libis/ingester'
+
+require 'github_changelog_generator/task'
+GitHubChangelogGenerator::RakeTask.new :changelog do |_|
+end

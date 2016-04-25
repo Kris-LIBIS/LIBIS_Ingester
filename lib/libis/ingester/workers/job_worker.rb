@@ -15,6 +15,10 @@ module Libis
         job.execute options.key_symbols_to_strings(recursive: true)
       end
 
+      def self.subject(job_id)
+        ::Libis::Ingester::Job.find_by(id: job_id)
+      end
+
     end
 
   end

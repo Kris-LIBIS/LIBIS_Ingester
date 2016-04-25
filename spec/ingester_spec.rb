@@ -13,8 +13,8 @@ describe 'Ingester' do
 
   before(:all) do
     config_file = File.join(Libis::Ingester::ROOT_DIR, 'site.config.yml')
-    installer = ::Libis::Ingester::Initializer.new(config_file)
-    installer.seed_database
+    initializer = ::Libis::Ingester::Initializer.init(config_file)
+    initializer.seed_database
   end
 
   let(:datadir) { File.join(Libis::Ingester::ROOT_DIR, 'spec', 'test_data') }
@@ -120,7 +120,6 @@ describe 'Ingester' do
 
     it 'in collections' do
       run = job.execute location: datadir
-      list_data(run)
       expect(run.items.count).to be 2
       check_data(run, FILE_WITH_IE_COLLECTIONS + [run.name], print_log)
       expect(run.items[0]).to be_a(Libis::Ingester::Collection)
@@ -129,11 +128,22 @@ describe 'Ingester' do
 
     it 'in complex IE' do
       run = job.execute location: datadir, subdirs: 'complex'
-      list_data(run)
       expect(run.items.count).to be 2
       check_data(run, FILE_WITH_IE_COMPLEX + [run.name], print_log)
       expect(run.items[0]).to be_a(Libis::Ingester::IntellectualEntity)
       expect(run.items[1]).to be_a(Libis::Ingester::IntellectualEntity)
+    end
+
+  end
+
+  context 'complext ingest' do
+
+    let(:print_log) { false }
+    let(:job_name) { 'Complex Test Job' }
+
+    it 'run the ingest' do
+      run = job.execute
+      expect(run.status).to be :DONE
     end
 
   end

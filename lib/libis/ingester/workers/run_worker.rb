@@ -15,6 +15,10 @@ module Libis
         run.execute options.key_symbols_to_strings(recursive: true)
       end
 
+      def self.subject(run_id)
+        ::Libis::Ingester::Run.find_by(id: run_id)
+      end
+
     end
 
   end
