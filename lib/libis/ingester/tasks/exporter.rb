@@ -50,16 +50,16 @@ module Libis
           case parameter(:export_format).to_sym
             when :tsv
               f.puts "KEY\tPID" if f.size == 0 && parameter(:export_header)
-              f.puts "#{key_value}\t#{item.pid}"
+              f.puts "#{for_string(key_value)}\t#{for_string(item.pid.to_s)}"
             when :csv
               f.puts 'KEY,PID' if f.size == 0 && parameter(:export_header)
-              f.puts "'#{key_value.gsub('\'','\'\'')}','#{item.pid.gsub('\'','\'\'')}'"
+              f.puts "#{for_string(key_value)},#{for_string(item.pid.to_s)}"
             when :xml
               f.puts '<?xml version="1.0" encoding="UTF-8"?>' if f.size == 0 && parameter(:export_header)
-              f.puts "<item key=\"#{key_value}\">#{item.pid}</item>"
+              f.puts "<item key=\"#{for_xml(key_value, :attr)}\">#{for_xml(item.pid)}</item>"
             when :yml
               f.puts '# Ingester export file' if f.size == 0 && parameter(:export_header)
-              f.puts "- key: '#{key_value}'\n  value: '#{item.pid}'"
+              f.puts "- key: '#{for_string(key_value)}'\n  value: '#{for_string(item.pid.to_s)}'"
             else
               #nothing
           end
@@ -68,6 +68,14 @@ module Libis
 
         debug 'Item %s with pid %s exported.', key_value, item.pid
 
+      end
+
+      def for_string(string)
+        string =~ /[\s"]/ ? "\"#{string.gsub('"', '""')}\"" : string
+      end
+
+      def for_xml(string, type = :text)
+        string.encode(xml: type)
       end
 
     end
