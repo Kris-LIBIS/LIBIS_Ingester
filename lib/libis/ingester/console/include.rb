@@ -252,3 +252,35 @@ def select_worker(queue = nil)
     "#{worker.enqueued_at} : #{worker.klass.constantize.subject(worker.args.first).name} #{worker.args.last}"
   end
 end
+
+def select_options(job)
+  input = {}
+  options = {}
+  job.workflow.config['input'].each do |key, value|
+    input[key] = value
+  end
+  job.input.each do |key, value|
+    input[key]['default'] = value
+  end
+  set_option = Proc.new { |opt|
+    key, value = opt
+    puts "key: #{key}, value: #{value}"
+    value = if value['default']
+              @hl.ask("#{key} : ", value['default'].class) { |q| q.default = value['default'] }
+            else
+              @hl.ask("#{key} : ")
+            end
+    [key, value]
+  }
+
+  loop do
+    option = selection_menu('Options', input, parent: job.name, proc: set_option) { |opt| "#{opt.first} : #{opt.last['default']}" }
+    break unless option
+    key, value = option
+    input[key]['default'] = value
+    options[key] = value
+  end
+
+  options
+
+end

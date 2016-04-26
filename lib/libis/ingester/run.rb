@@ -64,11 +64,10 @@ module Libis
 
       def execute(options = {})
         action = options.delete('action') || :run
-        self.options = self.job.input
-        self.save!
-        options.each { |key,value| self.send("#{key}=", value) }
         case action.to_sym
           when :run, :restart
+            self.options = self.job.input.merge(options)
+            self.save!
             self.action = :run
             self.remove_work_dir
             self.remove_items
