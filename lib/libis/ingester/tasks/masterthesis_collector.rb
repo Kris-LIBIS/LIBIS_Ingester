@@ -97,6 +97,7 @@ module Libis
         ie_item = Libis::Ingester::IntellectualEntity.new
         ie_item.name = dir_name
         ie_item.label = xml_doc['//titel1/tekst'].strip
+        ie_item.properties['source_path'] = dir
         ie_item.properties['identifier'] = dir_name
         embargo = xml_doc['//embargo'].to_i
         ie_item.properties['access_right'] = parameter(:embargo_ar) if parameter(:embargo_ar) && embargo != 0

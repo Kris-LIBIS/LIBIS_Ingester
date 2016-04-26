@@ -18,10 +18,14 @@ module Libis
                 description: 'FTP user account.'
       parameter ftp_password: '',
                 description: 'FTP password.'
-      parameter done_dir: '/masterproef/test',
+      parameter done_dir: '/masterproef/in',
                 description: 'Path where theses done files are stored.'
+      parameter error_dir: '/masterproef/error',
+                description: 'Path where theses error files are stored.'
+      parameter remove_input: false,
+                description: 'Should input files be removed after successful ingest'
       parameter export_dir: '.', description: 'Directory where the exported XML files will be copied'
-      parameter item_types: ['Libis::Ingester::IntellectualEntity']
+      parameter item_types: ['Libis::Ingester::IntellectualEntity'], frozen: true
       parameter recursive: true, frozen: true
 
       protected
@@ -78,6 +82,17 @@ module Libis
             ["Geingest op #{Time.now.strftime('%d/%m/%Y')} met id #{item.pid}."]
         )
         debug 'Done file created in %s.', item, done_file
+
+        error_file = File.join(parameter(:error_dir), "#{identifier}.error")
+        if @ftp_service.exist?(error_file)
+          @ftp_service.del_file(error_file)
+          debug 'Error file %s deleted.', item, error_file
+        end
+
+        source_dir = item.properties['source_path']
+        @ftp_service.del_tree(source_dir)
+        debug 'Source dir %s deleted.', item, source_dir
+
       end
 
     end

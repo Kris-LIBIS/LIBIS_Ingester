@@ -25,7 +25,7 @@ module Libis
         ftp_service.connect(host, port)
         ftp_service.login user, password
         ftp_service.passive = true
-        ftp_service.read_timeout = 5.0
+        ftp_service.read_timeout = 120.0
       end
 
       # Disconnect from FTP server
@@ -80,6 +80,42 @@ module Libis
               ftp_service.putbinaryfile(tempfile.path, remote_path)
         end
         tempfile.unlink
+      end
+
+      # Delete a file
+      # param [String] remote_path remote file path
+      def del_file(remote_path)
+        check do
+          ftp_service.delete(remote_path)
+        end
+      end
+
+      # Delete a directory
+      # param [String] remote_path remote directory
+      def del_dir(remote_path)
+        check do
+          ftp_service.rmdir(remote_path)
+        end
+      end
+
+      # Delete a directory
+      # param [String] remote_path remote directory
+      def del_tree(remote_path)
+        ls(remote_path).map do |file|
+          is_file?(file) ? del_file(file) : del_tree(file)
+        end
+        del_dir(remote_path)
+      end
+
+      def exist?(remote_path)
+        check do
+          begin
+            ftp_service.size(remote_path)
+            true
+          rescue FTPReplyError
+            return false
+          end
+        end
       end
 
       # Check if remote path is a file (or a directory)
