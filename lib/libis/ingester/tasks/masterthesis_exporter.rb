@@ -69,7 +69,7 @@ module Libis
         item.save!
 
         storage = DomainStorage.where(domain: 'Masterthesis').find_by(name: 'Loaded')
-        storage.data[identifier] = { date: DateTime.now.iso8601, pid: item.pid }
+        storage.data[identifier] = {date: DateTime.now.iso8601, pid: item.pid}
         storage.save!
         debug 'Item %s saved in persistent storage', item, identifier
 
@@ -89,9 +89,11 @@ module Libis
           debug 'Error file %s deleted.', item, error_file
         end
 
-        source_dir = item.properties['source_path']
-        @ftp_service.del_tree(source_dir)
-        debug 'Source dir %s deleted.', item, source_dir
+        if parameter(:remove_input)
+          source_dir = item.properties['source_path']
+          @ftp_service.del_tree(source_dir)
+          debug 'Source dir %s deleted.', item, source_dir
+        end
 
       end
 
