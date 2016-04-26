@@ -49,17 +49,25 @@ module Libis
         open(export_file, 'a') do |f|
           case parameter(:export_format).to_sym
             when :tsv
-              f.puts "KEY\tPID" if f.size == 0 && parameter(:export_header)
-              f.puts "#{for_string(key_value)}\t#{for_string(item.pid.to_s)}"
+              f.puts "KEY\tPID\tURL" if f.size == 0 && parameter(:export_header)
+              f.puts "#{for_tsv(key_value)}\t#{for_tsv(item.pid.to_s)}" +
+                         "\t#{for_tsv("http://resolver.libis.be/#{item.pid.to_s}/representation")}"
             when :csv
-              f.puts 'KEY,PID' if f.size == 0 && parameter(:export_header)
-              f.puts "#{for_string(key_value)},#{for_string(item.pid.to_s)}"
+              f.puts 'KEY,PID,URL' if f.size == 0 && parameter(:export_header)
+              f.puts "#{for_csv(key_value)},#{for_csv(item.pid.to_s)}" +
+                         "\t#{for_csv("http://resolver.libis.be/#{item.pid.to_s}/representation")}"
             when :xml
               f.puts '<?xml version="1.0" encoding="UTF-8"?>' if f.size == 0 && parameter(:export_header)
-              f.puts "<item key=\"#{for_xml(key_value, :attr)}\">#{for_xml(item.pid)}</item>"
+              f.puts '<item' +
+                         " key=\"#{for_xml(key_value)}\"" +
+                         " pid=\"#{for_xml(item.pid)}\"" +
+                         " url=\"#{for_xml("http://resolver.libis.be/#{item.pid.to_s}/representation")}\"" +
+                         ' />'
             when :yml
               f.puts '# Ingester export file' if f.size == 0 && parameter(:export_header)
-              f.puts "- key: '#{for_string(key_value)}'\n  value: '#{for_string(item.pid.to_s)}'"
+              f.puts "- key: #{for_yml(key_value)}" +
+                         "\n  value: #{for_yml(item.pid.to_s)}" +
+                         "\n  url: #{for_yml("http://resolver.libis.be/#{item.pid.to_s}/representation")}"
             else
               #nothing
           end
@@ -70,12 +78,20 @@ module Libis
 
       end
 
-      def for_string(string)
-        string =~ /[\s"]/ ? "\"#{string.gsub('"', '""')}\"" : string
+      def for_tsv(string)
+        string =~ /\t\n/ ? "\"#{string.gsub('"', '""')}\"" : string
       end
 
-      def for_xml(string, type = :text)
+      def for_csv(string)
+        string =~ /,\n/ ? "\"#{string.gsub('"', '""')}\"" : string
+      end
+
+      def for_xml(string, type = :attr)
         string.encode(xml: type)
+      end
+
+      def for_yml(string)
+        string.inspect.to_yaml
       end
 
     end
