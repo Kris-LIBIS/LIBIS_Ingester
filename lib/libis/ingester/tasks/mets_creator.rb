@@ -63,6 +63,7 @@ module Libis
                     end
 
         dc_record.title = item.label if item.label != item.name
+        dc_record.identifier = ingest
 
         collection_list = item.ancestors.select do |i|
           i.is_a? Libis::Ingester::Collection
@@ -73,9 +74,11 @@ module Libis
 
         dc_record.isPartOf = collection_list.reverse.join('/') unless collection_list.empty?
 
-        mets.dc_record = dc_record.root.to_xml
-
         ingest_model = item.get_run.ingest_model
+
+        dc_record.identifier = ingest_model.identifier if ingest_model.identifier
+
+        mets.dc_record = dc_record.root.to_xml
 
         amd = {
             entity_type: item.properties['entity_type'] || ingest_model.entity_type,

@@ -20,6 +20,7 @@ module Libis
       field :user_b
       field :user_c
       field :status
+      field :identifier
 
       has_many :jobs, class_name: Libis::Ingester::Job.to_s, inverse_of: :ingest_model,
                dependent: :restrict, autosave: true, order: :name.asc
