@@ -112,6 +112,9 @@ module Libis
         term = get_search_term(item)
         return nil if term.blank?
 
+        item.properties['metadata_search_term'] = term
+        item.save!
+
         @metadata_cache ||= {}
 
         unless @metadata_cache[term]
@@ -134,7 +137,7 @@ module Libis
         item.metadata_record = metadata_record
         info 'Metadata added to \'%s\'', item, item.name
         transform_item(item, record.title.content)
-        item.save
+        item.save!
       end
 
       def transform_item(item, title)
