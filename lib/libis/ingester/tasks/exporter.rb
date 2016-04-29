@@ -55,7 +55,7 @@ module Libis
             when :csv
               f.puts 'KEY,PID,URL' if f.size == 0 && parameter(:export_header)
               f.puts "#{for_csv(key_value)},#{for_csv(item.pid.to_s)}" +
-                         "\t#{for_csv("http://resolver.libis.be/#{item.pid.to_s}/representation")}"
+                         ",#{for_csv("http://resolver.libis.be/#{item.pid.to_s}/representation")}"
             when :xml
               f.puts '<?xml version="1.0" encoding="UTF-8"?>' if f.size == 0 && parameter(:export_header)
               f.puts '<item' +
