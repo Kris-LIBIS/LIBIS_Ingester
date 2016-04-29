@@ -32,7 +32,7 @@ module Libis
       parameter match_term: 'item.name',
                 description: 'Ruby expression evaluating to the value to be checked against the \'match_regex\'.'
 
-      parameter converter: nil,
+      parameter converter: 'Kuleuven',
                 description: 'Dublin Core metadata converter to use.',
                 constraint: %w[Kuleuven Flandrica]
 
@@ -43,7 +43,7 @@ module Libis
                 description: 'Format in which the mapping file is written.',
                 constraint: %w'tsv csv'
 
-      parameter title_to_name: true,
+      parameter title_to_name: false,
                 description: 'Update the item name with the title in the metadata?'
 
       parameter title_to_label: true,
