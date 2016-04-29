@@ -63,7 +63,6 @@ module Libis
                     end
 
         dc_record.title = item.label if item.label != item.name
-        dc_record.identifier = ingest
 
         collection_list = item.ancestors.select do |i|
           i.is_a? Libis::Ingester::Collection
