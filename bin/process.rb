@@ -33,7 +33,7 @@ def get_pid(process)
 end
 
 def check_pid(pid)
-  ps = `ps -hp #{pid}`.strip
+  ps = `ps --no-heading -p #{pid}`.strip
   !ps.empty?
 end
 
