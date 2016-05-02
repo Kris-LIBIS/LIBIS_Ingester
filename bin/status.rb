@@ -32,7 +32,7 @@ loop do
               status['updated'].strftime('%d/%m/%Y %T'),
               status['status'].to_s.capitalize
           ]
-          if status['status'].to_s != 'DONE' && status['progress']
+          if status['status'] && status['status'].to_s != 'DONE' && status['progress']
             x = status['progress'].to_s
             x += ' of ' + status['max'].to_s if status['max']
             data[4] = x
