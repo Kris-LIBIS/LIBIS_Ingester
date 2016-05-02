@@ -35,7 +35,7 @@ loop do
           if status['progress']
             x = status['progress'].to_s
             x += ' of ' + status['max'].to_s if status['max']
-            data[4] += " (#{x})"
+            data[3] += " (#{x})"
           end
           puts format_str % data
         end
