@@ -20,8 +20,8 @@ loop do
       loop do
         @options[:job].reload_relations
         break unless select_run
-        format_str = '%-30s %-20s %-20s %s'
-        puts format_str % %w'Task Started Updated Progress'
+        format_str = '%-30s %-20s %-20s %-10s %s'
+        puts format_str % %w'Task Started Updated Status Progress'
         puts '-' * 90
         @options[:run].status_log.each do |status|
           task = status['task'].gsub(/[^\/]*\//,'- ')
@@ -30,12 +30,12 @@ loop do
               task,
               status['created'].strftime('%d/%m/%Y %T'),
               status['updated'].strftime('%d/%m/%Y %T'),
-              status['status'].to_s.capitalize
+              status['status'].to_s.capitalize,
+              ''
           ]
           if status['progress']
-            x = status['progress'].to_s
-            x += ' of ' + status['max'].to_s if status['max']
-            data[3] += " (#{x})"
+            data[4] = status['progress'].to_s
+            data[4] += ' of ' + status['max'].to_s if status['max']
           end
           puts format_str % data
         end
