@@ -28,8 +28,8 @@ loop do
           task = '- ' + task unless task == 'Run'
           data = [
               task,
-              status['created'].strftime('%d/%m/%Y %T'),
-              status['updated'].strftime('%d/%m/%Y %T'),
+              status['created'].localtime.strftime('%d/%m/%Y %T'),
+              status['updated'].localtime.strftime('%d/%m/%Y %T'),
               status['status'].to_s.capitalize,
               ''
           ]
