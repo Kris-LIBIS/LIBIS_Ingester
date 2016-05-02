@@ -24,7 +24,8 @@ loop do
         puts format_str % %w'Task Started Updated Progress'
         puts '-' * 90
         @options[:run].status_log.each do |status|
-          task = status['task'].gsub(/[^\/]*\//,' - ')
+          task = status['task'].gsub(/[^\/]*\//,'- ')
+          task = '- ' + task unless task == 'Run'
           data = [
               task,
               status['created'].strftime('%d/%m/%Y %T'),
