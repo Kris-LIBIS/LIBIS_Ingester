@@ -10,19 +10,22 @@ OptionParser.new do |opts|
 end.parse!
 
 get_initializer
-exit unless select_job
+loop do
+  exit unless select_job
+  queue = select_defined_queue
 
-queue = select_defined_queue
+  job = @options[:job]
+  options = [job.id.to_s]
 
-job = @options[:job]
-options = [job.id.to_s]
+  options[1] = select_options(job)
 
-options[1] = select_options(job)
+  Sidekiq::Client.push(
+      'class' => 'Libis::Ingester::JobWorker',
+      'queue' => queue.name,
+      'args' => options
+  )
 
-Sidekiq::Client.push(
-    'class' => 'Libis::Ingester::JobWorker',
-    'queue' => queue.name,
-    'args' => options
-)
+  puts "Job #{@options[:job].name} submitted #{"with options #{options[1].to_s}" if options[1]}..."
+  @options[:job] = nil
+end
 
-puts "Job #{@options[:job].name} submitted #{"with options #{options[1].to_s}" if options[1]}..."
