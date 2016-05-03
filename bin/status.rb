@@ -23,7 +23,7 @@ loop do
         format_str = '%-30s %-20s %-20s %-10s %s'
         puts format_str % %w'Task Started Updated Status Progress'
         puts '-' * 90
-        @options[:run].status_log.each do |status|
+        @options[:run].reload.status_log.each do |status|
           task = status['task'].gsub(/[^\/]*\//,'- ')
           task = '- ' + task unless task == 'Run'
           data = [
