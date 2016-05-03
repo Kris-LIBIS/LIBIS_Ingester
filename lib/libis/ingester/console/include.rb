@@ -163,7 +163,7 @@ def select_run
   return unless select_job
 
   # noinspection RubyResolve
-  db_menu('Run', @options[:job].runs, parent: @options[:job].name, page_at: 9) { |run| "#{run.name} - #{run.status_label}" }
+  db_menu('Run', @options[:job].runs, parent: @options[:job].name) { |run| "#{run.name} - #{run.status_label}" }
 end
 
 def get_processes
@@ -284,3 +284,8 @@ def select_options(job)
   options
 
 end
+
+def select_item(item)
+  selection_menu('item', item.items, header: "Subitems of #{item.name}") {|i| "#{i.name} (#{i.items.count} items)"}
+end
+
