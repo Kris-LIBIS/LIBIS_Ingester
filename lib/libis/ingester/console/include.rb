@@ -286,6 +286,6 @@ def select_options(job)
 end
 
 def select_item(item)
-  selection_menu('item', item.items, header: "Subitems of #{item.name}") {|i| "#{i.name} (#{i.items.count} items)"}
+  selection_menu('item', item.items, header: "Subitems of #{item.name}") {|i| "#{i.class.name.split('::').last}: '#{i.name}' (#{i.items.count} items) [#{i.status_label}]"}
 end
 

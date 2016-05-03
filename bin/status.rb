@@ -12,7 +12,7 @@ end.parse!
 get_initializer
 
 def item_status(item)
-  puts "Status overview for #{item.name}:"
+  puts "Status overview for [#{item.class.name.split('::').last}] '#{item.name}':"
   format_str = '%-30s %-20s %-20s %-10s %s'
   puts format_str % %w'Task Started Updated Status Progress'
   puts '-' * 90
