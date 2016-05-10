@@ -16,19 +16,22 @@ module Libis
       parameter copy_files: false,
                 description: 'Copy file info ingest dir instead of creating a symbolic link'
 
-      parameter recursive: false, frozen: true
+      parameter recursive: true, frozen: true
 
-      parameter item_types: [Libis::Ingester::Run], frozen: true
+      def pre_process(item)
+        skip_processing_item unless item.is_a? Libis::Ingester::IntellectualEntity
+      end
 
       def process(item)
-        ingest_dir = item.ingest_dir
+        unless @ingest_dir
+          @ingest_dir = item.get_run.ingest_dir
 
-        debug "Preparing ingest in #{ingest_dir}.", item
-        FileUtils.mkpath ingest_dir
-        FileUtils.rmtree ingest_dir
-
-        item.items.each { |i| create_item(i) }
-
+          debug "Preparing ingest in #{@ingest_dir}.", item
+          FileUtils.mkpath @ingest_dir
+          FileUtils.rmtree @ingest_dir
+        end
+        create_ie(item)
+        stop_processing_subitems
       end
 
       # noinspection RubyResolve
@@ -102,7 +105,7 @@ module Libis
 
         mets.amd_info = amd
 
-        ie_ingest_dir = File.join item.get_run.ingest_dir, item.properties['ingest_sub_dir']
+        ie_ingest_dir = File.join @ingest_dir, item.properties['ingest_sub_dir']
 
         item.representations.each { |rep| add_rep(mets, rep, ie_ingest_dir) }
 
