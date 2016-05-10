@@ -59,7 +59,7 @@ module Libis
       end
 
       def ingest_sub_dir
-        self.name
+        self.id
       end
 
       def execute(options = {})
