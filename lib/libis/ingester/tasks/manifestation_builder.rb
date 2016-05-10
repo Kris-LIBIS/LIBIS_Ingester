@@ -63,7 +63,8 @@ module Libis
               manifestation.ingest_model.manifestations.find_by(name: convert_info.from_manifestation)
           source = from_manifestation &&
               representation.parent.representation(from_manifestation.name)
-          source_items = source && source.items.dup || representation.parent.originals
+          source_items = source && source.items || representation.parent.originals
+          source_items = source_items.to_a
 
           convert_hash = convert_info.to_hash
           convert_hash[:name] = representation.name
@@ -85,7 +86,7 @@ module Libis
       end
 
       def move_file(file, to_parent)
-        debug "Moving '#{file.name}' to '#{to_parent.name}'"
+        debug "Moving '#{file.name}' to '#{to_parent.name}' in object tree."
         file.parent = to_parent
         file.save!
         if file.is_a?(Libis::Ingester::FileItem)
@@ -95,7 +96,7 @@ module Libis
       end
 
       def copy_file(file, to_parent)
-        debug "Copying '#{file.name}' to '#{to_parent.name}'"
+        debug "Copying '#{file.name}' to '#{to_parent.name}' in object tree."
         new_file = file.dup
         new_file.parent = to_parent
         new_file.save!
@@ -143,9 +144,9 @@ module Libis
             else
               nil
           end
-        end.flatten.compact.reject do |_file|
-          # @processed_files.include?(_file.id)
-          false
+        # end.flatten.compact.reject do |_file|
+        #   @processed_files.include?(_file.id)
+        #   false
         end.select do |file|
           match_file(file, formats)
         end
