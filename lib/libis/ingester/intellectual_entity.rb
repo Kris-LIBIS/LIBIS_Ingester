@@ -17,18 +17,15 @@ module Libis
       belongs_to :retention_period, class_name: Libis::Ingester::RetentionPeriod.to_s, inverse_of: nil
 
       def representations
-        self.items.select { |item| item.is_a? ::Libis::Ingester::Representation }
+        self.items.where(_type: Libis::Ingester::Representation.to_s)
       end
 
       def representation(name_or_id)
-        representations.each do |representation|
-          return representation if name_or_id == representation.id or name_or_id == representation.name
-        end
-        nil
+        self.representations.where(id: name_or_id).first || self.representations.where(name: name_or_id).first
       end
 
       def originals
-        self.items.reject { |item| item.is_a? ::Libis::Ingester::Representation }
+        self.items.ne(_type: Libis::Ingester::Representation.to_s)
       end
 
       # noinspection RubyResolve
