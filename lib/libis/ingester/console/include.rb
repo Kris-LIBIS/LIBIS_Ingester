@@ -174,17 +174,16 @@ end
 
 def select_process(processes = nil, options = {})
   processes ||= get_processes
-  format = '%-30s %-20s %s'
+  format = '%-40s %-20s %s'
   xformat = '   ' + format
   xformat = ' ' + xformat if processes.count > 9
   header = xformat % %w(Process Workers Queues)
   selection_menu('Process', processes, options.merge(header: header)) do |process|
     name = '%s [%d]' % [process['tag'], process['pid']]
-    workers = process['quiet'] == 'true' ?
-        '-- STOPPED --' :
-        '(%d of %d busy)' % [process['busy'], process['concurrency']]
+    workers = '(%d of %d busy)' % [process['busy'], process['concurrency']]
+    name += ' **HALT**' if process['quiet'] == 'true'
     format % [
-        '%.29s %s' % [name, '.' * [0, 29 - name.size].max],
+        '%.39s %s' % [name, '.' * [0, 39 - name.size].max],
         '%.19s %s' % [workers, '.' * [0, 19 - workers.size].max],
         process['queues'].join(', ')
     ]
