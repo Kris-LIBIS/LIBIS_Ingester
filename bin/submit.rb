@@ -23,6 +23,7 @@ loop do
   Sidekiq::Client.push(
       'class' => 'Libis::Ingester::JobWorker',
       'queue' => queue.name,
+      'retry' => false,
       'args' => options
   )
 
