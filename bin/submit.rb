@@ -20,14 +20,32 @@ loop do
 
   options[1] = select_options(job)
 
-  Sidekiq::Client.push(
-      'class' => 'Libis::Ingester::JobWorker',
-      'queue' => queue.name,
-      'retry' => false,
-      'args' => options
-  )
+  bulk = select_bulk_option(options[1])
 
-  puts "Job #{@options[:job].name} submitted #{"with options #{options[1].to_s}" if options[1]}..."
+  if bulk
+    key = bulk[:key]
+    puts "Found #{bulk[:values].count} folders:"
+    bulk[:values].each do |value|
+      options[1][key] = value
+      Sidekiq::Client.push(
+          'class' => 'Libis::Ingester::JobWorker',
+          'queue' => queue.name,
+          'retry' => false,
+          'args' => options
+      )
+      puts "Job #{@options[:job].name} submitted for #{value}"
+    end
+  else
+    Sidekiq::Client.push(
+        'class' => 'Libis::Ingester::JobWorker',
+        'queue' => queue.name,
+        'retry' => false,
+        'args' => options
+    )
+    puts "Job #{@options[:job].name} submitted #{"with options #{options[1].to_s}" if options[1]}..."
+  end
+
+
   @options[:job] = nil
 end
 

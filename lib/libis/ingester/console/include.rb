@@ -253,35 +253,40 @@ def select_worker(queue = nil)
 end
 
 def select_options(job)
-  input = {}
   options = {}
   job.workflow.config['input'].each do |key, value|
-    input[key] = value
+    options[key] = value['default']
   end
   job.input.each do |key, value|
-    input[key]['default'] = value
+    options[key] = value
   end
   set_option = Proc.new { |opt|
     key, value = opt
     puts "key: #{key}, value: #{value}"
-    value = if value['default']
-              @hl.ask("#{key} : ", value['default'].class) { |q| q.default = value['default'] }
-            else
-              @hl.ask("#{key} : ")
-            end
-    [key, value]
+    options[key] = if value
+                     @hl.ask("#{key} : ", value.class) { |q| q.default = value }
+                   else
+                     @hl.ask("#{key} : ")
+                   end
+    true
   }
 
   loop do
-    option = selection_menu('Options', input, parent: job.name, proc: set_option) { |opt| "#{opt.first} : #{opt.last['default']}" }
+    option = selection_menu('Parameters', options, parent: job.name, proc: set_option) { |opt| "#{opt.first} : #{opt.last}" }
     break unless option
-    key, value = option
-    input[key]['default'] = value
-    options[key] = value
   end
 
   options
 
+end
+
+def select_bulk_option(options)
+  option = selection_menu('Bulk parameter', options) { |opt| "#{opt.first} : #{opt.last}" }
+  return nil unless option
+  maxlevel = @hl.ask('Number of subdir levels to process', Integer) { |q| q.default = 1 }
+
+  dirs = `find #{option.last} -mindepth #{maxlevel} -maxdepth #{maxlevel} -type d -print`.split("\n")
+  { key: option.first, values: dirs }
 end
 
 def select_item(item)
