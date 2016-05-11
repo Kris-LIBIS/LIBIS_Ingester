@@ -7,7 +7,6 @@ module Libis
 
     class JobWorker
       include Sidekiq::Worker
-      sidekiq_options queue: :ingester, :retry => false
 
       def perform(job_id, options = {})
         job = ::Libis::Ingester::Job.find_by(id: job_id)

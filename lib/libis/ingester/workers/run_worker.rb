@@ -7,7 +7,6 @@ module Libis
 
     class RunWorker
       include Sidekiq::Worker
-      sidekiq_options queue: :ingester, :retry => false
 
       def perform(run_id, options = {})
         run = ::Libis::Ingester::Run.find_by(id: run_id)
