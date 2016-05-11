@@ -13,6 +13,7 @@ get_initializer
 loop do
   exit unless select_job
   queue = select_defined_queue
+  next unless queue
 
   job = @options[:job]
   options = [job.id.to_s]
