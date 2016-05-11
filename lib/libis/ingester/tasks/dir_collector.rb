@@ -21,6 +21,9 @@ module Libis
       parameter subdirs: 'ignore', constraint: %w[ignore recursive collection complex],
                 description: 'How to collect subdirs'
 
+      parameter file_limit: 5000,
+                description: 'Maximum number of files to collect. If the number of files found exceeds this limit, the task will fail.'
+
       parameter item_types: [Libis::Ingester::Run, Libis::Workflow::DirItem], frozen: true
 
       protected
@@ -76,6 +79,13 @@ module Libis
               info "Ignoring subdir #{file}."
           end
         elsif File.file?(file)
+          @file_count ||= 0
+          @file_count += 1
+          if @file_count > parameter(:file_limit)
+            fatal 'Number of files found exceeds limit (%d). Consider splitting into separate runs or raise limit.',
+                  item.get_run, parameter(:file_limit)
+            raise Libis::WorkflowAbort, 'Number of files exceeds preset limit.'
+          end
           child = Libis::Ingester::FileItem.new
           child.filename = file
           debug 'Created File item `%s`', child.name
