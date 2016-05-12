@@ -17,12 +17,7 @@ loop do
   queue = select_defined_queue
   next unless queue
 
-  Sidekiq::Client.push(
-      'class' => 'Libis::Ingester::RunWorker',
-      'queue' => queue.name,
-      'retry' => false,
-      'args' => [@options[:run].id, { action: :retry }]
-  )
+  Libis::Ingester::RunWorker.push_retry_job(@options[:run].id.to_s, queue)
 
   puts "Retrying Run #{@options[:run].name} ..."
 end
