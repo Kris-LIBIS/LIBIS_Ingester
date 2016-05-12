@@ -10,8 +10,20 @@ OptionParser.new do |opts|
 end.parse!
 
 get_initializer
+loop do
+  @options[:run] = nil
+  exit unless select_run
 
-exit unless select_run
+  queue = select_defined_queue
+  next unless queue
 
-Libis::Ingester::RunWorker.perform_async(@options[:run].id.to_s, action: :retry)
-puts "Retrying Run #{@options[:run].name} ..."
+  Sidekiq::Client.push(
+      'class' => 'Libis::Ingester::RunWorker',
+      'queue' => queue.name,
+      'retry' => false,
+      'args' => { action: :retry }
+  )
+
+  puts "Retrying Run #{@options[:run].name} ..."
+end
+
