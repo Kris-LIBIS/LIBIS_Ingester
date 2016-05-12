@@ -17,7 +17,7 @@ loop do
   queue = select_defined_queue
   next unless queue
 
-  Libis::Ingester::RunWorker.push_retry_job(@options[:run].id.to_s, queue)
+  Libis::Ingester::RunWorker.push_retry_job(@options[:run].id.to_s, queue.name)
 
   puts "Retrying Run #{@options[:run].name} ..."
 end
