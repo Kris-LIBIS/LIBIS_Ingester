@@ -8,6 +8,7 @@ require 'libis-tools'
 
 require 'libis/ingester/initializer'
 
+require 'readline'
 require 'highline'
 @hl = HighLine.new
 
@@ -260,21 +261,25 @@ def select_options(job)
   job.input.each do |key, value|
     options[key] = value
   end
+
   set_option = Proc.new { |opt|
     key, value = opt
-    puts "key: #{key}, value: #{value}"
-    options[key] = if value
-                     @hl.ask("#{key} : ", value.class) { |q| q.default = value }
-                   else
-                     @hl.ask("#{key} : ")
-                   end
+    if key =~ /(location|dir)/
+      dir = select_path(true, false)
+      options[key] = File.absolute_path(dir) unless dir.nil? || dir.empty? || !File.directory?(dir)
+    else
+      options[key] = value ? @hl.ask("#{key} : ", klass) { |q| q.default = value } : @hl.ask("#{key} : ")
+    end
     true
   }
 
   loop do
-    option = selection_menu('Parameters', options, parent: job.name, proc: set_option) { |opt| "#{opt.first} : #{opt.last}" }
+    option = selection_menu('Parameters', options, parent: job.name, proc: set_option) { |opt|
+      "#{opt.first} : #{opt.last}"
+    }
     break unless option
   end
+
 
   options
 
@@ -286,10 +291,29 @@ def select_bulk_option(options)
   maxlevel = @hl.ask('Number of subdir levels to process', Integer) { |q| q.default = 1 }
 
   dirs = `find #{option.last} -mindepth #{maxlevel} -maxdepth #{maxlevel} -type d -print`.split("\n")
-  { key: option.first, values: dirs }
+  {key: option.first, values: dirs}
 end
 
 def select_item(item)
-  selection_menu('item', item.items, header: "Subitems of #{item.name}") {|i| "#{i.class.name.split('::').last}: '#{i.name}' (#{i.items.count} items) [#{i.status_label}]"}
+  selection_menu('item', item.items, header: "Subitems of #{item.name}") { |i|
+    "#{i.class.name.split('::').last}: '#{i.name}' (#{i.items.count} items) [#{i.status_label}]"
+  }
 end
 
+def select_path(dir = true, file = true)
+  old_completer = Readline.completion_proc
+  old_append_character = Readline.completion_append_character
+  puts 'Enter path. <TAB> to complete. Double <TAB> to see list.'
+  prompt = "#{File.absolute_path('.')} > "
+  Readline.completion_append_character = ''
+  Readline.completion_proc = Proc.new do |str|
+    list = Dir[str+'*'].grep(/^#{Regexp.escape(str)}/).map { |d| File.directory?(d) ? d + '/' : d }
+    list.reject! { |f| File.file?(f) } unless file
+    list.reject! { |d| File.directory?(d) } unless dir
+    list
+  end
+  Readline.readline(prompt, true)
+ensure
+  Readline.completion_proc = old_completer
+  Readline.completion_append_character = old_append_character
+end

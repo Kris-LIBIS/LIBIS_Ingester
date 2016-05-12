@@ -11,6 +11,7 @@ end.parse!
 
 get_initializer
 loop do
+  @options[:job] = nil
   exit unless select_job
   queue = select_defined_queue
   next unless queue
@@ -24,28 +25,27 @@ loop do
 
   if bulk
     key = bulk[:key]
-    puts "Found #{bulk[:values].count} folders:"
+    next unless @hl.agree("Ready to submit #{bulk[:values].count} jobs for #{@options[:job].name}. OK?", false)
+
     bulk[:values].each do |value|
       options[1][key] = value
-      Sidekiq::Client.push(
-          'class' => 'Libis::Ingester::JobWorker',
-          'queue' => queue.name,
-          'retry' => false,
-          'args' => options
-      )
-      puts "Job #{@options[:job].name} submitted for #{value}"
+      # Sidekiq::Client.push(
+      #     'class' => 'Libis::Ingester::JobWorker',
+      #     'queue' => queue.name,
+      #     'retry' => false,
+      #     'args' => options
+      # )
+      puts "Job #{@options[:job].name} submitted for #{key} = #{value}"
     end
   else
-    Sidekiq::Client.push(
-        'class' => 'Libis::Ingester::JobWorker',
-        'queue' => queue.name,
-        'retry' => false,
-        'args' => options
-    )
-    puts "Job #{@options[:job].name} submitted #{"with options #{options[1].to_s}" if options[1]}..."
+    next unless @hl.agree("Ready to submit job #{@options[:job].name} with #{options[1]}. OK?", false)
+    # Sidekiq::Client.push(
+    #     'class' => 'Libis::Ingester::JobWorker',
+    #     'queue' => queue.name,
+    #     'retry' => false,
+    #     'args' => options
+    # )
+    puts "Job #{@options[:job].name} submitted with #{options[1]}."
   end
-
-
-  @options[:job] = nil
 end
 
