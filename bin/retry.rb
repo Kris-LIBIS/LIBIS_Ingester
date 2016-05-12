@@ -21,7 +21,7 @@ loop do
       'class' => 'Libis::Ingester::RunWorker',
       'queue' => queue.name,
       'retry' => false,
-      'args' => { action: :retry }
+      'args' => [@options[:run].id, { action: :retry }]
   )
 
   puts "Retrying Run #{@options[:run].name} ..."
