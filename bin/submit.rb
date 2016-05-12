@@ -29,22 +29,22 @@ loop do
 
     bulk[:values].each do |value|
       options[1][key] = value
-      # Sidekiq::Client.push(
-      #     'class' => 'Libis::Ingester::JobWorker',
-      #     'queue' => queue.name,
-      #     'retry' => false,
-      #     'args' => options
-      # )
+      Sidekiq::Client.push(
+          'class' => 'Libis::Ingester::JobWorker',
+          'queue' => queue.name,
+          'retry' => false,
+          'args' => options
+      )
       puts "Job #{@options[:job].name} submitted for #{key} = #{value}"
     end
   else
     next unless @hl.agree("Ready to submit job #{@options[:job].name} with #{options[1]}. OK?", false)
-    # Sidekiq::Client.push(
-    #     'class' => 'Libis::Ingester::JobWorker',
-    #     'queue' => queue.name,
-    #     'retry' => false,
-    #     'args' => options
-    # )
+    Sidekiq::Client.push(
+        'class' => 'Libis::Ingester::JobWorker',
+        'queue' => queue.name,
+        'retry' => false,
+        'args' => options
+    )
     puts "Job #{@options[:job].name} submitted with #{options[1]}."
   end
 end
