@@ -1,7 +1,9 @@
 require_relative 'menu'
 
+@unattended = false
+
 def get_base_dir(base_dir)
-  unless base_dir
+  unless @unattended || base_dir
     puts
     puts 'First of all supply the path to the directory that needs to be reorganized.'
     base_dir = select_path(true, false)
@@ -10,7 +12,7 @@ def get_base_dir(base_dir)
 end
 
 def get_parse_regex(parse_regex)
-  unless parse_regex
+  unless @unattended || parse_regex
     puts
     puts 'Now enter a regular expression that needs to be applied to each file in the directory.'
     puts 'Create groups for reference later in the directory structure to be created.'
@@ -20,7 +22,7 @@ def get_parse_regex(parse_regex)
 end
 
 def get_path_expression(path_expression)
-  unless path_expression
+  unless @unattended || path_expression
     puts
     puts 'Supply the relative path for each matching file (including file name).'
     puts 'Use $x for referencing the value of the the x-th group in the regex. "file_name" refers to the original file name.'
@@ -30,7 +32,7 @@ def get_path_expression(path_expression)
 end
 
 def get_report_file(report_file)
-  if report_file.nil?
+  if @unattended || report_file.nil?
     puts
     puts 'Enter a file name for the report. Extension (csv/tsv/xml/yml) specifies the type.'
     report_file = @hl.ask('Report file name (default: no report): ') { |q| q.readline = true }
@@ -93,7 +95,7 @@ def close_report
 end
 
 def get_dummy_operation(dummy_operation)
-  if dummy_operation.nil?
+  if @unattended || dummy_operation.nil?
     dummy_operation = !@hl.agree('Perform physical operation on the files?')
   end
   dummy_operation
