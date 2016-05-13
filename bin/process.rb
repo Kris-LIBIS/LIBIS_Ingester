@@ -46,9 +46,9 @@ def quiet_sidekiq(process)
   puts "Halting Sidekiq #{process['tag']} process #{pid}."
   process.quiet!
   loop do
-    get_processes.each do |process|
-      if process['pid'] == pid
-        return if process.stopping?
+    get_processes.each do |p|
+      if p['pid'] == pid
+        return if p.stopping?
       end
     end
     sleep(0.2)
@@ -138,11 +138,26 @@ def restart_sidekiq(process)
   start_sidekiq(process['tag'], process['queues'])
 end
 
+def list_workers(process)
+  format = '%-15s %-15s %-15s %s'
+  puts format % %w(thread queue started payload)
+  Sidekiq::Workers.new.each do |process_id, thread_id, work|
+    next unless process_id == process['identity']
+    puts format % [
+        thread_id,
+        work['queue'],
+        work['run_at'],
+        work['payload'].map(&:to_s).join(', ')
+    ]
+  end
+end
+
 def action_menu(process)
   menu = {}
   menu[:halt] = Proc.new { quiet_sidekiq process } unless process.stopping?
   menu[:stop] = Proc.new { stop_sidekiq process }
   menu[:restart] = Proc.new { restart_sidekiq process }
+  menu[:workers] = Proc.new { list_workers process }
   selection_menu('action', [], hidden: menu, prompt: nil, parent: process['tag'], layout: :one_line)
 end
 
