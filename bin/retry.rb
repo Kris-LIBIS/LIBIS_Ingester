@@ -11,14 +11,17 @@ end.parse!
 
 get_initializer
 loop do
-  @options[:run] = nil
-  exit unless select_run
+  @options[:job] = nil
+  break unless select_job
+  loop do
+    @options[:run] = nil
+    break unless select_run
 
-  queue = select_defined_queue
-  next unless queue
+    queue = select_defined_queue
+    next unless queue
 
-  Libis::Ingester::RunWorker.push_retry_job(@options[:run].id.to_s, queue.name)
+    Libis::Ingester::RunWorker.push_retry_job(@options[:run].id.to_s, queue.name)
 
-  puts "Retrying Run #{@options[:run].name} ..."
+    puts "Retrying Run #{@options[:run].name} ..."
+  end
 end
-
