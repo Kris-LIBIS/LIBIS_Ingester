@@ -32,7 +32,7 @@ def get_path_expression(path_expression)
 end
 
 def get_report_file(report_file)
-  if @unattended || report_file.nil?
+  if !@unattended && report_file.nil?
     puts
     puts 'Enter a file name for the report. Extension (csv/tsv/xml/yml) specifies the type.'
     report_file = @hl.ask('Report file name (default: no report): ') { |q| q.readline = true }
@@ -95,7 +95,7 @@ def close_report
 end
 
 def get_dummy_operation(dummy_operation)
-  if @unattended || dummy_operation.nil?
+  if !@unattended && dummy_operation.nil?
     dummy_operation = !@hl.agree('Perform physical operation on the files?')
   end
   dummy_operation
