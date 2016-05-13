@@ -50,7 +50,7 @@ path_expression = get_path_expression(path_expression)
 exit if path_expression.empty?
 
 ######### Report
-open_report(report_file)
+report_file = get_report_file(report_file)
 
 ######### Dummy operations
 dummy_operation = get_dummy_operation(dummy_operation)
@@ -59,6 +59,15 @@ dummy_operation = get_dummy_operation(dummy_operation)
 puts
 puts 'OK. We are all set. Starting to parse the files in the directory.'
 
+puts
+puts '========================================================================================='
+puts "Directory to reorganize: #{base_dir}"
+puts "Regex: #{parse_regex}"
+puts "Path expression: #{path_expression}"
+puts report_file ? "Creating report file #{report_file}" : 'Not creating a report'
+puts (dummy_operation ? 'Not p' : 'P') + 'erforming physical operations'
+puts '========================================================================================='
+puts
 exit unless @hl.agree('Last chance to bail out. Continue?')
 
 puts
@@ -67,6 +76,8 @@ puts 'This can take a while. Please sit back and relax, grab a cup of coffee, ha
 # keeps track of folders created
 require 'set'
 target_dir_list = Set.new
+
+open_report(report_file)
 
 require 'fileutils'
 Dir.glob(File.join(base_dir, '*')) do |entry|
@@ -92,3 +103,7 @@ Dir.glob(File.join(base_dir, '*')) do |entry|
 end
 
 close_report
+
+puts
+puts 'Done!'
+puts
