@@ -147,7 +147,7 @@ def list_workers(process)
         thread_id,
         work['queue'],
         work['run_at'],
-        work['payload'].map(&:to_s).join(', ')
+        work['payload']['args'].map(&:to_s).join(', ')
     ]
   end
 end
