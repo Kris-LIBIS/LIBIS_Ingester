@@ -238,7 +238,7 @@ def select_options(job)
       dir = select_path(true, false)
       options[key] = File.absolute_path(dir) unless dir.nil? || dir.empty? || !File.directory?(dir)
     else
-      options[key] = value ? @hl.ask("#{key} : ", klass) { |q| q.default = value } : @hl.ask("#{key} : ")
+      options[key] = value ? @hl.ask("#{key} : ") { |q| q.default = value } : @hl.ask("#{key} : ")
     end
     true
   }
