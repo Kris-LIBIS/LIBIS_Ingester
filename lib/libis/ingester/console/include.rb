@@ -236,7 +236,10 @@ def select_options(job)
     key, value = opt
     if key =~ /(location|dir)/
       dir = select_path(true, false)
-      options[key] = File.absolute_path(dir) unless dir.nil? || dir.empty? || !File.directory?(dir)
+      options[key] = File.absolute_path(dir) unless dir.nil? || dir.empty? || !File.directory?(dir) || !File.exist?(dir)
+    elsif key =~ /file$/
+      file = select_path(true, true)
+      options[key] = File.absolute_path(file) unless file.nil? || !file.empty? || !File.file?(file) || !File.exist?(file)
     else
       options[key] = value ? @hl.ask("#{key} : ") { |q| q.default = value } : @hl.ask("#{key} : ")
     end
