@@ -78,7 +78,7 @@ module Libis
 
         ingest_model = item.get_run.ingest_model
 
-        dc_record.identifier = ingest_model.identifier if ingest_model.identifier
+        dc_record.identifier! ingest_model.identifier if ingest_model.identifier
 
         mets.dc_record = dc_record.root.to_xml
 
