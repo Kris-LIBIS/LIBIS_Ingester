@@ -10,8 +10,6 @@ module Libis
 
       field :name, type: String
       field :ar_id, type: String
-      field :ar_description, type: String
-      field :watermark, type: String
 
       index({name: 1}, {unique: true, name: 'by_name'})
 
