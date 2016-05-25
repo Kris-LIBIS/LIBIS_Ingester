@@ -100,6 +100,12 @@ test:
         # used to validate certs passed from the other end of the connection.
         #ssl_ca_cert: /path/to/ca.cert
 
+    global:
+      database: ingester
+      hosts:
+        - localhost:27017
+      options:
+
   # Configure Mongoid specific options. (optional)
   options:
     # Includes the root model name in json serialization. (default: false)
@@ -125,3 +131,4 @@ test:
 
     # Ensure all times are UTC in the app side. (default: false)
     #use_utc: false
+
