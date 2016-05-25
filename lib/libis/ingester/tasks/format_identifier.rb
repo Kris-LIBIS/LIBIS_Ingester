@@ -12,6 +12,7 @@ module Libis
                 description: 'Format file to load.'
 
       parameter item_types: [Libis::Ingester::FileItem], frozen: true
+      parameter recursive: true
 
       protected
 
