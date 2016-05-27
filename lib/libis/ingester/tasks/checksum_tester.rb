@@ -79,6 +79,7 @@ module Libis
         expected ||= item.checksum(checksum_type)
         checksum = ::Libis::Tools::Checksum.hexdigest(item.fullpath, checksum_type.to_sym)
         expected ||= item.set_checksum(checksum_type, checksum)
+        item.save!
         return if expected == checksum
         raise ::Libis::WorkflowError, "Calculated #{checksum_type} checksum does not match expected checksum."
       end
