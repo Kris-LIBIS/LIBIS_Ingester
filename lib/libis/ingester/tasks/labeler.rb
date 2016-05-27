@@ -21,8 +21,8 @@ module Libis
         label = mapping(lookup)
         if label
           item.label = label
-          status_counter(item)
           item.save!
+          debug 'Item %s labeled as %s', item, item.name, item.label
         end
       end
 

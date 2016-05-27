@@ -79,9 +79,8 @@ module Libis
               info "Ignoring subdir #{file}."
           end
         elsif File.file?(file)
-          @file_count ||= 0
-          @file_count += 1
-          if @file_count > parameter(:file_limit)
+          @counter ||= 0
+          if @counter > parameter(:file_limit)
             fatal 'Number of files found exceeds limit (%d). Consider splitting into separate runs or raise limit.',
                   item.get_run, parameter(:file_limit)
             raise Libis::WorkflowAbort, 'Number of files exceeds preset limit.'
@@ -89,11 +88,13 @@ module Libis
           child = Libis::Ingester::FileItem.new
           child.filename = file
           debug 'Created File item `%s`', child.name
+          @counter += 1
+          item.get_run.status_progress(self.namepath, @counter)
         end
         return unless child
         child.filename = file
-        child.save!
         child.parent = item
+        child.save!
       end
 
     end
