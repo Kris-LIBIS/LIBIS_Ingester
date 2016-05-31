@@ -28,7 +28,7 @@ describe 'Test' do
 
   # let(:job_name) { 'KADOC - Kerk en Leven' }
   # let(:job_name) { 'E-Thesis' }
-  let(:job_name) { 'ETD_VIVES' }
+  let(:job_name) { 'DIGI_0047' }
 
   it 'test job' do
     run = job.execute

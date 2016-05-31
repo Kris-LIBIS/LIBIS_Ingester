@@ -11,7 +11,7 @@ module Libis
       field :generated_file
       field :source_formats, type: Array
       field :target_format
-      field :options, type: Hash, default: -> { Hash.new }
+      field :options, type: Array
       field :from_manifestation
 
       embedded_in :manifestation, class_name: Libis::Ingester::Manifestation.to_s

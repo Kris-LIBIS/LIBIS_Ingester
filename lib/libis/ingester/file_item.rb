@@ -12,6 +12,10 @@ module Libis
       field :entity_type
       field :pid
 
+      def name
+        self.properties['name'] || File.basename(self.filename, '.*')
+      end
+
     end
 
   end

@@ -18,37 +18,35 @@ module Libis
       parameter label_field: 'Label',
                 description: 'The name of the label field in the mapping file.'
 
-      def initialize(parent, cfg = {})
-        super(parent, cfg)
-        @mapping = {}
-        mapping_file = parameter(:mapping_file)
-        return if mapping_file.blank?
-        unless File.exist?(mapping_file) && File.readable?(mapping_file)
-          raise Libis::WorkflowError, "Cannot open mapping file '#{mapping_file}'"
-        end
-        col_sep = case parameter(:mapping_format)
-                    when 'tsv'
-                      "\t"
-                    when 'csv'
-                      ','
-                    else
-                      raise Libis::WorkflowError "Unsupported mapping format: #{parameter(:mapping_format)}"
-                  end
-        begin
-          csv = CSV.read(mapping_file, col_sep: col_sep, headers: true)
-          lookup = parameter(:lookup_field)
-          label = parameter(:label_field)
-          csv.each do |row|
-            @mapping[row[lookup]] = row[label]
-          end
-        rescue CSV::MalformedCSVError
-          raise Libis::WorkflowError "Error parsing mapping file #{mapping_file}"
-        end
-      end
-
       protected
 
       def mapping(name)
+        unless @mapping
+          @mapping = {}
+          mapping_file = parameter(:mapping_file)
+          return if mapping_file.blank?
+          unless File.exist?(mapping_file) && File.readable?(mapping_file)
+            raise Libis::WorkflowError, "Cannot open mapping file '#{mapping_file}'"
+          end
+          col_sep = case parameter(:mapping_format)
+                      when 'tsv'
+                        "\t"
+                      when 'csv'
+                        ','
+                      else
+                        raise Libis::WorkflowError "Unsupported mapping format: #{parameter(:mapping_format)}"
+                    end
+          begin
+            csv = CSV.read(mapping_file, col_sep: col_sep, headers: true)
+            lookup = parameter(:lookup_field)
+            label = parameter(:label_field)
+            csv.each do |row|
+              @mapping[row[lookup]] = row[label]
+            end
+          rescue CSV::MalformedCSVError
+            raise Libis::WorkflowError "Error parsing mapping file #{mapping_file}"
+          end
+        end
         return nil if @mapping.empty?
         label = @mapping[name]
         return label if label

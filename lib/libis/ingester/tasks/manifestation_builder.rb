@@ -64,10 +64,10 @@ module Libis
           source = from_manifestation &&
               representation.parent.representation(from_manifestation.name)
           source_items = source && source.items || representation.parent.originals
-          source_items = source_items.to_a
 
           convert_hash = convert_info.to_hash
           convert_hash[:name] = representation.name
+
           # Check if a generator is given
           case convert_info.generator
             when 'assemble_images'
@@ -89,9 +89,15 @@ module Libis
         debug "Moving '#{file.name}' to '#{to_parent.name}' in object tree."
         file.parent = to_parent
         file.save!
-        if file.is_a?(Libis::Ingester::FileItem)
-          @processed_files << file.id
-          register_file(file)
+        process_files(file)
+      end
+
+      def process_files(file_or_div)
+        if file_or_div.is_a?(Libis::Ingester::FileItem)
+          @processed_files << file_or_div.id
+          register_file(file_or_div)
+        else
+          file_or_div.items.each { |file| process_files(file) }
         end
       end
 
@@ -103,8 +109,9 @@ module Libis
         if file.is_a?(Libis::Ingester::FileItem)
           @processed_files << file.id
           register_file(new_file)
+        else
+          file.items.each { |item| copy_file(item, new_file) }
         end
-        file.items.each { |item| copy_file(item, new_file) }
       end
 
       def assemble_images(items, representation, convert_hash)
@@ -116,7 +123,9 @@ module Libis
         ) do |sources, new_file|
           Libis::Format::Converter::ImageConverter.new.
               assemble_and_convert(sources, new_file, target_format)
-          convert_file(new_file, new_file, target_format, target_format, convert_hash[:options]) unless convert_hash[:options].blank?
+          unless convert_hash[:options].blank?
+            convert_file(new_file, new_file, target_format, target_format, convert_hash[:options])
+          end
         end
       end
 
@@ -134,7 +143,7 @@ module Libis
       end
 
       def assemble(items, representation, formats, name)
-        source_files = items.map do |item|
+        source_files = items.to_a.map do |item|
           # Collect all files from the list of items
           case item
             when Libis::Ingester::FileItem
@@ -144,9 +153,9 @@ module Libis
             else
               nil
           end
-        # end.flatten.compact.reject do |_file|
-        #   @processed_files.include?(_file.id)
-        #   false
+          # end.flatten.compact.reject do |_file|
+          #   @processed_files.include?(_file.id)
+          #   false
         end.select do |file|
           match_file(file, formats)
         end
@@ -163,7 +172,7 @@ module Libis
 
         FileUtils.mkpath(File.dirname(new_file))
 
-        debug "Building '#{new_file}' for '#{representation.name}' from #{sources.count} source files"
+        debug 'Building %s for %s from %d source files', new_file, representation.name, sources.count
         yield sources, new_file
 
         source_files.each { |file| @processed_files << file.id }
@@ -181,9 +190,13 @@ module Libis
         case item
 
           when Libis::Ingester::Division
-            div = item.dup
-            div.parent = new_parent
-            div.save!
+            div = item
+            unless convert_hash[:replace]
+              div = item.dup
+              div.parent = new_parent
+              div.save!
+              div
+            end
             item.items.each { |child| convert(child, div, convert_hash) }
 
           when Libis::Ingester::FileItem
@@ -202,37 +215,36 @@ module Libis
               return if (convert_hash[:source_formats] & check_list).empty?
             end
 
-            options = convert_hash[:options] || {}
-            if options[:copy_file]
-              return copy_file(item, new_parent)
-            end
-
-            if options[:move_file]
+            if convert_hash[:target_format].blank?
               return move_file(item, new_parent)
             end
 
+            src_file = item.fullpath
             new_file = File.join(
                 item.get_run.work_dir,
-                item.id.to_s,
                 new_parent.id.to_s,
-                "#{File.basename(item.fullpath, '.*')}.#{convert_hash[:name]}." +
-                    "#{Libis::Format::TypeDatabase.type_extentions(convert_hash[:target_format]).first}"
+                item.id.to_s,
+                [ item.name,
+                  convert_hash[:name],
+                  extname(convert_hash[:target_format])
+                ].join('.')
             )
 
             raise Libis::WorkflowError, 'File item %s format (%s) is not supported.' % [item, mimetype] unless type_id
-            new_file, converter = convert_file(item.fullpath, new_file, type_id, convert_hash[:target_format].to_sym, options)
+            new_file, converter = convert_file(src_file, new_file, type_id, convert_hash[:target_format].to_sym, convert_hash[:options])
             return nil unless new_file
 
             @processed_files << item.id
 
             new_item = Libis::Ingester::FileItem.new
-            new_item.filename = new_file
             new_item.name = item.name
             new_item.label = item.label
             new_item.parent = new_parent
-            new_item.properties['converter'] = converter
-            format_identifier(new_item)
             register_file(new_item)
+            new_item.properties['converter'] = converter
+            new_item.properties['converted_from'] = item.id
+            new_item.filename = new_file
+            format_identifier(new_item)
             new_item.save!
 
           else
@@ -262,7 +274,29 @@ module Libis
         @file_registry[name] = @file_registry.count + 1
       end
 
-      def convert_file(source_file, target_file, source_format, target_format, options = {})
+      def convert_file(source_file, target_file, source_format, target_format, options = [{}])
+        src_file = source_file
+        src_format = source_format
+        converterlist = []
+        temp_files = []
+        options = options.is_a?(Hash) ? [options] : options
+        options.each do |opts|
+          tgt_format = opts.delete(:target_format) || target_format
+          tgt_file = tempfile(src_file, tgt_format)
+          temp_files << tgt_file
+          tgt_file = tgt_file.path
+          src_file, converter = convert_one_file(src_file, tgt_file, src_format, tgt_format, opts)
+          src_format = tgt_format
+          converterlist << converter
+        end
+        converter = converterlist.join(' + ')
+        FileUtils.mkpath(File.dirname(target_file))
+        FileUtils.move(src_file, target_file, force: true)
+        temp_files.each { |tmp_file| tmp_file.unlink }
+        [target_file, converter]
+      end
+
+      def convert_one_file(source_file, target_file, source_format, target_format, options)
         converter = Libis::Format::Converter::Repository.get_converter_chain(
             source_format, target_format, options
         )
@@ -273,15 +307,15 @@ module Libis
         end
 
         converter_name = converter.to_s
-        new_file = converter.convert(source_file, target_file)
+        debug 'Converting file %s to %s with %s', source_file, target_file, converter_name
+        converted = converter.convert(source_file, target_file)
 
-        unless new_file
+        unless converted && converted == target_file
           error "File conversion failed (#{converter_name})."
           return [nil, converter_name]
         end
 
-        [new_file, converter_name]
-
+        [target_file, converter_name]
       end
 
       def format_identifier(item)
@@ -296,6 +330,14 @@ module Libis
 
         item.properties['mimetype'] = mimetype
         item.properties['puid'] = format[:puid]
+      end
+
+      def tempfile(source_file, target_format)
+        Tempfile.new( [ File.basename(source_file, '.*'), ".#{extname(target_format)}" ] )
+      end
+
+      def extname(format)
+        Libis::Format::TypeDatabase.type_extentions(format).first
       end
 
     end
