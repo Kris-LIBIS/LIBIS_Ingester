@@ -1,6 +1,7 @@
 # encoding: utf-8
 
 require 'libis/ingester'
+require 'csv'
 
 module Libis
   module Ingester
@@ -66,21 +67,8 @@ module Libis
         unless File.exist?(mapping_file) && File.readable?(mapping_file)
           raise Libis::WorkflowError, "Cannot open mapping file '#{mapping_file}'"
         end
-        open(mapping_file) do |file|
-          file.each_line do |line|
-            case parameter(:mapping_format)
-              when 'tsv'
-                if /^(.*)\t+(.*)$/.match(line.strip)
-                  @mapping[$1] = $2
-                end
-              when 'csv'
-                if /^"?(.*)"?\s*,\s*"?(.*)"?$/.match(line.strip)
-                  @mapping[$1] = $2
-                end
-              else
-                # do nothing
-            end
-          end
+        CSV.foreach(mapping_file, col_sep: (parameter(:mapping_format) == 'tsv' ? "\t" : ',')) do |line|
+          @mapping[line[0]] = line[1]
         end
       end
 
