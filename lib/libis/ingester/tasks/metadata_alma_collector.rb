@@ -13,6 +13,8 @@ module Libis
 
       parameter host: nil,
                 description: 'URL of the Alma web service.'
+      parameter library: '32KUL_LIBIS_NETWORK',
+                description: 'SRU institution code'
       parameter converter: 'Kuleuven'
 
       protected
@@ -23,7 +25,7 @@ module Libis
             Libis::Services::Alma::SruService.new
 
         field = parameter(:field) || 'alma.mms_id'
-        result = @alma.search(field, URI::encode("\"#{term}\""))
+        result = @alma.search(field, URI::encode("\"#{term}\""), parameter(:library))
         warn "Multiple records found for #{field}=#{term}" if result.size > 1
 
         return result.empty? ? nil : Libis::Tools::Metadata::Marc21Record.new(result.first.root)
