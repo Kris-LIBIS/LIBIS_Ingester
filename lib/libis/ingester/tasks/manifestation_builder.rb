@@ -87,8 +87,7 @@ module Libis
 
       def move_file(file, to_parent)
         debug "Moving '#{file.name}' to '#{to_parent.name}' in object tree."
-        file.parent = to_parent
-        file.save!
+        file = to_parent.move_item(file)
         process_files(file)
       end
 
@@ -98,19 +97,6 @@ module Libis
           register_file(file_or_div)
         else
           file_or_div.items.each { |file| process_files(file) }
-        end
-      end
-
-      def copy_file(file, to_parent)
-        debug "Copying '#{file.name}' to '#{to_parent.name}' in object tree."
-        new_file = file.dup
-        new_file.parent = to_parent
-        new_file.save!
-        if file.is_a?(Libis::Ingester::FileItem)
-          @processed_files << file.id
-          register_file(new_file)
-        else
-          file.items.each { |item| copy_file(item, new_file) }
         end
       end
 

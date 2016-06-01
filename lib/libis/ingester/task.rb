@@ -8,6 +8,12 @@ module Libis
       parameter item_types: nil, datatype: Array,
                 description: 'Item types to process.'
 
+      def run(item)
+        super
+        item.reload
+        item.reload_relations
+      end
+
       protected
 
       def pre_process(item)

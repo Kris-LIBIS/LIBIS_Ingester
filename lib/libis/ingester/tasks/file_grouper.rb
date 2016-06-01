@@ -33,7 +33,7 @@ module Libis
         grouping = parameter(:group_regex)
         if grouping && item.filename =~ Regexp.new(grouping)
           collections = eval(parameter(:collection_label)).to_s.split('/') rescue []
-          target_parent = item.uplevel
+          target_parent = item.parent
           collections.each do |collection|
             sub_parent = target_parent.items.select do |c|
               c.is_a?(Libis::Ingester::Collection) && c.name == collection
@@ -72,10 +72,11 @@ module Libis
           end
           if group
             debug 'Adding to group %s', item, group.name
-            group.add_item(item)
+            item = group.move_item(item)
           end
           item.save!
         end
+        self.processing_item = item
       end
 
       private

@@ -41,10 +41,6 @@ module Libis
         item_list
       end
 
-      def uplevel
-        self.parent || self.run
-      end
-
       def to_hash
         result = super
         # noinspection RubyResolve
@@ -52,6 +48,7 @@ module Libis
         result[:metadata_record] = self.metadata_record.to_hash if self.metadata_record
         result.cleanup
       end
+
 
     end
 

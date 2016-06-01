@@ -93,7 +93,7 @@ module Libis
         end
         return unless child
         child.filename = file
-        child.parent = item
+        item.add_item(child)
         child.save!
       end
 

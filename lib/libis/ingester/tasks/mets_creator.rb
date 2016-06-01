@@ -110,6 +110,7 @@ module Libis
         item.representations.each { |rep| add_rep(mets, rep, ie_ingest_dir) }
 
         mets_filename = File.join(ie_ingest_dir, 'content', "#{item.name}.xml")
+        FileUtils.mkpath(File.dirname(mets_filename))
         mets.xml_doc.save mets_filename
 
         debug "Created METS file '#{mets_filename}'.", item
