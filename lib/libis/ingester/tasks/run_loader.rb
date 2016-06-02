@@ -81,7 +81,7 @@ module LIBIS
         rel_dirs.shift if rel_dirs.first == '.'
         parent = dossier
         rel_dirs.each do |dir|
-          dir_item = parent.items.select { |item| item.name == dir }.first
+          dir_item = parent.get_items.select { |item| item.name == dir }.first
           dir_item ||= create_dir_item dir, parent
           parent = dir_item
         end

@@ -9,8 +9,8 @@ def check_data(item, names, print_log = false)
     expect(found.length).to be 1
     match_count += 1
   end
-  if item.items.length > 0
-    item.items.each { |i| match_count += check_data(i, names.select { |name| name =~ /^#{i.labelpath}(\/|$)/ }, print_log) }
+  if item.get_items.length > 0
+    item.get_items.each { |i| match_count += check_data(i, names.select { |name| name =~ /^#{i.labelpath}(\/|$)/ }, print_log) }
   end
   puts "check match_count (#{match_count}) against expected (#{names.length}) for #{item.namepath} ..." if print_log
   expect(match_count).to be names.length
@@ -27,7 +27,7 @@ def check_list(item, list, level = 0)
              count > 0 ? " (#{count})" : '',
              item.is_a?(Libis::Ingester::FileItem) ? ' [' + item.properties['mimetype'].to_s + ']' : ''
          ]).to eq value
-  item.items.each { |i| check_list(i, list, level + 1) }
+  item.get_items.each { |i| check_list(i, list, level + 1) }
 end
 
 def list_data(item, level = 0)
@@ -38,7 +38,7 @@ def list_data(item, level = 0)
            count > 0 ? " (#{count})" : '',
            item.is_a?(Libis::Ingester::FileItem) ? ' [' + item.properties['mimetype'].to_s + ']' : ''
        ]
-  item.items.each { |i| list_data(i, level + 1) }
+  item.get_items.each { |i| list_data(i, level + 1) }
 end
 
 files = <<STR

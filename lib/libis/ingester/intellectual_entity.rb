@@ -17,7 +17,7 @@ module Libis
       belongs_to :retention_period, class_name: Libis::Ingester::RetentionPeriod.to_s, inverse_of: nil
 
       def representations
-        self.items.where(_type: Libis::Ingester::Representation.to_s)
+        self.items.where(_type: Libis::Ingester::Representation.to_s).no_timeout
       end
 
       def representation(name_or_id)
@@ -25,7 +25,7 @@ module Libis
       end
 
       def originals
-        self.items.ne(_type: Libis::Ingester::Representation.to_s)
+        self.items.ne(_type: Libis::Ingester::Representation.to_s).no_timeout
       end
 
       # noinspection RubyResolve

@@ -63,7 +63,7 @@ module Libis
               manifestation.ingest_model.manifestations.find_by(name: convert_info.from_manifestation)
           source = from_manifestation &&
               representation.parent.representation(from_manifestation.name)
-          source_items = source && source.items || representation.parent.originals
+          source_items = source && source.get_items || representation.parent.originals
 
           convert_hash = convert_info.to_hash
           convert_hash[:name] = representation.name
@@ -96,7 +96,7 @@ module Libis
           @processed_files << file_or_div.id
           register_file(file_or_div)
         else
-          file_or_div.items.each { |file| process_files(file) }
+          file_or_div.get_items.each { |file| process_files(file) }
         end
       end
 
@@ -183,7 +183,7 @@ module Libis
               div.save!
               div
             end
-            item.items.each { |child| convert(child, div, convert_hash) }
+            item.get_items.each { |child| convert(child, div, convert_hash) }
 
           when Libis::Ingester::FileItem
 

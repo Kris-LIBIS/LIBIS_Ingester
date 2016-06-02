@@ -80,7 +80,7 @@ describe 'Ingester' do
     it 'collect files recursively' do
       run = job.execute location: datadir, subdirs: 'recursive'
       expect(run.items.count).to be FILES_RECURSIVE.count
-      expect(run.items.map { |item| item.filepath.gsub(datadir+'/', '') }).to eq FILES_RECURSIVE
+      expect(run.get_items.map { |item| item.filepath.gsub(datadir+'/', '') }).to eq FILES_RECURSIVE
     end
 
     it 'collect files in collections' do

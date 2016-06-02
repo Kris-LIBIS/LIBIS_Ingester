@@ -25,7 +25,7 @@ module Libis
 
       def process(item)
         create_collection(item)
-        stop_processing_subitems unless item.items.any? { |i| i.is_a?(Libis::Ingester::Collection) }
+        stop_processing_subitems unless item.items.no_timeout.any? { |i| i.is_a?(Libis::Ingester::Collection) }
       end
 
       private

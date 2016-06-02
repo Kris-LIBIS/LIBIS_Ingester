@@ -43,7 +43,7 @@ module Libis
           when Libis::Ingester::IntellectualEntity
             create_ie item
           else
-            item.items.each { |i| create_item(i) }
+            item.get_items.each { |i| create_item(i) }
         end
       end
 

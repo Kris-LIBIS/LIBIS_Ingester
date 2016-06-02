@@ -59,7 +59,7 @@ module Libis
           item.pid = ie.pid if ie
           info "Assigned PID #{item.pid} to IE item.", item
         else
-          item.items.map {|i| assign_ie_numbers(i, number_list)}
+          item.get_items.map {|i| assign_ie_numbers(i, number_list)}
         end
       end
 

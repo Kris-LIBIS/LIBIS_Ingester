@@ -35,7 +35,7 @@ module Libis
           collections = eval(parameter(:collection_label)).to_s.split('/') rescue []
           target_parent = item.parent
           collections.each do |collection|
-            sub_parent = target_parent.items.select do |c|
+            sub_parent = target_parent.get_items.select do |c|
               c.is_a?(Libis::Ingester::Collection) && c.name == collection
             end.first
             unless sub_parent
@@ -52,7 +52,7 @@ module Libis
           if parameter(:group_label)
             group_label = eval(parameter(:group_label))
             group_name = parameter(:group_name) ? eval(parameter(:group_name)) : group_label
-            group = target_parent.items.select { |g| g.name == group_name }.first
+            group = target_parent.get_items.select { |g| g.name == group_name }.first
             unless group
               group = Libis::Ingester::Division.new
               group.name = group_name

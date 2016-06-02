@@ -88,7 +88,7 @@ module Libis
       end
 
       def remove_items
-        self.items.each do |item|
+        self.get_items.each do |item|
           item.destroy!
         end
         self.items.clear

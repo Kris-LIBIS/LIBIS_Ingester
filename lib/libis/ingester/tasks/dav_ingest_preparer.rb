@@ -47,7 +47,7 @@ module Libis
         debug "Preparing ingest in #{@dirname}.", item
         FileUtils.rmtree @dirname
 
-        item.items.map { |i| process_dossier(i) }
+        item.items.to_a.map { |i| process_dossier(i) }
 
       end
 
