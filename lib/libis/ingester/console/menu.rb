@@ -34,14 +34,15 @@ def selection_menu(title, items, options = {})
   end
 end
 
-def select_path(dir = true, file = true)
+def select_path(dir = true, file = true, base_dir = '.')
+  base_dir = File.absolute_path(File.join(base_dir, '..')) until File.exists?(base_dir) && File.directory?(base_dir)
   old_completer = Readline.completion_proc
   old_append_character = Readline.completion_append_character
   puts 'Enter path. <TAB> to complete. Double <TAB> to see list.'
-  prompt = "#{File.absolute_path('.')} > "
+  prompt = "#{base_dir} > "
   Readline.completion_append_character = ''
   Readline.completion_proc = Proc.new do |str|
-    list = Dir[str+'*'].grep(/^#{Regexp.escape(str)}/).map { |d| File.directory?(d) ? d + '/' : d }
+    list = Dir[File.join(base_dir,str)+'*'].grep(/^#{Regexp.escape(str)}/).map { |d| File.directory?(d) ? d + '/' : d }
     list.reject! { |f| File.file?(f) } unless file
     list.reject! { |d| File.directory?(d) } unless dir
     list
