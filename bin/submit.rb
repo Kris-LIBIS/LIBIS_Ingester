@@ -35,6 +35,7 @@ loop do
           'retry' => false,
           'args' => options
       )
+      sleep(0.5)
       puts "Job #{@options[:job].name} submitted for #{key} = #{value}"
     end
   else
