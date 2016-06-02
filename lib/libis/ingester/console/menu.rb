@@ -42,10 +42,14 @@ def select_path(dir = true, file = true, base_dir = '.')
   prompt = "#{base_dir} > "
   Readline.completion_append_character = ''
   Readline.completion_proc = Proc.new do |str|
-    list = Dir[File.join(base_dir,str)+'*'].grep(/^#{Regexp.escape(str)}/).map { |d| File.directory?(d) ? d + '/' : d }
-    list.reject! { |f| File.file?(f) } unless file
-    list.reject! { |d| File.directory?(d) } unless dir
-    list
+    Dir[File.join(base_dir, str)+'*']
+        .reject { |d| d =~ /\.\.?$/ }
+        .reject { |d| !file && File.file?(d) }
+        .reject { |d| !dir && File.directory?(d) }
+        .map do |d|
+      d = File.directory?(d) ? d + '/' : d
+      d.gsub(/^#{Regexp.escape(base_dir)}\/?/, '')
+    end
   end
   Readline.readline(prompt, true)
 ensure
