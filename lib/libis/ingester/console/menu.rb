@@ -51,7 +51,7 @@ def select_path(dir = true, file = true, base_dir = '.')
       d.gsub(/^#{Regexp.escape(base_dir)}\/?/, '')
     end
   end
-  Readline.readline(prompt, true)
+  File.join(base_dir, Readline.readline(prompt, true))
 ensure
   Readline.completion_proc = old_completer
   Readline.completion_append_character = old_append_character
