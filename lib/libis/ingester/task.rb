@@ -9,9 +9,10 @@ module Libis
                 description: 'Item types to process.'
 
       def run(item)
-        super
+        item = super(item)
         item.reload
         item.reload_relations
+        item
       end
 
       protected
