@@ -27,8 +27,8 @@ module Libis
           @ingest_dir = item.get_run.ingest_dir
 
           debug "Preparing ingest in #{@ingest_dir}.", item
-          FileUtils.mkpath @ingest_dir
           FileUtils.rmtree @ingest_dir
+          FileUtils.mkpath @ingest_dir
         end
         create_ie(item)
         stop_processing_subitems
