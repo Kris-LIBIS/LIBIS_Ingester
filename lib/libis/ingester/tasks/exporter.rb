@@ -11,7 +11,7 @@ module Libis
     class Exporter < ::Libis::Ingester::Task
 
       parameter export_dir: '.', description: 'Directory where the export files will be copied'
-      parameter export_key: 'item.label',
+      parameter export_key: 'item.name',
                 description: 'Expression to collect the key value for the export file.'
       parameter export_format: 'tsv',
                 description: 'Format of the export file.',
