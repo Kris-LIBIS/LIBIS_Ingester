@@ -44,6 +44,12 @@ module Libis
                 description: 'Format in which the mapping file is written.',
                 constraint: %w'tsv csv'
 
+      parameter mapping_key: 'Name',
+                description: 'Field name for the column that contains the lookup value.'
+
+      parameter mapping_value: 'MMS',
+                description: 'Field name for the column that contains the search value.'
+
       parameter title_to_name: false,
                 description: 'Update the item name with the title in the metadata?'
 
@@ -67,8 +73,9 @@ module Libis
         unless File.exist?(mapping_file) && File.readable?(mapping_file)
           raise Libis::WorkflowError, "Cannot open mapping file '#{mapping_file}'"
         end
-        CSV.foreach(mapping_file, col_sep: (parameter(:mapping_format) == 'tsv' ? "\t" : ',')) do |line|
-          @mapping[line[0]] = line[1]
+        CSV.foreach(mapping_file, headers: true, col_sep: (parameter(:mapping_format) == 'tsv' ? "\t" : ',')) do |line|
+          value = line[parameter(:mapping_value)]
+          @mapping[line[parameter(:mapping_key)]] = value if value && !value.blank?
         end
       end
 
