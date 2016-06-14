@@ -2,10 +2,7 @@
 require_relative '../lib/libis/ingester/console/reorg_lib'
 
 ######## Command-line
-base_dir = nil
-parse_regex = nil
-path_expression = nil
-report_file = nil
+base_dir, parse_regex, path_expression, report_file = read_entries
 dummy_operation = nil
 
 OptionParser.new do |opts|
@@ -76,6 +73,9 @@ exit unless @unattended || @hl.agree('Last chance to bail out. Continue?')
 
 puts
 puts 'This can take a while. Please sit back and relax, grab a cup of coffee, have a quick nap or read a good book ...'
+
+# Save entries
+save_entries(base_dir, parse_regex, path_expression, report_file)
 
 # keeps track of folders created
 require 'set'

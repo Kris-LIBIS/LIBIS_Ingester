@@ -3,39 +3,39 @@ require_relative 'menu'
 @unattended = false
 
 def get_base_dir(base_dir)
-  unless @unattended || base_dir
+  unless @unattended && base_dir
     puts
     puts 'First of all supply the path to the directory that needs to be reorganized.'
-    base_dir = select_path(true, false)
+    base_dir = select_path(true, false, (base_dir || '.'))
   end
   File.absolute_path(base_dir)
 end
 
 def get_parse_regex(parse_regex)
-  unless @unattended || parse_regex
+  unless @unattended && parse_regex
     puts
     puts 'Now enter a regular expression that needs to be applied to each file in the directory.'
     puts 'Create groups for reference later in the directory structure to be created.'
-    parse_regex = @hl.ask('Enter REGEX: ') { |q| q.readline = true }
+    parse_regex = @hl.ask('Enter REGEX: ') { |q| q.default = parse_regex }
   end
   Regexp.new(parse_regex)
 end
 
 def get_path_expression(path_expression)
-  unless @unattended || path_expression
+  unless @unattended && path_expression
     puts
     puts 'Supply the relative path for each matching file (including file name).'
     puts 'Use $x for referencing the value of the the x-th group in the regex. "file_name" refers to the original file name.'
-    path_expression = @hl.ask('Enter path expression (default: no action): ') { |q| q.readline = true }
+    path_expression = @hl.ask('Enter path expression (default: no action): ') { |q| q.default = path_expression }
   end
   path_expression
 end
 
 def get_report_file(report_file)
-  if !@unattended && report_file.nil?
+  if !@unattended || report_file.nil?
     puts
     puts 'Enter a file name for the report. Extension (csv/tsv/xml/yml) specifies the type.'
-    report_file = @hl.ask('Report file name (default: no report): ') { |q| q.readline = true }
+    report_file = @hl.ask('Report file name (default: no report): ') { |q| q.default = report_file }
   end
   report_file = nil if !report_file || report_file.empty?
   report_file
@@ -52,10 +52,21 @@ def open_report(report_file)
   end
 end
 
-def for_tsv(string); string =~ /\t\n/ ? "\"#{string.gsub('"', '""')}\"" : string; end
-def for_csv(string); string =~ /,\n/ ? "\"#{string.gsub('"', '""')}\"" : string; end
-def for_xml(string, type = :attr); string.encode(xml: type); end
-def for_yml(string); string.inspect.to_yaml; end
+def for_tsv(string)
+  ; string =~ /\t\n/ ? "\"#{string.gsub('"', '""')}\"" : string;
+end
+
+def for_csv(string)
+  ; string =~ /,\n/ ? "\"#{string.gsub('"', '""')}\"" : string;
+end
+
+def for_xml(string, type = :attr)
+  ; string.encode(xml: type);
+end
+
+def for_yml(string)
+  ; string.inspect.to_yaml;
+end
 
 def write_report(old_name, new_folder, new_name)
   return unless @report
@@ -95,9 +106,36 @@ def close_report
 end
 
 def get_dummy_operation(dummy_operation)
-  if !@unattended && dummy_operation.nil?
+  if !@unattended || dummy_operation.nil?
     dummy_operation = !@hl.agree('Perform physical operation on the files?')
   end
   dummy_operation
 end
 
+def entries_file
+  File.join(ENV['HOME'], '.reorg.data')
+end
+
+def save_entries(base_dir, parse_regex, path_expression, report_file)
+  File.open(entries_file, 'w') do |f|
+    f.puts "dir: #{base_dir}"
+    f.puts "regex: #{parse_regex}"
+    f.puts "expr: #{path_expression}"
+    f.puts "report: #{report_file}"
+  end
+end
+
+def read_entries
+  result = {}
+  File.open(entries_file, 'r') do |f|
+    f.readlines.each do |l|
+      v = l.strip.split(': ')
+      puts v
+      result[v.first.to_sym] = v.last if v.last
+    end
+  end rescue nil
+  puts result.to_s
+  [:dir, :regex, :expr, :report].map do |s|
+    result[s]
+  end
+end
