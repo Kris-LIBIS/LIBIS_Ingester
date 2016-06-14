@@ -42,7 +42,8 @@ def select_path(dir = true, file = true, base_dir = '.')
   prompt = "#{base_dir} > "
   Readline.completion_append_character = ''
   Readline.completion_proc = Proc.new do |str|
-    Dir[File.join(base_dir, str)+'*']
+    dir = str =~ /^\// ? str : File.join(base_dir, str)
+    Dir[dir+'*']
         .reject { |d| d =~ /\.\.?$/ }
         .reject { |d| !file && File.file?(d) }
         .reject { |d| !dir && File.directory?(d) }
