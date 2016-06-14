@@ -43,12 +43,10 @@ module Libis
 
         FileUtils.chmod_R 'a+rwX', item.get_run.ingest_dir
 
-        ingest_dir = File.join(item.get_run.ingest_sub_dir, item.properties['ingest_sub_dir'])
-        FileUtils.chmod_R 'a+rwX', ingest_dir
         begin
           deposit_result = rosetta.deposit_service.submit(
               item.get_run.material_flow,
-              ingest_dir,
+              File.join(item.get_run.ingest_sub_dir, item.properties['ingest_sub_dir']),
               producer_info[:id],
               item.get_run.id
           )

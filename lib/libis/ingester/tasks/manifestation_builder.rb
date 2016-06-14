@@ -161,6 +161,8 @@ module Libis
         debug 'Building %s for %s from %d source files', new_file, representation.name, sources.count
         yield sources, new_file
 
+        FileUtils.chmod('a+rw', new_file)
+
         source_files.each { |file| @processed_files << file.id }
 
         assembly = Libis::Ingester::FileItem.new
@@ -220,6 +222,8 @@ module Libis
             new_file, converter = convert_file(src_file, new_file, type_id, convert_hash[:target_format].to_sym, convert_hash[:options])
             return nil unless new_file
 
+            FileUtils.chmod('a+rw', new_file)
+
             @processed_files << item.id
 
             new_item = Libis::Ingester::FileItem.new
@@ -232,6 +236,7 @@ module Libis
             new_item.filename = new_file
             format_identifier(new_item)
             new_item.save!
+            new_item
 
           else
             # no action
