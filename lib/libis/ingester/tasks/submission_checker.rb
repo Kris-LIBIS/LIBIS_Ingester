@@ -11,8 +11,8 @@ module Libis
 
     class SubmissionChecker < ::Libis::Ingester::Task
 
-      parameter retry_count: 10
-      parameter retry_interval: 30
+      parameter retry_count: 60
+      parameter retry_interval: 60
       parameter recursive: true, frozen: true
 
       protected
