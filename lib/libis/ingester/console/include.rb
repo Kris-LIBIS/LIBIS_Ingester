@@ -112,10 +112,10 @@ end
 # noinspection RubyResolve
 def select_organization
 
-  return false unless select_user
+  # return false unless select_user
 
-  # noinspection RubyResolve
-  db_menu('Organization', @options[:user].organizations, parent: @options[:user].name) do |org|
+  # db_menu('Organization', @options[:user].organizations, parent: @options[:user].name) do |org|
+  db_menu('Organization', Libis::Ingester::Organization.all) do |org|
     "#{org.name} (#{org.jobs.count} jobs)"
   end
 end
