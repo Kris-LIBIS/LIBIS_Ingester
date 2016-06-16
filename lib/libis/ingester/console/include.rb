@@ -43,47 +43,6 @@ def common_opts(opts)
   base_opts(opts)
 end
 
-def db_opts(opts)
-  opts.on('-d', '--delete', 'Delete all runs') do |v|
-    @options[:delete] = v
-  end
-
-  opts.on('-r', '--reset', 'Reset the complete database') do |v|
-    @options[:reset] = v
-  end
-end
-
-def user_opts(opts)
-  opts.on('-u', '--user USER', 'User name') do |v|
-    @options[:user_name] = v
-  end
-  opts.on('-p', '--password PASSWORD', 'Password') do |v|
-    @options[:password] = v
-  end
-end
-
-def org_opts(opts)
-  user_opts(opts)
-  opts.on('-o', '--organization NAME', 'Organization name') do |v|
-    @options[:organization_name] = v
-  end
-end
-
-def job_opts(opts)
-  org_opts(opts)
-  opts.on('-j', '--job NAME', 'Job name') do |v|
-    @options[:job_name] = v
-  end
-end
-
-def run_opts(opts)
-  job_opts(opts)
-  opts.on('-r', '--run NAME', 'Run name') do |v|
-    @options[:run_name] = v
-  end
-
-end
-
 def get_sidekiq
   @initializer = ::Libis::Ingester::Initializer.instance
   @initializer.configure(@options[:config] || 'site.config.yml')
@@ -148,7 +107,7 @@ def select_process(processes = nil, options = {})
   format = '%-30s %-30s %s'
   xformat = '   ' + format
   xformat = ' ' + xformat if processes.count > 9
-  header = xformat % %w(Process Workers Queues)
+  header = xformat % %w(Process Threads Queues)
   selection_menu('Process', processes, options.merge(header: header)) do |process|
     name = '%s [%d]' % [process['tag'], process['pid']]
     workers = '(%d of %d busy)' % [process['busy'], process['concurrency']]
@@ -218,9 +177,22 @@ def select_worker(queue = nil)
   return unless queue.is_a?(Sidekiq::Queue)
   workers = []
   queue.each { |worker| workers << worker }
-  selection_menu('Worker', workers) do |worker|
-    "#{worker.enqueued_at} : #{worker.klass.constantize.subject(worker.args.first).name} #{worker.args.last}"
+  selection_menu('Run', workers) do |worker|
+    worker_detail(worker)
   end
+end
+
+def worker_name(worker)
+  "#{worker.enqueued_at.localtime} : #{worker.klass.constantize.subject(worker.args.first).name}"
+end
+
+def worker_detail(worker)
+  result = worker_name(worker)
+  parameters = worker.args.last.map {|p| "\t\t#{p.first} = #{p.last}"}
+  if parameters.size > 0
+    result += "\n" + parameters.join("\n")
+  end
+  result
 end
 
 def select_options(job)

@@ -130,11 +130,9 @@ def read_entries
   File.open(entries_file, 'r') do |f|
     f.readlines.each do |l|
       v = l.strip.split(': ')
-      puts v
       result[v.first.to_sym] = v.last if v.last
     end
   end rescue nil
-  puts result.to_s
   [:dir, :regex, :expr, :report].map do |s|
     result[s]
   end

@@ -1,11 +1,9 @@
 #!/usr/bin/env ruby
-require_relative '../lib/libis/ingester/console/include'
+require_relative 'include'
 
 require 'fileutils'
 
-@options = {}
-
-APP_DIR = File.absolute_path(File.join(File.dirname(__FILE__), '..'))
+APP_DIR = File.absolute_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..'))
 
 def start_process(cmd, *args)
   pid = Process.spawn(cmd, *args)
@@ -138,7 +136,7 @@ def restart_sidekiq(process)
   start_sidekiq(process['tag'], process['queues'])
 end
 
-def list_workers(process)
+def list_threads(process)
   format = '%-15s %-15s %-15s %s'
   puts format % %w(thread queue started payload)
   Sidekiq::Workers.new.each do |process_id, thread_id, work|
@@ -146,7 +144,7 @@ def list_workers(process)
     puts format % [
         thread_id,
         work['queue'],
-        work['run_at'],
+        work['run_at'].localtime,
         work['payload']['args'].map(&:to_s).join(', ')
     ]
   end
@@ -154,21 +152,19 @@ end
 
 def action_menu(process)
   menu = {}
-  menu[:halt] = Proc.new { quiet_sidekiq process } unless process.stopping?
-  menu[:stop] = Proc.new { stop_sidekiq process }
-  menu[:restart] = Proc.new { restart_sidekiq process }
-  menu[:workers] = Proc.new { list_workers process }
-  selection_menu('action', [], hidden: menu, prompt: nil, parent: process['tag'], layout: :one_line)
+  menu[:halt] = Proc.new { quiet_sidekiq process; false } unless process.stopping?
+  menu[:stop] = Proc.new { stop_sidekiq process; false }
+  menu[:restart] = Proc.new { restart_sidekiq process; false}
+  menu[:threads] = Proc.new { list_threads process; true }
+  loop do
+    break unless selection_menu('action', [], hidden: menu, prompt: nil, parent: process['tag'], layout: :one_line)
+  end
 end
 
-def select_instance
+def process_menu
   menu = {'+' => Proc.new { start_sidekiq; true }}
-  action = lambda { |process| action_menu(process); true }
-  select_process(nil, hidden: menu, proc: action)
-end
-
-get_sidekiq
-
-loop do
-  break unless select_instance
+  action = lambda { |process| list_threads(process); action_menu(process); true }
+  loop do
+    break unless select_process(nil, hidden: menu, proc: action)
+  end
 end

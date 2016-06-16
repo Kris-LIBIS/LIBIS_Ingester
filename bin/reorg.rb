@@ -10,7 +10,7 @@ OptionParser.new do |opts|
 
   base_opts(opts)
 
-  opts.on('-b DIR', '--base DIR', 'Directory that needs to be reorganized') do |v|
+  opts.on('-b STRING', '--base STRING', 'Directory that needs to be reorganized') do |v|
     base_dir = v
   end
 

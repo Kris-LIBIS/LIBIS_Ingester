@@ -1,15 +1,6 @@
 #!/usr/bin/env ruby
-require_relative '../lib/libis/ingester/console/include'
-
-OptionParser.new do |opts|
-  opts.banner = "Usage: #{$0} [options]"
-
-  common_opts(opts)
-  run_opts(opts)
-
-end.parse!
-
-get_initializer
+require_relative 'include'
+require_relative 'delete_lib'
 
 def item_status(item)
   puts "Status overview for [#{item.class.name.split('::').last}] '#{item.name}':"
@@ -17,7 +8,7 @@ def item_status(item)
   puts format_str % %w'Task Started Updated Status Progress'
   puts '-' * 90
   item.reload.status_log.each do |status|
-    task = status['task'].gsub(/[^\/]*\//,'- ')
+    task = status['task'].gsub(/[^\/]*\//, '- ')
     task = '- ' + task unless task == 'Run'
     data = [
         task,
@@ -34,8 +25,7 @@ def item_status(item)
   end
 end
 
-loop do
-  break unless select_user
+def status_menu
   loop do
     break unless select_organization
     loop do
@@ -46,8 +36,15 @@ loop do
         item = @options[:run]
         loop do
           item_status(item)
-          menu = { '.' => Proc.new { item } }
+          menu = {'.' => Proc.new { item }}
           menu['+'] = Proc.new { select_item(item) } if item.items.count > 0
+          menu['-'] = Proc.new { delete_run(item) ; nil } if item.is_a?(Libis::Ingester::Run)
+          menu['log'] = Proc.new do
+            run = item.is_a?(Libis::Ingester::Run) ? item : item.get_run
+            # noinspection RubyResolve
+            File.open(run.log_filename, 'r') { |f| f.readlines[-10..-1].each { |l| puts l } }
+            item
+          end
           item = selection_menu('action', [], hidden: menu, header: '', prompt: '', layout: :one_line) || item.parent
           break unless item
         end
@@ -57,6 +54,4 @@ loop do
     end
     @options[:organization] = nil
   end
-  exit
 end
-exit
