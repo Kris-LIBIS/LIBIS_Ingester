@@ -45,7 +45,7 @@ def status_menu
             File.open(run.log_filename, 'r') do |f|
               lines = f.readlines
               size = lines.size
-              lines[-(min(size, 20))..-1].each { |l| puts l } rescue nil
+              lines[-([size, 20].min)..-1].each { |l| puts l } rescue nil
             end rescue nil
             item
           end
