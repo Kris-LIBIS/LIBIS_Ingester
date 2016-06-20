@@ -10,7 +10,7 @@ module Libis
 
       def run(item)
         new_item = super(item)
-        item = new_item if new_item.is_a?(Libis::Ingester::WorkItem)
+        item = new_item if new_item.is_a?(Libis::Workflow::WorkItem)
         item.reload
         item.reload_relations
         item
