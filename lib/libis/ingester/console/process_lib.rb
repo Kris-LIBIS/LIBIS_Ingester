@@ -76,7 +76,7 @@ ensure
   Dir.chdir(dir)
 end
 
-def start_sidekiq(tag = nil, queue_names = [])
+def start_sidekiq(tag = nil, queue_names = [], threads = nil)
   tag ||= @hl.ask('name: ') { |q| q.validate = /\A[a-zA-Z][a-zA-Z0-9_ ]*\Z/ }
   dir = Dir.pwd
   Dir.chdir(APP_DIR)
@@ -100,7 +100,7 @@ def start_sidekiq(tag = nil, queue_names = [])
 
   FileUtils.rm(log_file_name(tag), force: true)
 
-  concurrency = @hl.ask('Number of threads: ', Integer) { |q| q.default = 5; q.in = 1..10 }
+  concurrency = threads || @hl.ask('Number of threads: ', Integer) { |q| q.default = 5; q.in = 1..10 }
 
   options = [
       '-C', 'config/sidekiq.yml',
@@ -133,7 +133,7 @@ end
 
 def restart_sidekiq(process)
   stop_sidekiq(process)
-  start_sidekiq(process['tag'], process['queues'])
+  start_sidekiq(process['tag'], process['queues'], process['concurrency'])
 end
 
 def list_threads(process)
@@ -166,5 +166,11 @@ def process_menu
   action = lambda { |process| list_threads(process); action_menu(process); true }
   loop do
     break unless select_process(nil, hidden: menu, proc: action)
+  end
+end
+
+def restart_all_processes
+  get_processes.each do |process|
+    restart_sidekiq(process)
   end
 end
