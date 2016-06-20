@@ -270,8 +270,14 @@ module Libis
         src_format = source_format
         converterlist = []
         temp_files = []
-        options = options.is_a?(Hash) ? [options] : options
-        options.each do |opts|
+        case options
+          when Hash
+            [options]
+          when Array
+            options
+          else
+            [{}]
+        end.each do |opts|
           tgt_format = opts.delete(:target_format) || target_format
           tgt_file = tempfile(src_file, tgt_format)
           temp_files << tgt_file
