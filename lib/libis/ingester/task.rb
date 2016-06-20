@@ -9,7 +9,8 @@ module Libis
                 description: 'Item types to process.'
 
       def run(item)
-        item = super(item)
+        new_item = super(item)
+        item = new_item if new_item.is_a?(Libis::Ingester::WorkItem)
         item.reload
         item.reload_relations
         item
