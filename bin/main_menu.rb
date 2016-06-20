@@ -22,4 +22,5 @@ loop do
   )
   break unless item
   send("#{item}_menu") if item.is_a?(Symbol)
+  @options.clear
 end
