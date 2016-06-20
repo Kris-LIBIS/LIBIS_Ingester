@@ -42,7 +42,7 @@ def status_menu
           menu['log'] = Proc.new do
             run = item.is_a?(Libis::Ingester::Run) ? item : item.get_run
             # noinspection RubyResolve
-            File.open(run.log_filename, 'r') { |f| f.readlines[-10..-1].each { |l| puts l } }
+            File.open(run.log_filename, 'r') { |f| f.readlines[-20..-1].each { |l| puts l } } rescue nil
             item
           end
           item = selection_menu('action', [], hidden: menu, header: '', prompt: '', layout: :one_line) || item.parent
