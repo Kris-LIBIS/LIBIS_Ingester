@@ -132,6 +132,10 @@ ensure
 end
 
 def restart_sidekiq(process)
+  if process['busy'] > 0
+    puts "Cannot restart process #{process['tag']} [#{process['pid']}] because it has busy treads."
+    return
+  end
   stop_sidekiq(process)
   start_sidekiq(process['tag'], process['queues'], process['concurrency'])
 end
