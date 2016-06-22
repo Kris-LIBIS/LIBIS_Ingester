@@ -148,7 +148,7 @@ def list_threads(process)
     puts format % [
         thread_id,
         work['queue'],
-        work['run_at'].localtime,
+        Time.at(work['run_at']).localtime,
         work['payload']['args'].map(&:to_s).join(', ')
     ]
   end
