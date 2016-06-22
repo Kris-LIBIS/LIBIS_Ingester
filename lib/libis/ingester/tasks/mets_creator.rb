@@ -65,7 +65,7 @@ module Libis
                       Libis::Tools::Metadata::DublinCoreRecord.new
                     end
 
-        dc_record.title ||= item.label
+        dc_record.title = item.label if dc_record.title.blank?
 
         collection_list = item.ancestors.select do |i|
           i.is_a? Libis::Ingester::Collection
