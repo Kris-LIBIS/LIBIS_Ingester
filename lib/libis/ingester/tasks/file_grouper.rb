@@ -73,6 +73,9 @@ module Libis
           if group
             debug 'Adding to group %s', item, group.name
             item = group.move_item(item)
+          elsif target_parent != item.parent
+            debug 'Adding to collection %s', item, target_parent.name
+            item = target_parent.move_item(item)
           end
           item.save!
         end
