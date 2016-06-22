@@ -24,12 +24,15 @@ module Libis
         # Build all manifestations
         item.get_run.ingest_model.manifestations.each do |manifestation|
           debug 'Building manifestation %s', manifestation.representation_info.name
-          rep = Libis::Ingester::Representation.new
-          rep.representation_info = manifestation.representation_info
-          rep.access_right = manifestation.access_right
-          rep.name = manifestation.name
-          rep.label = manifestation.label
-          rep.parent = item
+          rep = item.representation(manifestation.name)
+          unless rep
+            rep = Libis::Ingester::Representation.new
+            rep.representation_info = manifestation.representation_info
+            rep.access_right = manifestation.access_right
+            rep.name = manifestation.name
+            rep.label = manifestation.label
+            rep.parent = item
+          end
           build_manifestation(rep, manifestation)
           rep.save!
         end
@@ -42,8 +45,6 @@ module Libis
 
       # noinspection RubyResolve
       def build_manifestation(representation, manifestation)
-
-        @processed_files = Set.new
 
         # special case: no conversion info means to move the original files. This is typically the preservation master.
         if manifestation.convert_infos.empty?
@@ -67,6 +68,7 @@ module Libis
 
           convert_hash = convert_info.to_hash
           convert_hash[:name] = representation.name
+          convert_hash[:id] = convert_info.id
 
           # Check if a generator is given
           case convert_info.generator
@@ -93,7 +95,6 @@ module Libis
 
       def process_files(file_or_div)
         if file_or_div.is_a?(Libis::Ingester::FileItem)
-          @processed_files << file_or_div.id
           register_file(file_or_div)
         else
           file_or_div.get_items.each { |file| process_files(file) }
@@ -105,7 +106,8 @@ module Libis
         assemble(
             items, representation, convert_hash[:source_formats],
             "#{representation.parent.name}_#{convert_hash[:name]}." +
-                "#{Libis::Format::TypeDatabase.type_extentions(target_format).first}"
+                "#{Libis::Format::TypeDatabase.type_extentions(target_format).first}",
+            convert_hash[:id]
         ) do |sources, new_file|
           Libis::Format::Converter::ImageConverter.new.
               assemble_and_convert(sources, new_file, target_format)
@@ -120,7 +122,7 @@ module Libis
             eval(convert_hash[:generated_file]) :
             "#{representation.parent.name}_#{convert_hash[:name]}"
         }.pdf"
-        assemble(items, representation, [:PDF], file_name) do |sources, new_file|
+        assemble(items, representation, [:PDF], file_name, convert_hash[:id]) do |sources, new_file|
           Libis::Format::PdfMerge.run(sources, new_file)
           unless convert_hash[:options].blank?
             convert_file(new_file, new_file, :PDF, :PDF, convert_hash[:options])
@@ -128,7 +130,9 @@ module Libis
         end
       end
 
-      def assemble(items, representation, formats, name)
+      def assemble(items, representation, formats, name, convert_id)
+        return if representation.get_items.where(:'properties.convert_info' => convert_id).count > 0
+
         source_files = items.to_a.map do |item|
           # Collect all files from the list of items
           case item
@@ -139,9 +143,6 @@ module Libis
             else
               nil
           end
-          # end.flatten.compact.reject do |_file|
-          #   @processed_files.include?(_file.id)
-          #   false
         end.select do |file|
           match_file(file, formats)
         end
@@ -163,11 +164,10 @@ module Libis
 
         FileUtils.chmod('a+rw', new_file)
 
-        source_files.each { |file| @processed_files << file.id }
-
         assembly = Libis::Ingester::FileItem.new
         assembly.filename = new_file
         assembly.parent = representation
+        assembly.properties['convert_info'] = convert_id
         format_identifier(assembly)
         register_file(assembly)
         assembly.save!
@@ -189,7 +189,7 @@ module Libis
 
           when Libis::Ingester::FileItem
 
-            # return if @processed_files.include?(item.id)
+            return if new_parent.get_items.where(:'properties.converted_from' => item.id).count > 0
 
             mimetype = item.properties['mimetype']
             raise Libis::WorkflowError, 'File item %s format not identified.' % item unless mimetype
@@ -224,8 +224,6 @@ module Libis
 
             FileUtils.chmod('a+rw', new_file)
 
-            @processed_files << item.id
-
             new_item = Libis::Ingester::FileItem.new
             new_item.name = item.name
             new_item.label = item.label
@@ -233,6 +231,7 @@ module Libis
             register_file(new_item)
             new_item.properties['converter'] = converter
             new_item.properties['converted_from'] = item.id
+            new_item.properties['convert_info'] = convert_hash[:id]
             new_item.filename = new_file
             format_identifier(new_item)
             new_item.save!
