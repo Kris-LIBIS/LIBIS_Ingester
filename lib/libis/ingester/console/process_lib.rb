@@ -141,7 +141,7 @@ def restart_sidekiq(process)
 end
 
 def list_threads(process)
-  format = '%-15s %-15s %-15s %s'
+  format = '%-15s %-15s %-25s %s'
   puts format % %w(thread queue started payload)
   Sidekiq::Workers.new.each do |process_id, thread_id, work|
     next unless process_id == process['identity']
