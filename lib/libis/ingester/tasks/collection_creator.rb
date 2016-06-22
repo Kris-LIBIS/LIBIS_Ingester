@@ -78,7 +78,9 @@ module Libis
         return nil unless parent_id or list.empty?
 
         begin
-          create_collection_id(parent_id, list, collection_name, parameter(:navigate), parameter(:publish))
+          collection_id = create_collection_id(parent_id, list, collection_name, parameter(:navigate), parameter(:publish))
+          debug "Created collection '#{collection_name}' with id #{collection_id} in Rosetta."
+          collection_id
         rescue Exception => e
           raise Libis::WorkflowError, "Could not create collection '#{collection_name}': #{e.message}"
         end
