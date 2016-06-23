@@ -8,7 +8,7 @@ module Libis
     class RunWorker
       include Sidekiq::Worker
 
-      sidekiq_options queue: :retry
+      sidekiq_options queue: :default
 
       def perform(run_id, options = {})
         run = ::Libis::Ingester::Run.find_by(id: run_id)
@@ -18,6 +18,10 @@ module Libis
 
       def self.push_retry_job(run_id, queue)
         client_push('class' => self, 'queue' => queue, 'retry' => false, 'args' => [run_id, action: :retry])
+      end
+
+      def self.push_restart_job(run_id, queue)
+        client_push('class' => self, 'queue' => queue, 'retry' => false, 'args' => [run_id, action: :restart])
       end
 
       def self.subject(run_id)

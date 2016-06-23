@@ -49,6 +49,16 @@ def status_menu
             end rescue nil
             item
           end
+          menu['retry'] = Proc.new do
+            run = item.is_a?(Libis::Ingester::Run) ? item : item.get_run
+            queue = select_defined_queue
+            Libis::Ingester::RunWorker.push_retry_job(run.id.to_s, queue.name) if queue
+          end
+          menu['restart'] = Proc.new do
+            run = item.is_a?(Libis::Ingester::Run) ? item : item.get_run
+            queue = select_defined_queue
+            Libis::Ingester::RunWorker.push_restart_job(run.id.to_s, queue.name) if queue
+          end
           item = selection_menu('action', [], hidden: menu, header: '', prompt: '', layout: :one_line) || item.parent
           break unless item
         end
