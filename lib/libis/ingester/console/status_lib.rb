@@ -40,12 +40,13 @@ def status_menu
           menu['+'] = Proc.new { select_item(item) } if item.items.count > 0
           menu['-'] = Proc.new { delete_run(item) ; nil } if item.is_a?(Libis::Ingester::Run)
           menu['log'] = Proc.new do
+            line_count = @hl.ask('Number of lines', Integer) { |q| q.default = 20 }
             run = item.is_a?(Libis::Ingester::Run) ? item : item.get_run
             # noinspection RubyResolve
             File.open(run.log_filename, 'r') do |f|
               lines = f.readlines
               size = lines.size
-              lines[-([size, 20].min)..-1].each { |l| puts l } rescue nil
+              lines[-([size, line_count].min)..-1].each { |l| puts l } rescue nil
             end rescue nil
             item
           end
