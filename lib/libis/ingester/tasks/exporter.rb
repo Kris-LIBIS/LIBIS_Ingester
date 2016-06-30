@@ -11,6 +11,7 @@ module Libis
     class Exporter < ::Libis::Ingester::Task
 
       parameter export_dir: '.', description: 'Directory where the export files will be copied'
+      parameter export_file_name: nil, description: 'File name of the export file (default: drived from ingest run name).'
       parameter export_key: 'item.name',
                 description: 'Expression to collect the key value for the export file.'
       parameter export_format: 'tsv',
@@ -84,7 +85,9 @@ module Libis
 
       def get_export_file(item)
         FileUtils.mkdir_p(parameter(:export_dir))
-        File.join(parameter(:export_dir), "#{item.get_run.name}.#{parameter(:export_format)}")
+        file_name = parameter(:export_file_name)
+        file_name ||= "#{item.get_run.name}.#{parameter(:export_format)}"
+        File.join(parameter(:export_dir), file_name)
       end
 
       def write_export(export_file, key_value, pid)
