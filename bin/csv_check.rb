@@ -5,23 +5,14 @@ require 'libis/services/alma/sru_service'
 require 'libis/tools/csv'
 require 'set'
 
-csv_file = ARGV[0]
-dir = ARGV[1]
+csv_file = ARGV[0] || select_path(false, true, '/nas/upload/ub/digilab/tabellen')
+dir = ARGV[1] || select_path(true, false, '/nas/upload/ub/digilab')
 
 puts 'CSV file checker'
 puts '================'
 
-if csv_file
-  puts "CSV file: #{csv_file}"
-else
-  csv_file = select_path(false, true, '/nas/upload/ub/digilab/tabellen')
-end
-
-if dir
-  puts "Upload dir: #{dir}"
-else
-  dir = select_path(true, false, '/nas/upload/ub/digilab')
-end
+puts "CSV file: #{csv_file}"
+puts "Upload dir: #{dir}"
 
 class CsvChecker
 
