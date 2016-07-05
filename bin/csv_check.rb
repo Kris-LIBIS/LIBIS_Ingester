@@ -2,6 +2,7 @@
 
 require 'libis/services/alma/sru_service'
 require 'libis/tools/csv'
+require 'set'
 
 csv_file = ARGV[0]
 dir = ARGV[1]
@@ -14,7 +15,7 @@ puts "Upload dir: #{dir}"
 
 class CsvChecker
 
-  attr_reader :csv_label_file, :csv_mms_file, :upload_dir, :options
+  attr_reader :csv_label_file, :csv_mms_file, :upload_dir, :options, :files, :groups
 
   def initialize(csv_label, csv_mms, dir, options = {})
     raise RuntimeError, 'No csv file supplied' if csv_label.nil?
@@ -34,8 +35,12 @@ class CsvChecker
         label_headers: %w'Name Label',
         name_header: 'Name',
         mms_header: 'MMS',
-        label_header: 'Label'
+        label_header: 'Label',
+        file_regex: '^(DIGI_[^_]+_[^_]+)_([0-9]+)\.(tif|TIF)$',
+        group_label: '$1',
+        file_label: '$1_$2'
     }.merge options
+    read_files
   end
 
   def check
@@ -46,7 +51,6 @@ class CsvChecker
   end
 
   def check_csv_mms
-    dirs = dir_list
     alma = Libis::Services::Alma::SruService.new
     csv = open_csv(csv_mms_file, options[:mms_headers])
     errors = []
@@ -56,11 +60,11 @@ class CsvChecker
       next if options[:ignore_empty_mms] && mms.blank?
       errors << "Emtpy Name column in row #{i} : #{line.to_hash}" if name.blank?
       next if name.blank?
-      found = dirs.find { |d| d =~ /^#{name}$/ }
+      found = groups.find { |d| d =~ /^#{name}$/ }
       if found
-        dirs.delete(found)
+        groups.delete(found)
       else
-        errors << "Dir '#{name}' in CSV does not exist."
+        errors << "Group '#{name}' referenced in CSV not found."
       end
       if mms.blank?
         errors << "Emtpy MMS column in row #{i} : #{line.to_hash}" if mms.blank?
@@ -72,13 +76,12 @@ class CsvChecker
         errors << "Alma service error trying to find Alma MMS ID '#{mms}': #{e.message}"
       end
     end
-    dirs.each { |dir| errors << "Dir not referenced in CSV: #{dir}" }
     csv.close
+    groups.each { |dir| errors << "Group '#{dir}' not referenced in CSV." }
     errors
   end
 
   def check_csv_label
-    files = files_list
     csv = open_csv(csv_label_file, options[:label_headers])
     errors = []
     csv.each_with_index do |line, i|
@@ -87,7 +90,7 @@ class CsvChecker
       next if options[:ignore_empty_label] && label.blank?
       errors << "Emtpy Name column in row #{i} : #{line.to_hash}" if name.blank?
       next if name.blank?
-      files.delete(name) { |_| errors << "File matching '#{name}.*' not found." }
+      files.delete(name) { |_| errors << "File matching '#{name}' not found." }
       errors << "Emtpy Label column in row #{i} : #{line.to_hash}" if label.blank?
     end
     csv.close
@@ -98,18 +101,17 @@ class CsvChecker
   private
 
   # @return [Hash] a hash of file names without extension and file paths
-  def files_list
+  def read_files
+    @files = {}
+    @groups = Set.new
     Dir.glob(File.join(upload_dir, '**', '*')).select do |path|
-      File.file?(path)
-    end.reduce({}) do |hash, path|
-      hash[File.basename(path, '.*')] = path
-      hash
-    end
-  end
-
-  def dir_list
-    Dir.entries(upload_dir).select do |dir|
-      File.directory?(File.join(upload_dir, dir)) && !(dir =~ /^\.{1,2}$/)
+      if File.file?(path) && File.basename(path) =~ Regexp.new(options[:file_regex])
+        @groups << eval(options[:group_label])
+        @files[eval(options[:file_label])] = path
+        true
+      else
+        false
+      end
     end
   end
 
