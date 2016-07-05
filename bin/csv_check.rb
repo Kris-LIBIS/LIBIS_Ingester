@@ -84,10 +84,11 @@ class CsvChecker
     errors = []
     csv.each_with_index do |line, i|
       name = line[options[:name_header]]
+      label = line[options[:label_header]]
+      next if options(:ignore_empty_label) && label.blank?
       errors << "Emtpy Name column in row #{i} : #{line.to_hash}" if name.blank?
       next if name.blank?
       files.delete(name) { |_| errors << "File '#{name}' in CSV not found." }
-      label = line[options[:label_header]]
       errors << "Emtpy Label column in row #{i} : #{line.to_hash}" if label.blank?
     end
     csv.close
@@ -125,4 +126,6 @@ CsvChecker.new(csv_file, csv_file, dir,
                name_header: 'Name',
                mms_header: 'MMS',
                label_header: 'Label',
-               ignore_empty_mms: true).check
+               ignore_empty_mms: true,
+               ignore_empty_label: true,
+).check
