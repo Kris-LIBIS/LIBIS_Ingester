@@ -87,14 +87,11 @@ class CsvChecker
       next if options(:ignore_empty_label) && label.blank?
       errors << "Emtpy Name column in row #{i} : #{line.to_hash}" if name.blank?
       next if name.blank?
-      found = files.find_all {|f| name == File.basename(f, '.*') }
-      errors << "File matching '#{name}.*' not found." unless found.size > 0
-      errors << "Multiple files (#{found.size}) found matching '#{name}.*'" unless found.size == 1
-      files.delete(found.first) if found.size == 1
+      files.delete(name) { |_| errors << "File matching '#{name}.*' not found." }
       errors << "Emtpy Label column in row #{i} : #{line.to_hash}" if label.blank?
     end
     csv.close
-    files.each { |file| errors << "File not referenced in CSV: #{file}" }
+    files.each { |_, path| errors << "File not referenced in CSV: #{path}" }
     errors
   end
 
@@ -105,7 +102,7 @@ class CsvChecker
     Dir.glob(File.join(upload_dir, '**', '*')).select do |path|
       File.file?(path)
     end.reduce({}) do |hash, path|
-      hash[File.relative_path(upload_dir + File::SEPARATOR, path)] = path
+      hash[File.basename(path, '.*')] = path
       hash
     end
   end
