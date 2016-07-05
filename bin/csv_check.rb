@@ -109,7 +109,7 @@ class CsvChecker
 
   def dir_list
     Dir.entries(upload_dir).select do |dir|
-      File.directory?(dir) && !(dir =~ /^\.{1,2}$/)
+      File.directory?(File.join(upload_dir, dir)) && !(dir =~ /^\.{1,2}$/)
     end
   end
 
