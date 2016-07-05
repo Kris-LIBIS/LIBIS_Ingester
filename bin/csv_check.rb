@@ -47,7 +47,6 @@ class CsvChecker
 
   def check_csv_mms
     dirs = dir_list
-    puts "Dirs #{dirs}"
     alma = Libis::Services::Alma::SruService.new
     csv = open_csv(csv_mms_file, options[:mms_headers])
     errors = []
@@ -88,7 +87,10 @@ class CsvChecker
       next if options(:ignore_empty_label) && label.blank?
       errors << "Emtpy Name column in row #{i} : #{line.to_hash}" if name.blank?
       next if name.blank?
-      files.delete(name) { |_| errors << "File '#{name}' in CSV not found." }
+      found = files.find_all {|f| name == File.basename(f, '.*') }
+      errors << "File matching '#{name}.*' not found." unless found.size > 0
+      errors << "Multiple files (#{found.size}) found matching '#{name}.*'" unless found.size == 1
+      files.delete(found.first) if found.size == 1
       errors << "Emtpy Label column in row #{i} : #{line.to_hash}" if label.blank?
     end
     csv.close
@@ -103,7 +105,7 @@ class CsvChecker
     Dir.glob(File.join(upload_dir, '**', '*')).select do |path|
       File.file?(path)
     end.reduce({}) do |hash, path|
-      hash[File.basename(path, '.*')] = path
+      hash[File.relative_path(upload_dir + File::SEPARATOR, path)] = path
       hash
     end
   end
