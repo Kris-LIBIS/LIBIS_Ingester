@@ -14,6 +14,8 @@ module Libis
       parameter export_file_name: nil, description: 'File name of the export file (default: drived from ingest run name).'
       parameter export_key: 'item.name',
                 description: 'Expression to collect the key value for the export file.'
+      parameter extra_keys: {},
+                description: 'List of extra keys to add to the export file.'
       parameter export_format: 'tsv',
                 description: 'Format of the export file.',
                 constraint: %w'tsv csv xml yml'
@@ -49,7 +51,12 @@ module Libis
 
         key = get_key(export_file, item)
 
-        write_export(export_file, key, pid)
+        extra = {}
+        parameter(:extra_keys).each do |k,v|
+          extra[k] = eval(v)
+        end
+
+        write_export(export_file, key, pid, extra)
 
         debug 'Item %s with pid %s exported.', key, pid
 
@@ -68,7 +75,13 @@ module Libis
         key = get_key(export_file, item)
 
         pid = "col#{pid}"
-        write_export(export_file, key, pid)
+
+        extra = {}
+        parameter(:extra_keys).each do |k,v|
+          extra[k] = eval(v)
+        end
+
+        write_export(export_file, key, pid, extra)
 
         debug 'Collection %s with pid %s exported.', key, pid
 
@@ -90,29 +103,28 @@ module Libis
         File.join(parameter(:export_dir), file_name)
       end
 
-      def write_export(export_file, key_value, pid)
+      def write_export(export_file, key_value, pid, extra = {})
+        data = {
+            'KEY' => key_value,
+            'PID' => pid,
+            'URL' => "http://resolver.libis.be/#{pid}/representation"
+        }.merge(extra)
         open(export_file, 'a') do |f|
           case parameter(:export_format).to_sym
             when :tsv
-              f.puts "KEY\tPID\tURL" if f.size == 0 && parameter(:export_header)
-              f.puts "#{for_tsv(key_value)}\t#{for_tsv(pid)}" +
-                         "\t#{for_tsv("http://resolver.libis.be/#{pid}/representation")}"
+              f.puts data.keys.map { |k| for_tsv(k) }.join("\t") if f.size == 0 && parameter(:export_header)
+              f.puts data.values.map { |v| for_tsv(v) }.join("\t")
             when :csv
-              f.puts 'KEY,PID,URL' if f.size == 0 && parameter(:export_header)
-              f.puts "#{for_csv(key_value)},#{for_csv(pid)}" +
-                         ",#{for_csv("http://resolver.libis.be/#{pid}/representation")}"
+              f.puts data.keys.map { |k| for_csv(k) }.join(',') if f.size == 0 && parameter(:export_header)
+              f.puts data.values.map { |v| for_csv(v) }.join(',')
             when :xml
               f.puts '<?xml version="1.0" encoding="UTF-8"?>' if f.size == 0 && parameter(:export_header)
-              f.puts '<item' +
-                         " key=\"#{for_xml(key_value)}\"" +
-                         " pid=\"#{for_xml(pid)}\"" +
-                         " url=\"#{for_xml("http://resolver.libis.be/#{pid}/representation")}\"" +
-                         ' />'
+              f.puts '<item'
+              data.each { |k, v| f.puts "  #{for_xml(k.to_s)}=\"#{for_xml(v)}\"" }
+              f.puts '/>'
             when :yml
               f.puts '# Ingester export file' if f.size == 0 && parameter(:export_header)
-              f.puts "- key: #{for_yml(key_value)}" +
-                         "\n  value: #{for_yml(pid)}" +
-                         "\n  url: #{for_yml("http://resolver.libis.be/#{pid}/representation")}"
+              f.puts '- ' + data.map { |k,v| "#{k}: #{for_yml(v)}" }.join("\n  ")
             else
               #nothing
           end
