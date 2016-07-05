@@ -47,6 +47,7 @@ class CsvChecker
 
   def check_csv_mms
     dirs = dir_list
+    puts "Dirs #{dirs}"
     alma = Libis::Services::Alma::SruService.new
     csv = open_csv(csv_mms_file, options[:mms_headers])
     errors = []
@@ -108,7 +109,7 @@ class CsvChecker
 
   def dir_list
     Dir.entries(upload_dir).select do |dir|
-      File.directory?(dir) && !dir =~ /^\.{1,2}$/
+      File.directory?(dir) && !(dir =~ /^\.{1,2}$/)
     end
   end
 
