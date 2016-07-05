@@ -84,7 +84,7 @@ class CsvChecker
     csv.each_with_index do |line, i|
       name = line[options[:name_header]]
       label = line[options[:label_header]]
-      next if options(:ignore_empty_label) && label.blank?
+      next if options[:ignore_empty_label] && label.blank?
       errors << "Emtpy Name column in row #{i} : #{line.to_hash}" if name.blank?
       next if name.blank?
       files.delete(name) { |_| errors << "File matching '#{name}.*' not found." }
