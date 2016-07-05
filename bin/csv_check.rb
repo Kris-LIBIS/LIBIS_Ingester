@@ -90,6 +90,7 @@ class CsvChecker
     end
     csv.close
     files.each { |file| errors << "File not referenced in CSV: #{file}" }
+    errors
   end
 
   private
@@ -98,8 +99,9 @@ class CsvChecker
   def files_list
     Dir.glob(File.join(upload_dir, '**', '*')).select do |path|
       File.file?(path)
-    end.reduce({}) do |path, hash|
+    end.reduce({}) do |hash, path|
       hash[File.basename(path, '.*')] = path
+      hash
     end
   end
 
