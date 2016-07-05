@@ -31,7 +31,7 @@ class CsvChecker
     @upload_dir = dir
     @options = {
         mms_headers: %w'Name MMS',
-        label_headers: %w'Name X Label Y',
+        label_headers: %w'Name Label',
         name_header: 'Name',
         mms_header: 'MMS',
         label_header: 'Label'
@@ -52,6 +52,8 @@ class CsvChecker
     errors = []
     csv.each_with_index do |line, i|
       name = line[options[:name_header]]
+      mms = line[options[:mms_header]]
+      next if options[:ignore_empty_mms] && mms.blank?
       errors << "Emtpy Name column in row #{i} : #{line.to_hash}" if name.blank?
       next if name.blank?
       found = dirs.find { |d| d =~ /^#{name}$/ }
@@ -60,8 +62,7 @@ class CsvChecker
       else
         errors << "Dir '#{name}' in CSV does not exist."
       end
-      mms = line[options[:mms_header]]
-      if !options[:ignore_empty_mms] && mms.blank?
+      if mms.blank?
         errors << "Emtpy MMS column in row #{i} : #{line.to_hash}" if mms.blank?
         next
       end
@@ -117,4 +118,10 @@ class CsvChecker
 
 end
 
-CsvChecker.new(csv_file, csv_file, dir).check
+CsvChecker.new(csv_file, csv_file, dir,
+               mms_headers: %w'Name X MMS',
+               label_headers: %w'Name X Y Label',
+               name_header: 'Name',
+               mms_header: 'MMS',
+               label_header: 'Label',
+               ignore_empty_mms: true).check
