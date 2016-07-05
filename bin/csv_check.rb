@@ -42,7 +42,7 @@ class CsvChecker
     errors = check_csv_mms
     errors += check_csv_label
     errors.each { |error| puts error }
-    errors.empty?
+    puts 'All checks OK !!!' if errors.empty?
   end
 
   def check_csv_mms
