@@ -38,7 +38,7 @@ class CsvChecker
         label_header: 'Label',
         file_regex: '^(DIGI_[^_]+_[^_]+)_([0-9]+)\.(tif|TIF)$',
         group_label: '$1',
-        file_label: '$1_$2'
+        file_label: '$1 + "_" + $2'
     }.merge options
     read_files
   end
