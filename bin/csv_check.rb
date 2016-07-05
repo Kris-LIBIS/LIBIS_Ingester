@@ -1,5 +1,6 @@
 #! /usr/bin/env ruby
 
+require_relative '../lib/libis/ingester/console/menu'
 require 'libis/services/alma/sru_service'
 require 'libis/tools/csv'
 require 'set'
@@ -10,8 +11,17 @@ dir = ARGV[1]
 puts 'CSV file checker'
 puts '================'
 
-puts "CSV file: #{csv_file}"
-puts "Upload dir: #{dir}"
+if csv_file
+  puts "CSV file: #{csv_file}"
+else
+  csv_file = select_path(false, true, '/nas/upload/ub/digilab/tabellen')
+end
+
+if dir
+  puts "Upload dir: #{dir}"
+else
+  dir = select_path(true, false, '/nas/upload/ub/digilab')
+end
 
 class CsvChecker
 
