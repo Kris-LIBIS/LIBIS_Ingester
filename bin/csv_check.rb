@@ -98,7 +98,7 @@ class CsvChecker
   def files_list
     Dir.glob(File.join(upload_dir, '**', '*')).select do |path|
       File.file?(path)
-    end.reduce({}) do |hash, path|
+    end.reduce({}) do |path, hash|
       hash[File.basename(path, '.*')] = path
     end
   end
