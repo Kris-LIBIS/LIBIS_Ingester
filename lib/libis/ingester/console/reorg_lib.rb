@@ -24,7 +24,7 @@ end
 def get_path_expression(path_expression)
   unless @unattended && path_expression
     puts
-    puts 'Supply the relative path for each matching file (including file name).'
+    puts 'Supply the relative or absolute path for each matching file (including file name).'
     puts 'Use $x for referencing the value of the the x-th group in the regex. "file_name" refers to the original file name.'
     path_expression = @hl.ask('Enter path expression (default: no action): ') { |q| q.default = path_expression }
   end

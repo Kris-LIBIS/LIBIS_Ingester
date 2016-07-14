@@ -96,15 +96,16 @@ Dir.new(base_dir).entries.each do |file_name|
     next
   end
   target = eval(path_expression)
+  target_file = File.basename(target)
   target_dir = File.dirname(target)
-  unless target_dir_list.member?(target_dir)
+  target_dir = File.join(base_dir, target_dir) unless target_dir[0] == '/'
+  unless Dir.exist? target_dir
     puts "-> Create directory '#{target_dir}'" unless @report
-    FileUtils.mkpath(File.join(base_dir, target_dir)) unless dummy_operation
-    target_dir_list << target_dir
+    FileUtils.mkpath(target_dir) unless dummy_operation
   end
   puts "-> Move '#{file_name}' to '#{target}'" unless @report
-  FileUtils.move(entry, File.join(base_dir, target)) unless dummy_operation
-  write_report(entry, File.join(base_dir, target_dir), File.basename(target))
+  FileUtils.move(entry, File.join(target_dir, target_file)) unless dummy_operation
+  write_report(entry, target_dir, target_file)
 end
 
 close_report
