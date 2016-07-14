@@ -100,8 +100,10 @@ Dir.new(base_dir).entries.each do |file_name|
   target_dir = File.dirname(target)
   target_dir = File.join(base_dir, target_dir) unless target_dir[0] == '/'
   unless Dir.exist? target_dir
-    puts "-> Create directory '#{target_dir}'" unless @report
+    puts "-> Create directory '#{target_dir}'" unless @report ||
+        (dummy_operation && target_dir_list.include?(target_dir))
     FileUtils.mkpath(target_dir) unless dummy_operation
+    target_dir_list << target_dir
   end
   puts "-> Move '#{file_name}' to '#{target}'" unless @report
   FileUtils.move(entry, File.join(target_dir, target_file)) unless dummy_operation
