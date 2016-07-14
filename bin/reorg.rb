@@ -99,9 +99,8 @@ Dir.new(base_dir).entries.each do |file_name|
   target_file = File.basename(target)
   target_dir = File.dirname(target)
   target_dir = File.join(base_dir, target_dir) unless target_dir[0] == '/'
-  unless Dir.exist? target_dir
-    puts "-> Create directory '#{target_dir}'" unless @report ||
-        (dummy_operation && target_dir_list.include?(target_dir))
+  unless target_dir_list.include?(target_dir)
+    puts "-> Create directory '#{target_dir}'" unless @report
     FileUtils.mkpath(target_dir) unless dummy_operation
     target_dir_list << target_dir
   end
