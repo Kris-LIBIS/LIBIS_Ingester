@@ -51,7 +51,7 @@ module Libis
           return
         end
 
-        xml_item = rep.files.find { |file| file.name == 'e_thesis.xml' }
+        xml_item = rep.files.find { |file| file.filename == 'e_thesis.xml' }
         unless xml_item
           error 'Cannot find XML file item in representation', rep
         end
