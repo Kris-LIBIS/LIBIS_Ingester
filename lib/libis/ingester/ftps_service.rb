@@ -112,7 +112,7 @@ module Libis
           begin
             ftp_service.size(remote_path)
             true
-          rescue ::Net::FTPReplyError
+          rescue ::Net::FTPReplyError, ::Net::FTPPermError
             return false
           end
         end
@@ -138,7 +138,7 @@ module Libis
       def check
         begin
           yield
-        rescue Errno::ETIMEDOUT
+        rescue Errno::ETIMEDOUT, Net::FTPConnectionError
           disconnect
           connect
           yield
