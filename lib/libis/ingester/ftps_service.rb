@@ -112,7 +112,7 @@ module Libis
           begin
             ftp_service.size(remote_path)
             true
-          rescue ::Net::FTP::FTPReplyError
+          rescue ::Net::FTPReplyError
             return false
           end
         end
