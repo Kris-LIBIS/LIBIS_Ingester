@@ -1,12 +1,14 @@
 # encoding: utf-8
 
 require 'libis/ingester'
-require 'csv'
+
+require_relative 'base/csv_mapping'
 
 module Libis
   module Ingester
 
     class MetadataCollector < Libis::Ingester::Task
+      include Libis::Ingester::CsvMapping
 
       parameter item_types: %w'Libis::Ingester::IntellectualEntity Libis::Ingester::Collection',
                 description: 'Items types to process for metadata.'
@@ -40,15 +42,21 @@ module Libis
       parameter mapping_file: nil,
                 description: 'File that maps search term to identifier for metadata lookup.'
 
-      parameter mapping_format: 'tsv',
+      parameter mapping_format: 'csv',
                 description: 'Format in which the mapping file is written.',
                 constraint: %w'tsv csv'
+
+      parameter mapping_headers: %w'Name MMS',
+                description: 'Headers for the mapping file.'
 
       parameter mapping_key: 'Name',
                 description: 'Field name for the column that contains the lookup value.'
 
       parameter mapping_value: 'MMS',
                 description: 'Field name for the column that contains the search value.'
+
+      parameter ignore_emtpy_value: false,
+                description: 'Ingore lines with empty value column.'
 
       parameter title_to_name: false,
                 description: 'Update the item name with the title in the metadata?'
@@ -67,16 +75,15 @@ module Libis
 
       def apply_options(opts)
         super(opts)
-        @mapping = {}
-        mapping_file = parameter(:mapping_file)
-        return if mapping_file.blank?
-        unless File.exist?(mapping_file) && File.readable?(mapping_file)
-          raise Libis::WorkflowError, "Cannot open mapping file '#{mapping_file}'"
-        end
-        CSV.foreach(mapping_file, headers: true, col_sep: (parameter(:mapping_format) == 'tsv' ? "\t" : ',')) do |line|
-          value = line[parameter(:mapping_value)]
-          @mapping[line[parameter(:mapping_key)]] = value if value && !value.blank?
-        end
+        @mapping = super(
+            parameter(:mapping_file),
+            parameter(:mapping_format),
+            parameter(:mapping_headers),
+            parameter(:mapping_key),
+            parameter(:mapping_value),
+            nil,
+            parameter(:ignore_emtpy_value)
+        )[:mapping]
       end
 
       protected
