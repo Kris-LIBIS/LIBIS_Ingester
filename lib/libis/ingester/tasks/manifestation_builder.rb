@@ -62,9 +62,9 @@ module Libis
           # - or the originals
           from_manifestation = convert_info.from_manifestation &&
               manifestation.ingest_model.manifestations.find_by(name: convert_info.from_manifestation)
-          source = from_manifestation &&
+          source_rep = from_manifestation &&
               representation.parent.representation(from_manifestation.name)
-          source_items = source && source.get_items || representation.parent.originals
+          source_items = source_rep && source_rep.get_items || representation.parent.originals
 
           convert_hash = convert_info.to_hash
           convert_hash[:name] = representation.name
@@ -78,6 +78,8 @@ module Libis
             when 'assemble_pdf'
               # The PDF assembly generator
               assemble_pdf source_items, representation, convert_hash
+            when 'thumbnail'
+              generate_thumbnail source_items, representation, convert_hash
             else
               # No generator - convert each source file according to the specifications
               source_items.each do |item|
@@ -99,6 +101,13 @@ module Libis
         else
           file_or_div.get_items.each { |file| process_files(file) }
         end
+      end
+
+      def generate_thumbnail(items, representation, convert_hash)
+        source_id = representation.parent.properties['thumbnail_source']
+        source_item = items.find('options.use_as_thumbnail' => true)
+        source_item ||= source_id ? FileItem.find(source_id) : items.first
+        convert(source_item, representation, convert_hash)
       end
 
       def assemble_images(items, representation, convert_hash)
@@ -229,6 +238,7 @@ module Libis
             new_item.label = item.label
             new_item.parent = new_parent
             register_file(new_item)
+            new_item.options = item.options
             new_item.properties['converter'] = converter
             new_item.properties['converted_from'] = item.id
             new_item.properties['convert_info'] = convert_hash[:id]
