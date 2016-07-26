@@ -18,7 +18,7 @@ module Libis
 
       def process(item)
         lookup = eval(parameter(:lookup_expr))
-        label = mapping(lookup)
+        label = mapping(lookup, item)
         if label
           item.label = label
           item.save!
@@ -26,7 +26,7 @@ module Libis
         end
       end
 
-      def mapping(name)
+      def mapping(name, _item)
         name
       end
 
