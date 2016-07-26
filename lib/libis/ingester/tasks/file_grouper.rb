@@ -1,10 +1,11 @@
-# encoding: utf-8
 require 'libis-ingester'
+require_relative 'base/csv_mapping'
 
 module Libis
   module Ingester
 
     class FileGrouper < Libis::Ingester::Task
+      include Libis::Ingester::CsvMapping
 
       parameter group_regex: nil,
                 description: 'Regular expression for matching against the file names; nothing happens if nil.'
@@ -24,7 +25,6 @@ module Libis
                 description: 'Publish the collections.'
 
       parameter recursive: true
-
       parameter item_types: [Libis::Ingester::FileItem], frozen: true
 
       protected
@@ -81,10 +81,6 @@ module Libis
         end
         self.processing_item = item
       end
-
-      private
-
-      attr_accessor :file_registry
 
     end
 
