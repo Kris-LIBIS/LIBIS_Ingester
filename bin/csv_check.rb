@@ -5,23 +5,24 @@ require 'libis/services/alma/sru_service'
 require 'libis/tools/csv'
 require 'set'
 
+# noinspection RubyExpressionInStringInspection
 options = {
-    mms_headers: %w'Name X MMS',
-    label_headers: %w'Name X Y Label',
+    mms_headers: %w'Name MMS',
+    mms_headers_combo: %w'Name X MMS',
+    label_headers: %w'Name Thumbnail Label Group',
+    label_headers_combo: %w'Name X Y Label',
     name_header: 'Name',
     mms_header: 'MMS',
     label_header: 'Label',
     ignore_empty_mms: false,
     ignore_empty_label: false,
     file_regex: '^(DIGI_[^_]+_[^_]+)_([0-9]+)\.(tif|TIF)$',
-    object_label: '\#{$1}',
-    file_label: '\#{$1}_\#{$2}'
+    object_label: '"#{$1}"',
+    file_label: '"#{$1}_#{$2}"'
 }
 
 OptionParser.new do |opts|
   opts.banner = "Usage: #{$0} [options]"
-
-  base_opts(opts)
 
   opts.on('-l FILE', '--label_file FILE', 'CSV file with labels') do |v|
     options[:label_file] = v
@@ -39,47 +40,53 @@ OptionParser.new do |opts|
     options[:combo] = true
     options[:ignore_empty_label] = true
     options[:ignore_empty_mms] = true
+    options[:label_headers] = options[:label_headers_combo]
+    options[:mms_headers] = options[:mms_headers_combo]
   end
 
-  opts.on('--label_headers STRING', 'Headers for label CSV (comma delimited - default: "Name,X,Y,Label")') do |v|
+  opts.on('--label_headers STRING', "Headers for label CSV (default: '#{options[:label_headers]}')") do |v|
     options[:label_headers] = v.split(',')
   end
 
-  opts.on('--mms_headers STRING', 'Headers for MMS CSV (comma delimited - default: "Name,X,MMS")') do |v|
+  opts.on('--mms_headers STRING', "Headers for MMS CSV (default: '#{options[:mms_headers]}')") do |v|
     options[:mms_headers] = v.split(',')
   end
 
-  opts.on('--label_header STRING', 'Header value for the label column (default: "Label"') do |v|
+  opts.on('--label_header STRING', "Header value for the label column (default: '#{options[:label_header]}')") do |v|
     options[:label_header] = v
   end
 
-  opts.on('--mms_header STRING', 'Header value for the MMS-ID column (default: "MMS"') do |v|
+  opts.on('--mms_header STRING', "Header value for the MMS-ID column (default: '#{options[:mms_header]}')") do |v|
     options[:mms_header] = v
   end
 
-  opts.on('--name_header STRING', 'Header value for the name column (default: "Name")') do |v|
+  opts.on('--name_header STRING', "Header value for the name column (default: '#{options[:name_header]}')") do |v|
     options[:name_header] = v
   end
 
-  opts.on('--file_regex', 'Regular expression for file names (default: "^(DIGI_[^_]+_[^_]+)_([0-9]+)\.(tif|TIF)$"') do |v|
+  opts.on('--file_regex', "Regular expression for file names (default: '#{options[:file_regex]}')") do |v|
     options[:file_regex] = v
   end
-  
-  opts.on('--object_name', 'Ruby expression for name of object (default: "\#{$1}")') do |v|
+
+  opts.on('--object_name', "Ruby expression for name of object (default: '#{options[:object_label]}')") do |v|
     options[:object_label] = v
   end
 
-  opts.on('--file_name', 'Ruby expression for file name column in CSV (default: "\#{$1}_\#{$2}"') do |v|
+  opts.on('--file_name', "Ruby expression for file name column in CSV (default: '#{options[:file_label]}')") do |v|
     options[:file_label] = v
   end
-  
-end
+
+  opts.on('-h', '--help', 'Prints this help') do
+    puts opts
+    exit
+  end
+
+end.parse!
 
 dir = options.delete(:upload_dir)
 label_file = options.delete(:label_file)
 mms_file = options.delete(:mms_file)
-mms_file = label_file if options[:combo] unless mms_file
-label_file= mms_file if options[:combo] unless label_file
+label_file ||= mms_file if options[:combo]
 
 dir ||= begin
   puts 'Upload dir:'
@@ -90,6 +97,8 @@ label_file ||= begin
   puts 'CSV file with labels'
   select_path(false, true, '/nas/upload/ub/digilab/tabellen')
 end
+
+mms_file = label_file if options[:combo]
 
 mms_file ||= begin
   puts 'CSV file with MMS-ids'
