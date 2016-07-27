@@ -24,7 +24,7 @@ module Libis
         item.status_progress(self.namepath, 0, item.get_run.ingest_model.manifestations.count)
 
         # Build all manifestations
-        item.get_run.ingest_model.manifestations.each_with_index do |manifestation, i|
+        item.get_run.ingest_model.manifestations.each do |manifestation|
           debug 'Building manifestation %s', manifestation.representation_info.name
           rep = item.representation(manifestation.name)
           unless rep
@@ -37,7 +37,7 @@ module Libis
           end
           build_manifestation(rep, manifestation)
           rep.save!
-          item.status_progress(self.namepath, i + 1)
+          item.status_progress(self.namepath)
         end
 
         stop_processing_subitems
@@ -86,9 +86,9 @@ module Libis
             else
               # No generator - convert each source file according to the specifications
               representation.status_progress(self.namepath, 0, source_items.count)
-              source_items.each_with_index do |item, i|
+              source_items.each do |item|
                 convert item, representation, convert_hash
-                representation.status_progress(self.namepath, i + 1)
+                representation.status_progress(self.namepath)
               end
               set_status representation, :DONE
           end
