@@ -21,8 +21,10 @@ module Libis
       # noinspection RubyResolve
       def process(item)
 
+        item.status_progress(self.namepath, 0, item.get_run.ingest_model.manifestations.count)
+
         # Build all manifestations
-        item.get_run.ingest_model.manifestations.each do |manifestation|
+        item.get_run.ingest_model.manifestations.each_with_index do |manifestation, i|
           debug 'Building manifestation %s', manifestation.representation_info.name
           rep = item.representation(manifestation.name)
           unless rep
@@ -35,6 +37,7 @@ module Libis
           end
           build_manifestation(rep, manifestation)
           rep.save!
+          item.status_progress(self.namepath, i + 1)
         end
 
         stop_processing_subitems
@@ -82,9 +85,12 @@ module Libis
               generate_thumbnail source_items, representation, convert_hash
             else
               # No generator - convert each source file according to the specifications
-              source_items.each do |item|
+              representation.status_progress(self.namepath, 0, source_items.count)
+              source_items.each_with_index do |item, i|
                 convert item, representation, convert_hash
+                representation.status_progress(self.namepath, i + 1)
               end
+              set_status representation, :DONE
           end
         end
       end
@@ -221,9 +227,9 @@ module Libis
                 item.get_run.work_dir,
                 new_parent.id.to_s,
                 item.id.to_s,
-                [ item.name,
-                  convert_hash[:name],
-                  extname(convert_hash[:target_format])
+                [item.name,
+                 convert_hash[:name],
+                 extname(convert_hash[:target_format])
                 ].join('.')
             )
 
@@ -339,7 +345,7 @@ module Libis
       end
 
       def tempfile(source_file, target_format)
-        Tempfile.new( [ File.basename(source_file, '.*'), ".#{extname(target_format)}" ] )
+        Tempfile.new([File.basename(source_file, '.*'), ".#{extname(target_format)}"])
       end
 
       def extname(format)
