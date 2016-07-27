@@ -14,7 +14,7 @@ module Libis
       parameter mapping_format: 'csv',
                 description: 'Format in which the mapping file is written.',
                 constraint: %w'tsv csv'
-      parameter mapping_headers: 'Name X Label',
+      parameter mapping_headers: %w'Name X Label',
                 description: 'Headers for mapping file.'
       parameter ignore_empty_label: false,
                 description: 'Ignore lines with empty label column.'
