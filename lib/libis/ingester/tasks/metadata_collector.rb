@@ -75,14 +75,13 @@ module Libis
 
       def apply_options(opts)
         super(opts)
-        @mapping = super(
-            parameter(:mapping_file),
-            parameter(:mapping_format),
-            parameter(:mapping_headers),
-            parameter(:mapping_key),
-            parameter(:mapping_value),
-            nil,
-            parameter(:ignore_emtpy_value)
+        @mapping = load_mapping(
+            file: parameter(:mapping_file),
+            format: parameter(:mapping_format),
+            headers: parameter(:mapping_headers),
+            key: parameter(:mapping_key),
+            value: parameter(:mapping_value),
+            ignore_empty_value: parameter(:ignore_emtpy_value)
         )[:mapping]
       end
 

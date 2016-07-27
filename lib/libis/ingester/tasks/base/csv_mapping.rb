@@ -1,14 +1,21 @@
-require 'libis/ingester'
+require 'libis/workflow'
 require 'libis/tools/csv'
 
 module Libis
   module Ingester
     module CsvMapping
 
-      def load_mapping(file, format, headers, key_field, value_field = nil, flag_field = nil, ignore_empty_value = nil)
+      def load_mapping(options = {})
+        file = options[:file]
+        format = options[:format] || 'csv'
+        key_field = options[:key]
+        value_field = options[:value]
+        flag_field = options[:flag]
+        ignore_empty_value = options[:ignore_empty_value]
         result = {
             mapping: {},
-            flagged: []
+            flagged: [],
+            errors: []
         }
         return result if file.blank?
         unless File.exist?(file) && File.readable?(file)
@@ -23,18 +30,25 @@ module Libis
                       raise Libis::WorkflowError, "Unsupported mapping format: #{format}"
                   end
         begin
-          csv = Libis::Tools::Csv.open(file, col_sep: col_sep, required: headers)
+          csv = Libis::Tools::Csv.open(file, col_sep: col_sep, required: options[:headers], optional: options[:optional_headers] || [])
           csv.each_with_index do |row, i|
             key = row[key_field]
             value = row[value_field]
             next if ignore_empty_value && value.blank?
-            raise Libis::WorkflowError, "Emtpy #{key_field} column in row #{i} : #{row.to_hash}" if key.blank?
-            raise Libis::WorkflowError, "Emtpy #{value_field} column in row #{i} : #{row.to_hash}" if value.blank?
+            if key.blank?
+              result[:errors] << "Emtpy #{key_field} column in row #{i+1} : #{row.to_hash}"
+              raise Libis::WorkflowError, result[:errors].last unless options[:collect_errors]
+            end
+            if value.blank?
+              result[:errors] << "Emtpy #{value_field} column in row #{i+1} : #{row.to_hash}"
+              raise Libis::WorkflowError, result[:errors].last unless options[:collect_errors]
+            end
             result[:mapping][key] = value
             result[:flagged] << key if flag_field && !row[flag_field].blank?
           end
         rescue CSV::MalformedCSVError
-          raise Libis::WorkflowError, "Error parsing mapping file #{file}"
+          result[:errors] << "Error parsing mapping file #{file}"
+          raise Libis::WorkflowError, result[:errors].last unless options[:collect_errors]
         ensure
           csv.close rescue nil
         end

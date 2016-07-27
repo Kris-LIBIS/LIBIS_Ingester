@@ -1,8 +1,9 @@
 #! /usr/bin/env ruby
 
 require_relative '../lib/libis/ingester/console/menu'
+require_relative '../lib/libis/ingester/tasks/base/csv_mapping'
 require 'libis/services/alma/sru_service'
-require 'libis/tools/csv'
+
 require 'set'
 
 # noinspection RubyExpressionInStringInspection
@@ -113,6 +114,7 @@ puts "CSV label file: #{label_file}"
 puts "CSV MMS file: #{mms_file}"
 
 class CsvChecker
+  include Libis::Ingester::CsvMapping
 
   attr_reader :csv_label_file, :csv_mms_file, :upload_dir, :options, :files, :groups
 
@@ -142,50 +144,45 @@ class CsvChecker
 
   def check_csv_mms
     alma = Libis::Services::Alma::SruService.new
-    csv = open_csv(csv_mms_file, options[:mms_headers])
-    errors = []
-    csv.each_with_index do |line, i|
-      name = line[options[:name_header]]
-      mms = line[options[:mms_header]]
-      next if options[:ignore_empty_mms] && mms.blank?
-      errors << "Emtpy Name column in row #{i} : #{line.to_hash}" if name.blank?
-      next if name.blank?
+    mapping = load_mapping(
+        file: csv_mms_file,
+        headers: options[:mms_headers],
+        key: options[:name_header],
+        value: options[:mms_header],
+        ignore_empty_value: options[:ignore_empty_mms],
+        collect_errors: true
+    )
+    mapping[:mapping].each do |name, mms|
       found = groups.find { |d| d =~ /^#{name}$/ }
       if found
         groups.delete(found)
       else
-        errors << "Group '#{name}' referenced in CSV not found."
-      end
-      if mms.blank?
-        errors << "Emtpy MMS column in row #{i} : #{line.to_hash}" if mms.blank?
-        next
+        mapping[:errors] << "Group '#{name}' referenced in CSV not found."
       end
       begin
         alma.search('alma.mms_id', mms)
       rescue Libis::Services::ServiceError => e
-        errors << "Alma service error trying to find Alma MMS ID '#{mms}': #{e.message}"
+        mapping[:errors] << "Alma service error trying to find Alma MMS ID '#{mms}': #{e.message}"
       end
     end
-    csv.close
-    groups.each { |dir| errors << "Group '#{dir}' not referenced in CSV." }
-    errors
+    groups.each { |dir| mapping[:errors] << "Group '#{dir}' not referenced in CSV." }
+    mapping[:errors].dup
   end
 
   def check_csv_label
-    csv = open_csv(csv_label_file, options[:label_headers])
-    errors = []
-    csv.each_with_index do |line, i|
-      name = line[options[:name_header]]
-      label = line[options[:label_header]]
-      next if options[:ignore_empty_label] && label.blank?
-      errors << "Emtpy Name column in row #{i} : #{line.to_hash}" if name.blank?
-      next if name.blank?
-      files.delete(name) { |_| errors << "File matching '#{name}' not found." }
-      errors << "Emtpy Label column in row #{i} : #{line.to_hash}" if label.blank?
+    mapping = load_mapping(
+                  file: csv_label_file,
+                  headers: options[:label_headers],
+                  key: options[:name_header],
+                  value: options[:label_header],
+                  ignore_empty_values: options[:ignore_empty_label],
+                  collect_errors: true
+    )
+    mapping[:mapping].each do |name, _label|
+      files.delete(name) { |_| mapping[:errors] << "File matching '#{name}' not found." }
     end
-    csv.close
-    files.each { |_, path| errors << "File not referenced in CSV: #{path}" }
-    errors
+    files.each { |_, path| mapping[:errors] << "File not referenced in CSV: #{path}" }
+    mapping[:errors]
   end
 
   private
@@ -203,10 +200,6 @@ class CsvChecker
         false
       end
     end
-  end
-
-  def open_csv(csv_file, header_list)
-    Libis::Tools::Csv.open(csv_file, required: header_list)
   end
 
 end

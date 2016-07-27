@@ -32,13 +32,13 @@ module Libis
       def apply_options(opts)
         super(opts)
         result = load_mapping(
-            parameter(:mapping_file),
-            parameter(:mapping_format),
-            parameter(:mapping_headers),
-            parameter(:lookup_field),
-            parameter(:label_field),
-            parameter(:thumbnail_field),
-            parameter(:ignore_empty_label)
+            file: parameter(:mapping_file),
+            format: parameter(:mapping_format),
+            headers: parameter(:mapping_headers),
+            key: parameter(:lookup_field),
+            value: parameter(:label_field),
+            flag: parameter(:thumbnail_field),
+            ignore_empty_value: parameter(:ignore_empty_label)
         )
         @mapping = result[:mapping]
         @thumbnails = result[:flagged]
