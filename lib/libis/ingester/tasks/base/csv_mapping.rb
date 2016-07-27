@@ -1,3 +1,4 @@
+require 'libis/ingester'
 require 'libis/tools/csv'
 
 module Libis
