@@ -80,7 +80,7 @@ module Libis
         end
       end
 
-      private
+      protected
 
       def remove_work_dir
         wd = self.work_dir
