@@ -55,7 +55,7 @@ module Libis
       parameter mapping_value: 'MMS',
                 description: 'Field name for the column that contains the search value.'
 
-      parameter ignore_emtpy_value: false,
+      parameter ignore_empty_value: false,
                 description: 'Ingore lines with empty value column.'
 
       parameter title_to_name: false,
@@ -81,7 +81,7 @@ module Libis
             headers: parameter(:mapping_headers),
             key: parameter(:mapping_key),
             value: parameter(:mapping_value),
-            ignore_empty_value: parameter(:ignore_emtpy_value)
+            ignore_empty_value: parameter(:ignore_empty_value)
         )[:mapping]
       end
 
