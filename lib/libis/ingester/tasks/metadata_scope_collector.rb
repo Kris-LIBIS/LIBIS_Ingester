@@ -8,7 +8,7 @@ require_relative 'metadata_collector'
 module Libis
   module Ingester
 
-    class MetadataAlmaCollector < MetadataCollector
+    class MetadataScopeCollector < MetadataCollector
 
       parameter host: nil,
                 description: 'URL of the Alma web service.'
