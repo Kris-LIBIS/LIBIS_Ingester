@@ -318,14 +318,11 @@ module Libis
           converterlist << converter
         end
         converter = converterlist.join(' + ')
-        if target_file
-          FileUtils.mkpath(File.dirname(target_file))
-          FileUtils.move(src_file, target_file, force: true)
-        else
-          target_file = src_file
-          temp_files.delete src_file
-        end
-         temp_files.each { |tmp_file| tmp_file.unlink }
+        target_file ||= src_file
+        FileUtils.mkpath(File.dirname(target_file))
+        FileUtils.move(src_file, target_file, force: true)
+        temp_files.delete_if { |f| f.path == target_file }
+        temp_files.each { |tmp_file| tmp_file.unlink }
         [target_file, converter]
       end
 
@@ -336,15 +333,15 @@ module Libis
 
         unless converter
           raise Libis::WorkflowError,
-                "Could not find converter for #{source_format} -> #{target_format} with #{options}"
+                'Could not find converter for %s -> %s with %s', source_format, target_format, options
         end
 
         converter_name = converter.to_s
-        debug "Converting file #{source_file} to #{target_file} with #{converter_name}"
+        debug 'Converting file %s to %s with %s ', source_file, target_file, converter_name
         converted = converter.convert(source_file, target_file)
 
         unless converted && converted == target_file
-          error "File conversion failed (#{converter_name})."
+          error 'File conversion failed (%s).', converter_name
           return [nil, converter_name]
         end
 
