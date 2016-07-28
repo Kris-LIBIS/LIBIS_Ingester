@@ -140,7 +140,7 @@ module Libis
           Libis::Format::Converter::ImageConverter.new.assemble_and_convert(sources, new_file, target_format)
           options = convert_hash[:options][1] rescue nil
           convert_file(new_file, new_file, target_format, target_format, options) if options
-          tmpfiles.each {|f| File.rm f}
+          tmpfiles.each {|f| FileUtils.rm f, force: true}
         end
       end
 
