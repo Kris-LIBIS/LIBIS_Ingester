@@ -133,10 +133,9 @@ module Libis
               format = Libis::Format::Identifier.get(source) rescue {}
               mimetype = format[:mimetype]
               type_id = Libis::Format::TypeDatabase.mime_types(mimetype).first
-              group = Libis::Format::TypeDatabase.type_group(type_id.to_s)
-              target = tempfile(source, group)
+              source_format = Libis::Format::TypeDatabase.type_group(type_id.to_s)
+              target = convert_file(source, nil, source_format, source_format, options)[0]
               tmpfiles << target
-              convert_file(source, target, group, group, options)
               target
             end
           end
@@ -320,9 +319,14 @@ module Libis
           converterlist << converter
         end
         converter = converterlist.join(' + ')
-        FileUtils.mkpath(File.dirname(target_file))
-        FileUtils.move(src_file, target_file, force: true)
-        temp_files.each { |tmp_file| tmp_file.unlink }
+        if target_file
+          FileUtils.mkpath(File.dirname(target_file))
+          FileUtils.move(src_file, target_file, force: true)
+        else
+          target_file = src_file
+          temp_files.delete src_file
+        end
+         temp_files.each { |tmp_file| tmp_file.unlink }
         [target_file, converter]
       end
 
