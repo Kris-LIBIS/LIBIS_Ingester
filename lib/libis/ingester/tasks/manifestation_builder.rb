@@ -124,10 +124,13 @@ module Libis
                 "#{Libis::Format::TypeDatabase.type_extentions(target_format).first}",
             convert_hash[:id]
         ) do |sources, new_file|
-          Libis::Format::Converter::ImageConverter.new.
-              assemble_and_convert(sources, new_file, target_format)
-          unless convert_hash[:options].blank?
-            convert_file(new_file, new_file, target_format, target_format, convert_hash[:options])
+          converter = Libis::Format::Converter::ImageConverter.new
+          if convert_hash[:options] && convert_hash[:options].first && convert_hash[:options].first.is_a?(Hash)
+            convert_hash[:options].first.each { |k,v| converter.send(k,v) }
+          end
+          converter.convert(sources, new_file, target_format)
+          if convert_hash[:options] && convert_hash[:options][1]
+            convert_file(new_file, new_file, target_format, target_format, convert_hash[:options][1])
           end
         end
       end
