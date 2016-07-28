@@ -43,14 +43,9 @@ def status_menu
           menu['-'] = Proc.new { delete_run(item) ; nil } if item.is_a?(Libis::Ingester::Run)
           menu['log'] = Proc.new do
             run = item.is_a?(Libis::Ingester::Run) ? item : item.get_run
-            system "less '#{run.log_filename}'"
             # noinspection RubyResolve
-            # File.open(run.log_filename, 'r') do |f|
-            #   lines = f.readlines
-            #   size = lines.size
-            #   line_count = @hl.ask('Number of lines', Integer) { |q| q.default = 20 }
-            #   lines[-([size, line_count].min)..-1].each { |l| puts l } rescue nil
-            # end rescue nil
+            pid = Process.spawn 'less', run.log_filename
+            wait_for(pid)
             item
           end
           menu['retry'] = Proc.new do
@@ -74,4 +69,10 @@ def status_menu
     end
     @options[:organization] = nil
   end
+end
+
+def wait_for(pid)
+  Process.wait pid
+rescue Interrupt
+  wait_for pid
 end
