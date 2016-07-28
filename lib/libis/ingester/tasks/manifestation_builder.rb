@@ -132,8 +132,7 @@ module Libis
             sources = sources.map do |source|
               format = Libis::Format::Identifier.get(source) rescue {}
               mimetype = format[:mimetype]
-              type_id = Libis::Format::TypeDatabase.mime_types(mimetype).first
-              source_format = Libis::Format::TypeDatabase.type_group(type_id.to_s)
+              source_format = Libis::Format::TypeDatabase.mime_types(mimetype).first
               target = convert_file(source, nil, source_format, source_format, options)[0]
               tmpfiles << target
               target
