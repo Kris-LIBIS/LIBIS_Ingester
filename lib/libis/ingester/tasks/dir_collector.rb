@@ -46,7 +46,7 @@ module Libis
         reg = parameter(:selection)
         reg = (reg and !reg.empty?) ? Regexp.new(reg) : nil
         ignore = parameter(:ignore) && Regexp.new(parameter(:ignore))
-        list = Naturally.sort(list) if parameter(:sort)
+        list = Naturally.sort_by_block(list) { |x| x.gsub('.', '.0.').gsub('_','.') }
         list.each do |file|
           file.strip!
           next if file =~ /^\.{1,2}$/
