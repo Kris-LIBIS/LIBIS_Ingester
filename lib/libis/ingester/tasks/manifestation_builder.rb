@@ -341,7 +341,7 @@ module Libis
         end
 
         converter_name = converter.to_s
-        debug 'Converting file %s to %s with %s', source_file, target_file, converter_name
+        debug "Converting file #{source_file} to #{target_file} with #{converter_name}"
         converted = converter.convert(source_file, target_file)
 
         unless converted && converted == target_file
