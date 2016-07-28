@@ -124,14 +124,29 @@ module Libis
                 "#{Libis::Format::TypeDatabase.type_extentions(target_format).first}",
             convert_hash[:id]
         ) do |sources, new_file|
-          converter = Libis::Format::Converter::ImageConverter.new
-          if convert_hash[:options] && convert_hash[:options].first && convert_hash[:options].first.is_a?(Hash)
-            convert_hash[:options].first.each { |k,v| converter.send(k,v) }
+          tmpfiles = []
+          options = nil
+          options = convert_hash[:options] if convert_hash[:options] && convert_hash[:options].is_a?(Hash)
+          options = convert_hash[:options].first if convert_hash[:options] && convert_hash[:options].is_a?(Array)
+          if options
+            sources = sources.map do |source|
+              format = Libis::Format::Identifier.get(source) rescue {}
+              mimetype = format[:mimetype]
+              type_id = Libis::Format::TypeDatabase.mime_types(mimetype).first
+              group = Libis::Format::TypeDatabase.type_group(type_id.to_s)
+              target = tempfile(source, group)
+              tmpfiles << target
+              convert_file(source, target, group, group, options)
+              target
+            end
           end
-          converter.convert(sources, new_file, target_format)
-          if convert_hash[:options] && convert_hash[:options][1]
-            convert_file(new_file, new_file, target_format, target_format, convert_hash[:options][1])
+          Libis::Format::Converter::ImageConverter.new.assemble_and_convert(sources, new_file, target_format)
+          options = nil
+          options = convert_hash[:options][1] if convert_hash[:options] && convert_hash[:options].is_a?(Array)
+          if options
+            convert_file(new_file, new_file, target_format, target_format, options)
           end
+          tmpfiles.each {|f| f.unlink}
         end
       end
 
