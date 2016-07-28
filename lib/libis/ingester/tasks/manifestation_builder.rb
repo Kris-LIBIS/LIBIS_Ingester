@@ -131,20 +131,16 @@ module Libis
           if options
             sources = sources.map do |source|
               format = Libis::Format::Identifier.get(source) rescue {}
-              mimetype = format[:mimetype]
-              source_format = Libis::Format::TypeDatabase.mime_types(mimetype).first
+              source_format = Libis::Format::TypeDatabase.mime_types(format[:mimetype]).first
               target = convert_file(source, nil, source_format, source_format, options)[0]
               tmpfiles << target
               target
             end
           end
           Libis::Format::Converter::ImageConverter.new.assemble_and_convert(sources, new_file, target_format)
-          options = nil
-          options = convert_hash[:options][1] if convert_hash[:options] && convert_hash[:options].is_a?(Array)
-          if options
-            convert_file(new_file, new_file, target_format, target_format, options)
-          end
-          tmpfiles.each {|f| f.unlink}
+          options = convert_hash[:options][1] rescue nil
+          convert_file(new_file, new_file, target_format, target_format, options) if options
+          tmpfiles.each {|f| File.rm f}
         end
       end
 
@@ -309,6 +305,7 @@ module Libis
           else
             [{}]
         end.each do |opts|
+          opts = opts.dup
           tgt_format = opts.delete(:target_format) || target_format
           tgt_file = tempfile(src_file, tgt_format)
           temp_files << tgt_file
