@@ -320,7 +320,7 @@ module Libis
         converter = converterlist.join(' + ')
         target_file ||= src_file
         FileUtils.mkpath(File.dirname(target_file))
-        FileUtils.move(src_file, target_file, force: true)
+        FileUtils.move(src_file, target_file, force: true) unless src_file == target_file
         temp_files.delete_if { |f| f.path == target_file }
         temp_files.each { |tmp_file| tmp_file.unlink }
         [target_file, converter]
