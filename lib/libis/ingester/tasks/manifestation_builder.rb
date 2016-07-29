@@ -1,5 +1,6 @@
 # encoding: utf-8
 require 'fileutils'
+require 'tmpdir'
 require 'libis/ingester'
 
 require 'libis-format'
@@ -124,23 +125,18 @@ module Libis
                 "#{Libis::Format::TypeDatabase.type_extentions(target_format).first}",
             convert_hash[:id]
         ) do |sources, new_file|
-          tmpfiles = []
           options = nil
           options = convert_hash[:options] if convert_hash[:options] && convert_hash[:options].is_a?(Hash)
           options = convert_hash[:options].first if convert_hash[:options] && convert_hash[:options].is_a?(Array)
-          if options
-            sources = sources.map do |source|
-              format = Libis::Format::Identifier.get(source) rescue {}
-              source_format = Libis::Format::TypeDatabase.mime_types(format[:mimetype]).first
-              target = convert_file(source, nil, source_format, source_format, options)[0]
-              tmpfiles << target
-              target
-            end
-          end
+          sources = sources.map do |source|
+            format = Libis::Format::Identifier.get(source) rescue {}
+            source_format = Libis::Format::TypeDatabase.mime_types(format[:mimetype]).first
+            convert_file(source, nil, source_format, source_format, options)[0]
+          end if options
           Libis::Format::Converter::ImageConverter.new.assemble_and_convert(sources, new_file, target_format)
+          sources.each {|f| FileUtils.rm f, force: true} if options
           options = convert_hash[:options][1] rescue nil
           convert_file(new_file, new_file, target_format, target_format, options) if options
-          tmpfiles.each {|f| FileUtils.rm f, force: true}
         end
       end
 
@@ -315,10 +311,13 @@ module Libis
           converterlist << converter
         end
         converter = converterlist.join(' + ')
-        target_file ||= src_file
-        FileUtils.mkpath(File.dirname(target_file))
-        FileUtils.move(src_file, target_file, force: true) unless src_file == target_file
-        temp_files.delete_if { |f| f.path == target_file }
+        if target_file
+          FileUtils.mkpath(File.dirname(target_file))
+          FileUtils.move(src_file, target_file, force: true)
+        else
+          target_file = Dir::Tmpname.make_tmpname [File.basename(source_file, '.*'), File.extname(src_file)], nil
+          FileUtils.cp(src_file, target_file)
+        end
         temp_files.each { |tmp_file| tmp_file.unlink }
         [target_file, converter]
       end
