@@ -41,6 +41,7 @@ def status_menu
           menu = {'.' => Proc.new { item }}
           menu['+'] = Proc.new { select_item(item) } if item.items.count > 0
           menu['-'] = Proc.new { delete_run(item) ; nil } if item.is_a?(Libis::Ingester::Run)
+          menu['-'] = Proc.new { delete_item(item) ; nil } unless item.is_a?(Libis::Ingester::Run)
           menu['log'] = Proc.new do
             run = item.is_a?(Libis::Ingester::Run) ? item : item.get_run
             # noinspection RubyResolve

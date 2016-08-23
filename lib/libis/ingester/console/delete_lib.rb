@@ -23,6 +23,13 @@ def delete_run(item)
   item.destroy! if @hl.agree("This will destroy all evidence of run #{item.name}. OK?", false)
 end
 
+def delete_item(item)
+  item.destroy! if @hl.agree(
+      "This will delete the #{item.class.to_s.split('::').last.downcase} '#{item.name}' from " +
+          "#{item.parent.class.to_s.split('::').last.downcase} '#{item.parent.name}'. OK?", false
+  )
+end
+
 def delete_all_finshed_runs
   ::Libis::Ingester::Run.each do |run|
     next unless run.check_status(:DONE)
