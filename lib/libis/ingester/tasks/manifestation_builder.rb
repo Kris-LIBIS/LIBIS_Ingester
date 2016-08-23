@@ -306,7 +306,7 @@ module Libis
             [{}]
         end.each do |opts|
           opts = opts.dup
-          tgt_format = opts.delete(:target_format) || target_format
+          tgt_format = opts.delete(target_format) || target_format
           tgt_file = tempfile(src_file, tgt_format)
           temp_files << tgt_file
           tgt_file = tgt_file.path
