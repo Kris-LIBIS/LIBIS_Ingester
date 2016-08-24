@@ -13,7 +13,7 @@ def submit_menu
 
     options[1] = select_options(job)
 
-    options[1]['run_name'] = @hl.ask('Name : ') { |q| q.default = job.name }
+    options[1]['run_name'] = @hl.ask('Specific run name: ')
 
     bulk = select_bulk_option(options[1])
 
@@ -24,7 +24,7 @@ def submit_menu
       base_dir = options[1][key]
       run_name = options[1]['run_name']
       bulk[:values].each do |value|
-        options[1]['run_name'] = run_name + value.gsub(/^#{base_dir}/, '').tr('/ ', '-_')
+        options[1]['run_name'] = "#{run_name}#{value.gsub(/^#{base_dir}/, '').tr('/ ', '-_')}"
         options[1][key] = value
         Sidekiq::Client.push(
             'class' => 'Libis::Ingester::JobWorker',
