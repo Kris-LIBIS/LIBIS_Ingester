@@ -4,6 +4,8 @@ require 'libis-ingester'
 
 require 'libis/ingester/ftps_service'
 
+require 'set'
+
 module Libis
   module Ingester
 
@@ -179,7 +181,7 @@ module Libis
 
         files_from_xml.each do |fname|
           unless files.any? { |file| File.basename(file) == fname }
-            check = check_error errors, 'A file \'%s\' listed in the XML for %s is not found on FTP server', fname, dir_name
+            check = check_error errors, 'The file \'%s\' listed in the XML for %s is not found on FTP server', fname, dir_name
             next
           end
         end
@@ -187,8 +189,15 @@ module Libis
         files.each do |file|
           fname = File.basename(file)
           unless fname == xml_file_name || files_from_xml.include?(File.basename(file))
-            check = check_error errors, 'A file \'%s\' was found on the FTP in %s that was not listed in the XML', File.basename(file), dir_name
+            check = check_error errors, 'The file \'%s\' was found on the FTP in %s that was not listed in the XML', File.basename(file), dir_name
             next
+          end
+        end
+
+        # check if all file entries have a unique name
+        unless files_from_xml.size == files_from_xml.uniq.size
+          files_from_xml.select { |fname| files_from_xml.count(fname) > 1 }.uniq.each do |fname|
+            check = check_error errors, 'The file \'%s\' is referenced more than once in the XML file for %s', fname, dir_name
           end
         end
 
