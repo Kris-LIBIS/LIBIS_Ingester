@@ -24,10 +24,17 @@ module Libis
           item.save!
           debug 'Item %s labeled as %s', item, item.name, item.label
         end
+        if thumbnail?(lookup)
+          item.options['use_as_thumbnail'] = true
+        end
       end
 
       def mapping(name, _item)
         name
+      end
+
+      def thumbnail?(name)
+        false
       end
 
     end
