@@ -13,18 +13,20 @@ def submit_menu
 
     options[1] = select_options(job)
 
-    options[1]['run_name'] = @hl.ask('Specific run name: ')
+    run_name = @hl.ask('Specific run name: ')
 
     bulk = select_bulk_option(options[1])
+
+    options[1]['run_name'] = clean_string run_name
 
     if bulk
       key = bulk[:key]
       next unless @hl.agree("Ready to submit #{bulk[:values].count} runs for job #{@options[:job].name}. OK?", false)
 
       base_dir = options[1][key]
-      run_name = options[1]['run_name']
+      base_name = options[1]['run_name']
       bulk[:values].each do |value|
-        options[1]['run_name'] = "#{run_name}#{value.gsub(/^#{base_dir}/, '').tr('/ ', '-_')}"
+        options[1]['run_name'] = clean_string "#{base_name}/#{clean_string(value.gsub(/^#{base_dir}/, ''))}"
         options[1][key] = value
         Sidekiq::Client.push(
             'class' => 'Libis::Ingester::JobWorker',
@@ -45,4 +47,8 @@ def submit_menu
       puts "Run for job #{@options[:job].name} submitted with #{options[1]}."
     end
   end
+end
+
+def clean_string(s)
+  s.split(/[^\w\/-]+/).reject { |x| x.empty? }.join('_').split(/[\/-]+/).reject{|x|x.empty?}.join('-')
 end
