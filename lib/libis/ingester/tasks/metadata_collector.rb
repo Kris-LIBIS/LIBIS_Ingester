@@ -96,6 +96,7 @@ module Libis
         error 'Error getting metadata: %s', e.message
         debug 'At: %s', e.backtrace.first
         set_status(item, :FAILED)
+        raise Libis::WorkflowError, 'MetadataCollector failed.'
       end
 
       def get_search_term(item)
