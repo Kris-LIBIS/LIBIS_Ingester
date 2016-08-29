@@ -329,7 +329,7 @@ module Libis
 
         unless converter
           raise Libis::WorkflowError,
-                'Could not find converter for %s -> %s with %s', source_format, target_format, options
+                "Could not find converter for #{source_format} -> #{target_format} with #{options}"
         end
 
         converter_name = converter.to_s
