@@ -19,12 +19,12 @@ def delete_menu
   end
 end
 
-def delete_run(item)
-  item.destroy! if @hl.agree("This will destroy all evidence of run #{item.name}. OK?", false)
+def delete_run(item, quiet = false)
+  item.destroy! if quiet || @hl.agree("This will destroy all evidence of run #{item.name}. OK?", false)
 end
 
-def delete_item(item)
-  item.destroy! if @hl.agree(
+def delete_item(item, quiet = false)
+  item.destroy! if quiet || @hl.agree(
       "This will delete the #{item.class.to_s.split('::').last.downcase} '#{item.name}' from " +
           "#{item.parent.class.to_s.split('::').last.downcase} '#{item.parent.name}'. OK?", false
   )

@@ -89,11 +89,13 @@ def select_job
   end
 end
 
-def select_run
+def select_run(multiselect = false)
   return unless select_job
 
   # noinspection RubyResolve
-  db_menu('Run', @options[:job].runs, parent: @options[:job].name) { |run| "#{run.name} - #{run.status_label}" }
+  db_menu('Run', @options[:job].runs, parent: @options[:job].name, multiselect: multiselect) {
+      |run| "#{run.name} - #{run.status_label}"
+  }
 end
 
 def get_processes
@@ -172,12 +174,12 @@ def select_queue(queue_list, options = {})
   end
 end
 
-def select_worker(queue = nil)
+def select_worker(queue = nil, multiselect = false)
   queue ||= select_defined_queue
   return unless queue.is_a?(Sidekiq::Queue)
   workers = []
   queue.each { |worker| workers << worker }
-  selection_menu('Run', workers) do |worker|
+  selection_menu('Run', workers, multiselect: multiselect) do |worker|
     worker_detail(worker)
   end
 end
@@ -242,5 +244,5 @@ end
 def select_item(item)
   selection_menu('item', item.get_items, header: "Subitems of #{item.name}") { |i|
     "#{i.class.name.split('::').last}: '#{i.name}' (#{i.items.count} items) [#{i.status_label}]"
-  }
+  } || item
 end
