@@ -32,8 +32,8 @@ def selection_menu(title, items, options = {})
     if options[:multiselect]
       menu.hidden('*') {
         answer = @hl.ask('Enter a list of numbers and/or ranges: ')
+        return nil if answer.blank?
         result = Set.new
-        return result if answer.blank?
         answer.split(/\s*[,;\s]\s*/).each do |entry|
           case entry
             when /^\d+\.\.\d+$/
