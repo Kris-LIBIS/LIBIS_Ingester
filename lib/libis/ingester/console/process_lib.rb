@@ -149,9 +149,18 @@ def list_threads(process)
         thread_id,
         work['queue'],
         Time.at(work['run_at']).localtime,
-        work['payload']['args'].map(&:to_s).join(', ')
+        payload_detail(work['payload']['args'])
     ]
   end
+end
+
+def payload_detail(payload_args)
+  payload_args.map do |arg|
+    next arg.to_s unless arg.is_a?(String)
+    run = Libis::Ingester::Run.find(arg)
+    next run.name if run
+    arg
+  end.join(', ')
 end
 
 def action_menu(process)
