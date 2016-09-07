@@ -68,6 +68,7 @@ module Libis
               manifestation.ingest_model.manifestations.find_by(name: convert_info.from_manifestation)
           source_rep = from_manifestation &&
               representation.parent.representation(from_manifestation.name)
+          # noinspection ConvertOneChainedExprToSafeNavigation
           source_items = source_rep && source_rep.get_items || representation.parent.originals
 
           convert_hash = convert_info.to_hash
@@ -84,6 +85,8 @@ module Libis
               assemble_pdf source_items, representation, convert_hash
             when 'thumbnail'
               generate_thumbnail source_items, representation, convert_hash
+            when 'from_ie'
+              generate_from_ie(representation, convert_hash)
             else
               # No generator - convert each source file according to the specifications
               representation.status_progress(self.namepath, 0, source_items.count)
@@ -117,6 +120,16 @@ module Libis
         convert(source_item, representation, convert_hash)
       end
 
+      def generate_from_ie(representation, convert_hash)
+        ie = representation.parent
+        unless ie.is_a?(Libis::Ingester::IntellectualEntity) && ie.is_a?(Libis::Ingester::FileItem)
+          error 'Object %s is expected to be both an IE and File object, but it is not.', ie.name
+          return
+        end
+        file = Libis::Ingester::FileItem.new
+        file.filename = ie.filename
+        convert(file, representation, convert_hash)
+      end
       def assemble_images(items, representation, convert_hash)
         target_format = convert_hash[:target_format].to_sym
         assemble(
