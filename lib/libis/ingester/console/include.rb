@@ -201,10 +201,10 @@ def select_options(job)
   options = {}
   job.workflow.config['input'].each do |key, value|
     options[key] = value['default']
-  end
+  end if job.workflow.config['input']
   job.input.each do |key, value|
     options[key] = value
-  end
+  end if job.input
 
   set_option = Proc.new { |opt|
     key, value = opt
