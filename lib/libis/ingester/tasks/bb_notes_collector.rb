@@ -67,7 +67,7 @@ module Libis
           debug 'Created IE for `%s`', root, ie.name
           ie.save!
           # Add linked files and images to the IE
-          (ie_info.links + ie_info.images).each do |link|
+          (ie_info[:links] + ie_info[:images]).each do |link|
             file = Libis::Ingester::FileItem.new
             file.filename = full_path(File.join(ie_info[:path], link)).to_s
             ie.add_item(file)
