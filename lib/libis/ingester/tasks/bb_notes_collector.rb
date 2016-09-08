@@ -38,31 +38,36 @@ module Libis
               child.extend Libis::Workflow::Base::DirItem
               child.filename = File.join(root.filename, dir)
               child.parent = root
-              debug 'Created Collection item `%s`', child.name
+              debug 'Created Collection item `%s`', root, child.name
               child.save!
             end
             root = child
           }
           # Add IE object
           ie = Libis::Ingester::IntellectualEntity.new
-          ie.name = ie_info[:filename]
-          ie.label = ie_info[:title]
-          ie.parent = root
           # Embed html file info in the IE
           ie.extend Libis::Workflow::Base::FileItem
           ie.filename = full_path(File.join(ie_info[:path], ie_info[:filename])).to_s
+          ie.name = ie_info[:filename]
+          ie.label = ie_info[:title]
+          ie.parent = root
+          debug 'Created IE for `%s`', root, ie.name
           ie.save!
           # Add linked files and images to the IE
           (ie_info.links + ie_info.images).each do |link|
             file = Libis::Ingester::FileItem.new
             file.filename = full_path(File.join(ie_info[:path], link)).to_s
             ie.add_item(file)
+            debug 'Created File for `%s`', ie, file.name
             file.save!
           end
-
+          item.status_progress self.namepath, i
         end
       end
 
+      # Process a single HTML file to retrieve the information needed to create an IE for it
+      # @param [String] rel_path path to the HTML file relative to the :location parameter
+      # @return [Hash] IE information structure: path, name, title, links and images
       def process_ie(rel_path)
         rel_dir, fname = File.split(rel_path)
         f = full_path(rel_path).open
@@ -74,14 +79,14 @@ module Libis
         # Check if title was found
         if titles.empty?
           titles = [File.basename(fname, '.*')]
-          warn 'No title element found in HTML file \'%s\'. Using file name as title.', rel_path
+          warn 'No title element found in HTML file `%s`. Using file name as title.', rel_path
         end
         # File links
         links = html.xpath('//a/@href').map(&:value).map { |link| link2path(link) }.reject { |link| ignore_link(link) }
         # Check if files referenced do exist
         links.reject { |link|
           next false if full_path(File.join(rel_dir, link)).exist?
-          warn 'File \'%s\' referenced in HTML file \'%s\' was not found. Reference will be ignored.', link, rel_path
+          warn 'File \'%s\' referenced in HTML file `%s` was not found. Reference will be ignored.', link, rel_path
           true
         }
         # Image links
@@ -89,7 +94,7 @@ module Libis
         # Check if images referenced do exist
         images.reject { |link|
           next false if full_path(File.join(rel_dir, link)).exist?
-          warn 'Image \'%s\' referenced in HTML file \'%s\' was not found. Reference will be ignored.', link, rel_path
+          warn 'Image \'%s\' referenced in HTML file `%s` was not found. Reference will be ignored.', link, rel_path
           true
         }
         # return result
@@ -139,7 +144,7 @@ module Libis
       def check_duplicate_html(rel_path)
         @html_processed ||= Set.new
         if @html_processed.include? rel_path
-          warn 'Duplicate HTML file entry found in CSV: %s on line %d. Ingoring this duplicate entry.', rel_path, i + 2
+          warn 'Duplicate HTML file entry found in CSV: `%s` on line %d. Ignoring this duplicate entry.', rel_path, i + 2
           return false
         end
         @html_processed << rel_path
@@ -152,7 +157,7 @@ module Libis
       # @return [Boolean] true if file exists
       def check_file_exist(rel_path)
         unless full_path(rel_path).exist?
-          warn 'File \'%s\' not found in export directory. Ignoring this file reference.', rel_path
+          warn 'File `%s` not found in export directory. Ignoring this file reference.', rel_path
           return false
         end
         true
