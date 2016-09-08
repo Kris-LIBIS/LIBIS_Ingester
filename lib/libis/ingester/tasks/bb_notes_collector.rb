@@ -44,7 +44,7 @@ module Libis
           root = item
           root_dir = parameter(:root_dir)
           ie_info[:path].split('/').each { |dir|
-            child = root.items.find_by(name: dir)
+            child = root.items.find_by('properties.name' => dir)
             dir_path = File.join(root_dir, dir)
             unless child
               child = Libis::Ingester::Collection.new
