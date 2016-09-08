@@ -125,6 +125,7 @@ module Libis
         ie.extend Libis::Workflow::Base::FileItem
         file = Libis::Ingester::FileItem.new
         file.filename = ie.filename
+        format_identifier(file)
         convert(file, representation, convert_hash)
       end
       def assemble_images(items, representation, convert_hash)
