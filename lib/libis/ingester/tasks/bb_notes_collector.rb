@@ -47,7 +47,7 @@ module Libis
             unless child
               child = Libis::Ingester::Collection.new
               child.extend Libis::Workflow::Base::DirItem
-              child.filename = File.join(root.filename, dir)
+              child.filename = File.join(root.filename rescue parameter(:root_dir), dir)
               child.parent = root
               debug 'Created Collection item `%s`', root, child.name
               child.save!
