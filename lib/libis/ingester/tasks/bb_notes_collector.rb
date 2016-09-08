@@ -42,17 +42,19 @@ module Libis
           ie_info = process_ie rel_path
           # Create/find directory collection for path
           root = item
+          root_dir = parameter(:root_dir)
           ie_info[:path].split('/').each { |dir|
             child = root.items.find_by(name: dir)
             unless child
               child = Libis::Ingester::Collection.new
               child.extend Libis::Workflow::Base::DirItem
-              child.filename = File.join(root.filename rescue parameter(:root_dir), dir)
+              child.filename = File.join(root_dir, dir)
               child.parent = root
               debug 'Created Collection item `%s`', root, child.name
               child.save!
             end
             root = child
+            root_dir = child.filename
           }
           # Add IE object
           ie = Libis::Ingester::IntellectualEntity.new
