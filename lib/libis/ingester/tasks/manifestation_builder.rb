@@ -124,7 +124,7 @@ module Libis
         ie = representation.parent
         ie.extend Libis::Workflow::Base::FileItem
         file = Libis::Ingester::FileItem.new
-        file.filename = ie.filename
+        file.filename = ie.fullpath
         format_identifier(file)
         convert(file, representation, convert_hash)
       end
