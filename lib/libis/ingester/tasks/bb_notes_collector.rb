@@ -11,8 +11,10 @@ module Libis
 
       include Libis::Ingester::CsvMapping
 
+      parameter root_dir: '/',
+                description: 'Root directory of the Lotus Notes export.'
       parameter location: '.',
-                description: 'Location of the Lotus Notes export.'
+                description: 'Subdirectory to start processing. Should be equal to or subdirectory of root_dir.'
       parameter csv_file: 'export.csv',
                 description: 'CSV file with export list.'
 
@@ -24,9 +26,18 @@ module Libis
       # @param [Libis::Ingester::Run] item
       def process(item)
         csv = Libis::Tools::Csv.open(parameter(:csv_file), mode: 'rb:windows-1252:UTF-8', required: %w'Pad')
-        csv.each_with_index do |row, i|
+        matchdata = /^#{parameter(:root_dir)}\/?(.*)/.match(parameter(:location))
+        raise Libis::WorkflowAbort,
+              'Processing directory `%s` is not a subdirectory of the root directory `%s`.' % [
+                  parameter(:location),
+                  parameter(:root_dir)
+              ] unless (matchdata)
+        processing_path = matchdata[1]
+        ie_count = 0
+        csv.each_with_index do |row, line|
           rel_path = row['Pad'].gsub(/^c:\\export\\/, '').gsub(/\\/, '/')
-          next unless check_duplicate_html rel_path
+          next unless rel_path =~ /^#{processing_path}\/?/
+          next unless check_duplicate_html rel_path, line + 2
           next unless check_file_exist rel_path
           ie_info = process_ie rel_path
           # Create/find directory collection for path
@@ -61,8 +72,10 @@ module Libis
             debug 'Created File for `%s`', ie, file.name
             file.save!
           end
-          item.status_progress self.namepath, i
+          ie_count += 1
+          item.status_progress self.namepath, ie_count
         end
+        csv.close
       end
 
       # Process a single HTML file to retrieve the information needed to create an IE for it
@@ -111,7 +124,7 @@ module Libis
       # @param [Array[String]] rel_path list of relative paths
       # @return [Pathname] full path name
       def full_path(*rel_path)
-        Pathname.new(parameter(:location)).join(*rel_path)
+        Pathname.new(parameter(:root_dir)).join(*rel_path)
       end
 
       # Convert link to Pathname
@@ -140,11 +153,12 @@ module Libis
       # Note: this function keeps track of previously processed files in the class instance variable @html_processed and
       # it emits a warning message if it encounters a dubplicate.
       # @param [String] rel_path
+      # @param [Integer] line line number in CSV we're currently processing
       # @return [Boolean] true if given file has not been processed before
-      def check_duplicate_html(rel_path)
+      def check_duplicate_html(rel_path, line)
         @html_processed ||= Set.new
         if @html_processed.include? rel_path
-          warn 'Duplicate HTML file entry found in CSV: `%s` on line %d. Ignoring this duplicate entry.', rel_path, i + 2
+          warn 'Duplicate HTML file entry found in CSV: `%s` on line %d. Ignoring this duplicate entry.', rel_path, line
           return false
         end
         @html_processed << rel_path
