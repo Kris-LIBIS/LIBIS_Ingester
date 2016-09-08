@@ -122,10 +122,7 @@ module Libis
 
       def generate_from_ie(representation, convert_hash)
         ie = representation.parent
-        unless ie.is_a?(Libis::Ingester::IntellectualEntity) && ie.is_a?(Libis::Ingester::FileItem)
-          error 'Object %s is expected to be both an IE and File object, but it is not.', ie.name
-          return
-        end
+        ie.extend Libis::Workflow::Base::FileItem
         file = Libis::Ingester::FileItem.new
         file.filename = ie.filename
         convert(file, representation, convert_hash)
