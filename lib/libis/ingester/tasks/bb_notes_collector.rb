@@ -45,15 +45,16 @@ module Libis
           root_dir = parameter(:root_dir)
           ie_info[:path].split('/').each { |dir|
             child = root.items.find_by(name: dir)
+            dir_path = File.join(root_dir, dir)
             unless child
               child = Libis::Ingester::Collection.new
-              child.filename = File.join(root_dir, dir)
+              child.filename = dir_path
               child.parent = root
               debug 'Created Collection item `%s`', root, child.name
               child.save!
             end
             root = child
-            root_dir = child.filename
+            root_dir = dir_path
           }
           # Add IE object
           ie = Libis::Ingester::IntellectualEntity.new
