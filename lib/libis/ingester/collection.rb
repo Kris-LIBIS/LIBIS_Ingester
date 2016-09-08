@@ -14,7 +14,7 @@ module Libis
       field :external_id, type: String
 
       def filename=(f)
-        self.properties[:name] = File.basename(f)
+        self.properties['name'] = File.basename(f)
       end
 
       def collections

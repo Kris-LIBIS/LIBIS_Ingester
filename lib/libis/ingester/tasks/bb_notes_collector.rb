@@ -47,7 +47,6 @@ module Libis
             child = root.items.find_by(name: dir)
             unless child
               child = Libis::Ingester::Collection.new
-              child.extend Libis::Workflow::Base::DirItem
               child.filename = File.join(root_dir, dir)
               child.parent = root
               debug 'Created Collection item `%s`', root, child.name
@@ -71,7 +70,7 @@ module Libis
             file = Libis::Ingester::FileItem.new
             file.filename = full_path(File.join(ie_info[:path], link)).to_s
             ie.add_item(file)
-            debug 'Created File for `%s`', ie, file.name
+            debug 'Created File for `%s`', ie, file.filename
             file.save!
           end
           ie_count += 1
