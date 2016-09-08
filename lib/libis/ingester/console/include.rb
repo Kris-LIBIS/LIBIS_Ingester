@@ -225,14 +225,14 @@ def select_options(job)
       "#{opt.first} : #{opt.last}"
     }
     break unless option
-  end
-
+  end unless options.empty?
 
   options
 
 end
 
 def select_bulk_option(options)
+  return nil if options.empty?
   option = selection_menu('Bulk parameter', options) { |opt| "#{opt.first} : #{opt.last}" }
   return nil unless option
   maxlevel = @hl.ask('Number of subdir levels to process', Integer) { |q| q.default = 1 }
