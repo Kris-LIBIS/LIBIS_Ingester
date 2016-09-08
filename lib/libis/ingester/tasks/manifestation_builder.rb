@@ -356,7 +356,7 @@ module Libis
       end
 
       def format_identifier(item)
-        format = Libis::Format::Identifier.get(item.fullpath) rescue {}
+        format = Libis::Format::Identifier.get(item.fullpath) rescue {} || {}
 
         mimetype = format[:mimetype]
 
