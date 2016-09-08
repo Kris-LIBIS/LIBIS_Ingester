@@ -23,7 +23,7 @@ module Libis
       # Process the input directory on the FTP server for new material
       # @param [Libis::Ingester::Run] item
       def process(item)
-        csv = Libis::Tools::Csv.open(file: parameter(:csv_file), mode: 'rb:windows-1252:UTF-8', required: %w'Pad')
+        csv = Libis::Tools::Csv.open(parameter(:csv_file), mode: 'rb:windows-1252:UTF-8', required: %w'Pad')
         csv.each_with_index do |row, i|
           rel_path = row['Pad'].gsub(/^c:\\export\\/, '').gsub(/\\/, '/')
           next unless check_duplicate_html rel_path

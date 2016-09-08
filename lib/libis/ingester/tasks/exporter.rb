@@ -3,7 +3,6 @@ require 'fileutils'
 require 'libis/tools/xml_document'
 
 require 'libis-ingester'
-require 'libis/ingester/ftps_service'
 
 module Libis
   module Ingester
