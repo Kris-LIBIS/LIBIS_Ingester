@@ -78,7 +78,7 @@ module Libis
 
         extra = {}
         parameter(:extra_keys).each do |k,v|
-          extra[k] = eval(v)
+          extra[k] = eval(v) rescue ''
         end
 
         write_export(export_file, key, pid, extra)
