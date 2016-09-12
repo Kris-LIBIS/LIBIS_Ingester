@@ -71,6 +71,7 @@ module Libis
             self.action = :run
             self.remove_work_dir
             self.remove_items
+            self.clear_status
             self.run :run
           when :retry
             self.action = :retry
@@ -92,6 +93,10 @@ module Libis
           item.destroy!
         end
         self.items.clear
+      end
+
+      def clear_status
+        self.status_log.clear
       end
 
     end
