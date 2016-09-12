@@ -78,6 +78,12 @@ def status_menu
               Libis::Ingester::RunWorker.push_retry_job(run.id.to_s, queue.name) if queue
               run
             end
+            menu['again'] = Proc.new do
+              run = item.is_a?(Libis::Ingester::Run) ? item : item.get_run
+              queue = select_defined_queue
+              Libis::Ingester::RunWorker.push_restart_job(run.id.to_s, queue.name) if queue
+              run
+            end
             item = selection_menu('action', [], hidden: menu, header: '', prompt: '', layout: :one_line) || item.parent
           end
           break unless item
