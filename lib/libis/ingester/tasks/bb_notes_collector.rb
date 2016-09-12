@@ -40,6 +40,7 @@ module Libis
           next unless check_duplicate_html rel_path, line + 2
           next unless check_file_exist rel_path
           ie_info = process_ie rel_path
+          next unless ie_info
           # Create/find directory collection for path
           root = item
           root_dir = parameter(:root_dir)
@@ -85,7 +86,7 @@ module Libis
       # @return [Hash] IE information structure: path, name, title, links and images
       def process_ie(rel_path)
         rel_dir, fname = File.split(rel_path)
-        f = full_path(rel_path).open
+        f = File.open(full_path(rel_path), 'r:UTF-8')
         # noinspection RubyResolve
         html = Nokogiri::HTML(f) { |config| config.strict.nonet.noblanks }
         f.close
@@ -112,12 +113,17 @@ module Libis
           warn 'Image \'%s\' referenced in HTML file `%s` was not found. Reference will be ignored.', link, rel_path
           true
         }
+        # Remove duplicate links
+        link_set = links.to_set + images.to_set
+        unless link_set.count == links.count + images.count
+          warn 'HTML file `%s` contains duplicate file references. Duplicates are ignored.', rel_path
+        end
         # return result
         {
             path: rel_dir,
             filename: fname,
             title: titles.first.gsub(/[\r\n]/, ''),
-            links: links.to_set + images.to_set,
+            links: link_set,
         }
       end
 
