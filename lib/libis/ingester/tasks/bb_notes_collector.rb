@@ -99,7 +99,7 @@ module Libis
         # File links
         links = html.xpath('//a/@href').map(&:value).map { |link| link2path(link) }.reject { |link| ignore_link(link) }
         # Check if files referenced do exist
-        links.reject { |link|
+        links.reject! { |link|
           next false if full_path(File.join(rel_dir, link)).exist?
           warn 'File \'%s\' referenced in HTML file `%s` was not found. Reference will be ignored.', link, rel_path
           true
@@ -107,7 +107,7 @@ module Libis
         # Image links
         images = html.xpath('//img/@src').map(&:value).map { |link| link2path(link) }.reject { |i| ignore_file(i) }
         # Check if images referenced do exist
-        images.reject { |link|
+        images.reject! { |link|
           next false if full_path(File.join(rel_dir, link)).exist?
           warn 'Image \'%s\' referenced in HTML file `%s` was not found. Reference will be ignored.', link, rel_path
           true
