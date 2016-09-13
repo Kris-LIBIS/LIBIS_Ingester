@@ -246,3 +246,10 @@ def select_item(item)
     "#{i.class.name.split('::').last}: '#{i.name}' (#{i.items.count} items) [#{i.status_label}]"
   } || item
 end
+
+require 'awesome_print'
+require 'awesome_print/ext/mongoid'
+
+def item_info(item)
+  ap item
+end
