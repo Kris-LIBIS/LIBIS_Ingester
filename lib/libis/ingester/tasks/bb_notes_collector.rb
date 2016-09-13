@@ -59,14 +59,17 @@ module Libis
           }
           # Add IE object
           ie = Libis::Ingester::IntellectualEntity.new
-          # Embed html file info in the IE
-          ie.extend Libis::Workflow::Base::FileItem
-          ie.filename = full_path(File.join(ie_info[:path], ie_info[:filename])).to_s
           ie.name = ie_info[:filename]
           ie.label = ie_info[:title]
           ie.parent = root
           debug 'Created IE for `%s`', root, ie.name
           ie.save!
+          # Add HTML file to the IE
+          file = Libis::Ingester::FileItem.new
+          file.filename = full_path(File.join(ie_info[:path], ie_info[:filename])).to_s
+          ie.add_item(file)
+          debug 'Created File for `%s`', ie, file.filename
+          file.save!
           # Add linked files and images to the IE
           ie_info[:links].each do |link|
             file = Libis::Ingester::FileItem.new
@@ -75,6 +78,7 @@ module Libis
             debug 'Created File for `%s`', ie, file.filename
             file.save!
           end
+          ie.save!
           ie_count += 1
           item.status_progress self.namepath, ie_count
         end
