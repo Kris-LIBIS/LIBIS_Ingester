@@ -104,10 +104,15 @@ Dir.new(base_dir).entries.each do |file_name|
     FileUtils.mkpath(target_dir) unless dummy_operation
     target_dir_list << target_dir
   end
+  target_path = File.join(target_dir, target_file)
+  if File.exist?(target_path)
+    $stderr.puts "ERROR: File exists #{target_path} while moving file #{entry}."
+    next
+  end
   puts "-> Move '#{file_name}' to '#{target}'" unless @report
   FileUtils.move(entry, File.join(target_dir, target_file)) unless dummy_operation
   write_report(entry, target_dir, target_file)
-end
+  end
 
 close_report
 
