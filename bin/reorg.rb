@@ -106,12 +106,14 @@ Dir.new(base_dir).entries.each do |file_name|
   next if file_name =~/^\.\.?$/
   entry = File.join(base_dir, file_name)
   unless File.file?(entry)
-    puts "Skipping directory #{entry}."
+    puts "Skipping directory #{entry}." unless @report
+    write_report(entry, '', '', 'Directory - skipped.')
     count[:skipped_dir] += 1
     next
   end
   unless file_name =~ parse_regex
-    puts "Skipping file #{file_name}. File name does not match expression."
+    puts "Skipping file #{file_name}. File name does not match expression." unless @report
+    write_report(entry, '', '', 'Mismatch - skipped.')
     count[:unmatched_file] += 1
     next
   end
