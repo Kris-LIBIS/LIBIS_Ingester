@@ -36,6 +36,7 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'highline'
   spec.add_runtime_dependency 'double-bag-ftps'
   spec.add_runtime_dependency 'redis-namespace'
+  spec.add_runtime_dependency 'filesize'
 
   spec.add_development_dependency 'bundler', '~> 1.7'
   spec.add_development_dependency 'rake', '~> 10.0'

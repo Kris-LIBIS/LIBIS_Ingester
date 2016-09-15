@@ -1,9 +1,12 @@
 #!/usr/bin/env ruby
 require_relative '../lib/libis/ingester/console/reorg_lib'
 
+require 'filesize'
+
 ######## Command-line
 base_dir, parse_regex, path_expression, report_file = read_config('')
 dummy_operation = nil
+interactive = nil
 
 OptionParser.new do |opts|
   opts.banner = "Usage: #{$0} [options]"
@@ -13,6 +16,10 @@ OptionParser.new do |opts|
   opts.on('-c STRING', '--config STRING', 'Configuration name') do |v|
     @config = v
     base_dir, parse_regex, path_expression, report_file = read_config(v)
+  end
+
+  opts.on('--interactive', 'Ask for action when changed files are found.') do
+    interactive = true
   end
 
   opts.on('-b STRING', '--base STRING', 'Directory that needs to be reorganized') do |v|
@@ -92,6 +99,13 @@ target_dir_list = Set.new
 open_report(report_file)
 
 require 'fileutils'
+count = {move: 0, duplicate: 0, update: 0, reject: 0}
+
+def move_file(dummy_operation, entry, file_name, target, target_dir, target_file)
+  puts "-> Move '#{file_name}' to '#{target}'" unless @report
+  FileUtils.move(entry, File.join(target_dir, target_file)) unless dummy_operation
+end
+
 Dir.new(base_dir).entries.each do |file_name|
   next if file_name =~/^\.\.?$/
   entry = File.join(base_dir, file_name)
@@ -116,18 +130,34 @@ Dir.new(base_dir).entries.each do |file_name|
   remark = nil
   if File.exist?(target_path)
     if compare_entry(entry, target_path)
-      remark = 'Warning: Duplicate - skipped.'
-      $stderr.puts "Warning: Duplicate file entry: #{entry}."
+      remark = 'Duplicate - skipped.'
+      count[:duplicate] += 1
+      $stderr.puts "Duplicate file entry: #{entry}." unless @report
     else
-      $stderr.puts "ERROR: #{entry} exists with different content."
-      remark = 'Error: Duplicate name, different content - skippped.'
+      puts "source: #{File.mtime(entry)} #{'%11s' % Filesize.new(File.size(entry)).pretty} #{entry}"
+      puts "target: #{File.mtime(target_path)} #{'%11s' % Filesize.new(File.size(target_path)).pretty} #{target_path}"
+      if interactive && @hl.agree('Overwrite target?') { |q| q.default = false }
+          remark = 'Duplicate - updated'
+          move_file(dummy_operation, entry, file_name, target, target_dir, target_file)
+          count[:update] += 1
+      else
+        remark = 'Duplicate - rejected.'
+        error_count += 1
+        $stderr.puts "ERROR: #{entry} exists with different content."  unless @report
+        count[:reject] += 1
+      end
     end
+
   else
-    puts "-> Move '#{file_name}' to '#{target}'" unless @report
-    FileUtils.move(entry, File.join(target_dir, target_file)) unless dummy_operation
+    move_file(dummy_operation, entry, file_name, target, target_dir, target_file)
   end
   write_report(entry, target_dir, target_file, remark)
-  end
+end
+
+$stderr.puts "#{count[:move]} file(s) moved."
+$stderr.puts "#{count[:duplicate]} duplicate(s) found and skipped."
+$stderr.puts "#{count[:update]} changed file(s) found and updated."
+$stderr.puts "#{count[:reject]} changed file(s) found and rejected."
 
 close_report
 
