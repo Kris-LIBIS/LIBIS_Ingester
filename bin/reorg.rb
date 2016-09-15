@@ -2,13 +2,18 @@
 require_relative '../lib/libis/ingester/console/reorg_lib'
 
 ######## Command-line
-base_dir, parse_regex, path_expression, report_file = read_entries
+base_dir, parse_regex, path_expression, report_file = read_config('')
 dummy_operation = nil
 
 OptionParser.new do |opts|
   opts.banner = "Usage: #{$0} [options]"
 
   base_opts(opts)
+
+  opts.on('-c STRING', '--config STRING', 'Configuration name') do |v|
+    @config = v
+    base_dir, parse_regex, path_expression, report_file = read_config(v)
+  end
 
   opts.on('-b STRING', '--base STRING', 'Directory that needs to be reorganized') do |v|
     base_dir = v
@@ -39,6 +44,9 @@ OptionParser.new do |opts|
   end
 
 end.parse!
+
+######### Configuration
+@config = get_config
 
 ######### Source dir
 base_dir = get_base_dir(base_dir)
@@ -75,7 +83,7 @@ puts
 puts 'This can take a while. Please sit back and relax, grab a cup of coffee, have a quick nap or read a good book ...'
 
 # Save entries
-save_entries(base_dir, parse_regex, path_expression, report_file)
+save_config(base_dir, parse_regex, path_expression, report_file)
 
 # keeps track of folders created
 require 'set'
