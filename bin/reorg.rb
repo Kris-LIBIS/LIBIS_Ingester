@@ -100,22 +100,19 @@ target_dir_list = Set.new
 open_report(report_file)
 
 require 'fileutils'
-count = {move: 0, duplicate: 0, update: 0, reject: 0}
-
-def move_file(dummy_operation, entry, file_name, target, target_dir, target_file)
-  puts "-> Move '#{file_name}' to '#{target}'" unless @report
-  FileUtils.move(entry, File.join(target_dir, target_file)) unless dummy_operation
-end
+count = {move: 0, duplicate: 0, update: 0, reject: 0, skipped_dir: 0, unmatched_file: 0}
 
 Dir.new(base_dir).entries.each do |file_name|
   next if file_name =~/^\.\.?$/
   entry = File.join(base_dir, file_name)
   unless File.file?(entry)
     puts "Skipping directory #{entry}."
+    count[:skipped_dir] += 1
     next
   end
   unless file_name =~ parse_regex
     puts "Skipping file #{file_name}. File name does not match expression."
+    count[:unmatched_file] += 1
     next
   end
   target = eval(path_expression)
@@ -139,7 +136,8 @@ Dir.new(base_dir).entries.each do |file_name|
       puts "target: #{File.mtime(target_path)} #{'%11s' % Filesize.new(File.size(target_path)).pretty} #{target_path}"
       if interactive ? @hl.agree('Overwrite target?') { |q| q.default = false } : false
           remark = 'Duplicate - updated'
-          move_file(dummy_operation, entry, file_name, target, target_dir, target_file)
+          puts "-> Move '#{file_name}' to '#{target}'" unless @report
+          FileUtils.move(entry, File.join(target_dir, target_file), force: true) unless dummy_operation
           count[:update] += 1
       else
         remark = 'Duplicate - rejected.'
@@ -150,7 +148,9 @@ Dir.new(base_dir).entries.each do |file_name|
     end
 
   else
-    move_file(dummy_operation, entry, file_name, target, target_dir, target_file)
+    puts "-> Move '#{file_name}' to '#{target}'" unless @report
+    FileUtils.move(entry, File.join(target_dir, target_file)) unless dummy_operation
+    count[:move] += 1
   end
   write_report(entry, target_dir, target_file, remark)
 end
@@ -159,6 +159,8 @@ $stderr.puts "#{count[:move]} file(s) moved."
 $stderr.puts "#{count[:duplicate]} duplicate(s) found and skipped."
 $stderr.puts "#{count[:update]} changed file(s) found and updated."
 $stderr.puts "#{count[:reject]} changed file(s) found and rejected."
+$stderr.puts "#{count[:skipped_dir]} dir(s) found and skipped."
+$stderr.puts "#{count[:unmatched_file]} file(s) found that did not match and skipped."
 
 close_report
 
