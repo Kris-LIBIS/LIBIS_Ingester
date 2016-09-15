@@ -73,6 +73,13 @@ def status_menu
               wait_for(pid)
               item
             end
+            menu['errors'] = Proc.new do
+              run = item.is_a?(Libis::Ingester::Run) ? item : item.get_run
+              # noinspection RubyResolve
+              pid = Process.spawn 'grep', '-En', '"( ERROR | WARN )"', run.log_filename
+              wait_for(pid)
+              item
+            end
             menu['retry'] = Proc.new do
               run = item.is_a?(Libis::Ingester::Run) ? item : item.get_run
               queue = select_defined_queue
