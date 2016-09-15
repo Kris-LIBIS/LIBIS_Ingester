@@ -155,12 +155,12 @@ Dir.new(base_dir).entries.each do |file_name|
   write_report(entry, target_dir, target_file, remark)
 end
 
-$stderr.puts "#{count[:move]} file(s) moved."
-$stderr.puts "#{count[:duplicate]} duplicate(s) found and skipped."
-$stderr.puts "#{count[:update]} changed file(s) found and updated."
-$stderr.puts "#{count[:reject]} changed file(s) found and rejected."
-$stderr.puts "#{count[:skipped_dir]} dir(s) found and skipped."
-$stderr.puts "#{count[:unmatched_file]} file(s) found that did not match and skipped."
+$stderr.puts "#{'%8d' % count[:skipped_dir]} dir(s) found and skipped."
+$stderr.puts "#{'%8d' % count[:unmatched_file]} file(s) found that did not match and skipped."
+$stderr.puts "#{'%8d' % count[:move]} file(s) moved."
+$stderr.puts "#{'%8d' % count[:duplicate]} duplicate(s) found and skipped."
+$stderr.puts "#{'%8d' % count[:update]} changed file(s) found and updated."
+$stderr.puts "#{'%8d' % count[:reject]} changed file(s) found and rejected."
 
 close_report
 
