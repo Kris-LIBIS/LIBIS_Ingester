@@ -4,33 +4,34 @@ require_relative '../lib/libis/ingester/console/reorg_lib'
 require 'filesize'
 
 ######## Command-line
+config = nil
 base_dir, parse_regex, path_expression, report_file = read_config('')
 dummy_operation = nil
-interactive = nil
+interactive = false
 
 OptionParser.new do |opts|
   opts.banner = "Usage: #{$0} [options]"
 
   base_opts(opts)
 
-  opts.on('-c STRING', '--config STRING', 'Configuration name') do |v|
-    @config = v
+  opts.on('-c', '--config [STRING]', 'Configuration name') do |v|
+    config = v
     base_dir, parse_regex, path_expression, report_file = read_config(v)
   end
 
-  opts.on('--interactive', 'Ask for action when changed files are found.') do
+  opts.on('-i', '--interactive', 'Ask for action when changed files are found.') do
     interactive = true
   end
 
-  opts.on('-b STRING', '--base STRING', 'Directory that needs to be reorganized') do |v|
+  opts.on('-b', '--base STRING', 'Directory that needs to be reorganized') do |v|
     base_dir = v
   end
 
-  opts.on('-f REGEX', '--filter REGEX', 'Regex for file name matching') do |v|
+  opts.on('-f', '--filter REGEX', 'Regex for file name matching') do |v|
     parse_regex = v
   end
 
-  opts.on('-e STRING', '--expression STRING', 'Path expression for new file path') do |v|
+  opts.on('-e', '--expression STRING', 'Path expression for new file path') do |v|
     path_expression = v
   end
 
@@ -53,7 +54,7 @@ OptionParser.new do |opts|
 end.parse!
 
 ######### Configuration
-@config = get_config
+config = get_config(config)
 
 ######### Source dir
 base_dir = get_base_dir(base_dir)
@@ -90,7 +91,7 @@ puts
 puts 'This can take a while. Please sit back and relax, grab a cup of coffee, have a quick nap or read a good book ...'
 
 # Save entries
-save_config(base_dir, parse_regex, path_expression, report_file)
+save_config(base_dir, parse_regex, path_expression, report_file, config)
 
 # keeps track of folders created
 require 'set'
@@ -136,7 +137,7 @@ Dir.new(base_dir).entries.each do |file_name|
     else
       puts "source: #{File.mtime(entry)} #{'%11s' % Filesize.new(File.size(entry)).pretty} #{entry}"
       puts "target: #{File.mtime(target_path)} #{'%11s' % Filesize.new(File.size(target_path)).pretty} #{target_path}"
-      if interactive && @hl.agree('Overwrite target?') { |q| q.default = false }
+      if interactive ? @hl.agree('Overwrite target?') { |q| q.default = false } : false
           remark = 'Duplicate - updated'
           move_file(dummy_operation, entry, file_name, target, target_dir, target_file)
           count[:update] += 1

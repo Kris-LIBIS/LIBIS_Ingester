@@ -2,18 +2,17 @@ require_relative 'menu'
 require 'libis/tools/checksum'
 
 @unattended = false
-@config = nil
 
-def get_config
-  unless @unattended && @config
+def get_config(config)
+  unless @unattended || config
     puts
     puts 'You can supply a configuration name. Configurations are stored in a ${HOME}/.reorg<Config>.data file.'
     puts 'The configuration parameters you set are automatically retrieved and saved under that name.'
     puts 'These configurations exist:'
     puts_config
-    @config = @hl.ask('Configuration to use.') { |q| q.default = @config }
+    config = @hl.ask('Configuration to use.') { |q| q.default = config }
   end
-  @config
+  config
 end
 
 def get_base_dir(base_dir)
@@ -128,15 +127,15 @@ def get_dummy_operation(dummy_operation)
   dummy_operation
 end
 
-def config_file(config = nil)
-  File.join(ENV['HOME'], ".reorg#{config || @config}.data")
+def config_file(config )
+  File.join(ENV['HOME'], ".reorg#{config}.data")
 end
 
 def configurations
   Dir.glob(File.join(ENV['HOME'], '.reorg*.data')).map {|x| x.scan(/reorg(.*).data$/).first.first rescue '' }
 end
 
-def save_config(base_dir, parse_regex, path_expression, report_file, config = nil)
+def save_config(base_dir, parse_regex, path_expression, report_file, config)
   File.open(config_file(config), 'w') do |f|
     f.puts "dir: #{base_dir}"
     f.puts "regex: #{parse_regex}"
@@ -145,7 +144,7 @@ def save_config(base_dir, parse_regex, path_expression, report_file, config = ni
   end
 end
 
-def read_config(config = nil)
+def read_config(config)
   result = {}
   File.open(config_file(config), 'r') do |f|
     f.readlines.each do |l|
