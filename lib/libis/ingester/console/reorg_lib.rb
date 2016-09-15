@@ -133,7 +133,7 @@ def config_file(config = nil)
 end
 
 def configurations
-  Dir.entries(File.join(ENV['HOME'], '.reorg*.data')).map {|x| x.scan(/reorg(.*).data$/).first.first rescue '' }
+  Dir.glob(File.join(ENV['HOME'], '.reorg*.data')).map {|x| x.scan(/reorg(.*).data$/).first.first rescue '' }
 end
 
 def save_config(base_dir, parse_regex, path_expression, report_file, config = nil)
