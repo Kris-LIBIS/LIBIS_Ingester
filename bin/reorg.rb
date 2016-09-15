@@ -105,13 +105,20 @@ Dir.new(base_dir).entries.each do |file_name|
     target_dir_list << target_dir
   end
   target_path = File.join(target_dir, target_file)
+  remark = nil
   if File.exist?(target_path)
-    $stderr.puts "ERROR: File exists #{target_path} while moving file #{entry}."
-    next
+    if compare_entry(entry, target_path)
+      remark = 'Warning: Duplicate - skipped.'
+      $stderr.puts "Warning: Duplicate file entry: #{entry}."
+    else
+      $stderr.puts "ERROR: #{entry} exists with different content."
+      remark = 'Error: Duplicate name, different content - skippped.'
+    end
+  else
+    puts "-> Move '#{file_name}' to '#{target}'" unless @report
+    FileUtils.move(entry, File.join(target_dir, target_file)) unless dummy_operation
   end
-  puts "-> Move '#{file_name}' to '#{target}'" unless @report
-  FileUtils.move(entry, File.join(target_dir, target_file)) unless dummy_operation
-  write_report(entry, target_dir, target_file)
+  write_report(entry, target_dir, target_file, remark)
   end
 
 close_report

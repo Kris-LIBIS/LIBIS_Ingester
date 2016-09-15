@@ -1,4 +1,5 @@
 require_relative 'menu'
+require 'libis/tools/checksum'
 
 @unattended = false
 
@@ -68,17 +69,17 @@ def for_yml(string)
   ; string.inspect.to_yaml;
 end
 
-def write_report(old_name, new_folder, new_name)
+def write_report(old_name, new_folder, new_name, remark = nil)
   return unless @report
   case @report_type
     when :tsv
-      @report.puts "old_name\tnew_folder\tnew_name" if @report.size == 0
+      @report.puts "old_name\tnew_folder\tnew_name\tremark" if @report.size == 0
       @report.puts "#{for_tsv(old_name)}\t#{for_tsv(new_folder)}" +
-                       "\t#{for_tsv(new_name)}"
+                       "\t#{for_tsv(new_name)}\t#{for_tsv(remark)}"
     when :csv
       @report.puts 'old_name,new_folder,new_name' if @report.size == 0
       @report.puts "#{for_csv(old_name)},#{for_csv(new_folder)}" +
-                       ",#{for_csv(new_name)}"
+                       ",#{for_csv(new_name)},#{for_csv(remark)}"
     when :xml
       @report.puts '<?xml version="1.0" encoding="UTF-8"?>' if @report.size == 0
       @report.puts '<report>' if @report.size == 1
@@ -86,12 +87,14 @@ def write_report(old_name, new_folder, new_name)
       @report.puts "    <old_name>#{for_xml(old_name, :text)}</old_name>"
       @report.puts "    <new_folder>#{for_xml(new_folder, :text)}</new_folder>"
       @report.puts "    <new_name>#{for_xml(new_name, :text)}</new_name>"
+      @report.puts "    <remark>#{for_xml(remark, :text)}</remark>" if remark
       @report.puts '  </file>'
     when :yml
       @report.puts '# Reorganisation report' if @report.size == 0
       @report.puts "- old_name: #{for_yml(old_name)}" +
                        "\n  new_folder: #{for_yml(new_folder)}" +
-                       "\n  new_name: #{for_yml(new_name)}"
+                       "\n  new_name: #{for_yml(new_name)}" +
+                       (remark ? "\n  remark: #{for_yml(remark)}" : '')
     else
       #nothing
   end
@@ -136,4 +139,9 @@ def read_entries
   [:dir, :regex, :expr, :report].map do |s|
     result[s]
   end
+end
+
+def compare_entry(src, tgt)
+  hasher = Libis::Tools::Checksum.new(:SHA256)
+  hasher.digest(src) == hasher.digest(tgt)
 end
