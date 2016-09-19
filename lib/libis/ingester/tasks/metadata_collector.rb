@@ -21,12 +21,12 @@ module Libis
       parameter term: nil,
                 description: 'Ruby expression that builds the search term to be used in the metadata lookup. ' +
                     'If no term is given, the item name will be used. Use match_regex and match_term to create ' +
-                    'a term dynamically.'
-      'Available data are: \n' +
-          '- item.filename: file name of the object, \n' +
-          '- item.filepath: relative path of the object, \n' +
-          '- item.fullpath: full path of the object, \n' +
-          '- item.name: name of the object.'
+                    'a term dynamically.' +
+                    'Available data are: \n' +
+                    '- item.filename: file name of the object, \n' +
+                    '- item.filepath: relative path of the object, \n' +
+                    '- item.fullpath: full path of the object, \n' +
+                    '- item.name: name of the object.'
 
       parameter match_regex: nil,
                 description: 'Regular expression to check against the \'match_term\' value. \n' +
@@ -150,8 +150,11 @@ module Libis
       end
 
       def convert_metadata(record)
-        return record unless parameter(:converter)
+        return record if parameter(:converter).blank?
         mapper_class = "Libis::Tools::Metadata::Mappers::#{parameter(:converter)}".constantize
+        unless mapper_class
+          raise Libis::WorkflowAbort, "Metadata converter class `#{parameter(:converter)}` not found.",
+        end
         record.extend mapper_class
         record.to_dc
       end
