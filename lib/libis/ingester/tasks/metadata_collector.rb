@@ -153,7 +153,7 @@ module Libis
         return record if parameter(:converter).blank?
         mapper_class = "Libis::Tools::Metadata::Mappers::#{parameter(:converter)}".constantize
         unless mapper_class
-          raise Libis::WorkflowAbort, "Metadata converter class `#{parameter(:converter)}` not found.",
+          raise Libis::WorkflowAbort, "Metadata converter class `#{parameter(:converter)}` not found."
         end
         record.extend mapper_class
         record.to_dc
