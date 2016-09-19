@@ -49,9 +49,12 @@ module Libis
             target_parent = sub_parent
           end
           group = nil
-          if parameter(:group_label)
-            group_label = eval(parameter(:group_label))
-            group_name = parameter(:group_name) ? eval(parameter(:group_name)) : group_label
+          if parameter(:group_label) || parameter(:group_name)
+            group_name = eval(parameter(:group_name)) if parameter(:group_name)
+            group_label = eval(parameter(:group_label)) if parameter(:group_label)
+            # noinspection RubyScope
+            group_name ||= group_label
+            group_label ||= group_name
             group = target_parent.get_items.select { |g| g.name == group_name }.first
             unless group
               group = Libis::Ingester::Division.new
