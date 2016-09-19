@@ -14,7 +14,7 @@ module Libis
                 description: 'URL of the Alma web service.'
       parameter library: '32KUL_LIBIS_NETWORK',
                 description: 'SRU institution code'
-      parameter converter: ''
+      parameter converter: 'Scope'
 
       protected
 

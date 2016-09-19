@@ -37,7 +37,7 @@ module Libis
 
       parameter converter: 'Kuleuven',
                 description: 'Dublin Core metadata converter to use.',
-                constraint: ['Kuleuven', 'Flandrica', '']
+                constraint: ['', 'Kuleuven', 'Flandrica', 'Scope']
 
       parameter mapping_file: nil,
                 description: 'File that maps search term to identifier for metadata lookup.'
