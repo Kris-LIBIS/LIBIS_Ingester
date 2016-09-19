@@ -55,7 +55,7 @@ module Libis
             # noinspection RubyScope
             group_name ||= group_label
             group_label ||= group_name
-            group = target_parent.get_items.select { |g| g.name == group_name }.first
+            group = target_parent.get_items.select { |g| g.name == group_name && g.is_a?(Libis::Ingester::Division) }.first
             unless group
               group = Libis::Ingester::Division.new
               group.name = group_name
