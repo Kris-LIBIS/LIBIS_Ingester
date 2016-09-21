@@ -317,7 +317,6 @@ module Libis
           tgt_format = opts.delete(:target_format) || target_format
           tgt_file = tempname(src_file, tgt_format)
           temp_files << tgt_file
-          tgt_file = tgt_file.path
           src_file, converter = convert_one_file(src_file, tgt_file, src_format, tgt_format, opts)
           src_format = tgt_format
           converterlist << converter
