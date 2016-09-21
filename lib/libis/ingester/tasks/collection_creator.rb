@@ -12,7 +12,7 @@ module Libis
       parameter collection: nil,
                 description: 'Existing collection to add the documents to.'
       parameter navigate: true,
-                description: 'Allow the user to navigate in the collections.'
+                description: 'Allow the user to navigate in the collections. This '
       parameter publish: true,
                 description: 'Publish the collections.'
 
@@ -59,12 +59,14 @@ module Libis
         parent_id = item.parent.properties['collection_id'] if item.parent
         parent_id ||= create_collection_path(collection_list)
 
-        collection_id = find_collection((collection_list + [item.label]).join('/'), item) ||
-            create_collection_id(parent_id, collection_list, item.label, item.navigate, item.publish, item)
-
+        collection_id = find_collection((collection_list + [item.label]).join('/'), item)
+        if collection_id
+          debug "Found collection '#{item.label}' with id #{collection_id} in Rosetta.", item
+        else
+          collection_id = create_collection_id(parent_id, collection_list, item.label, item.navigate, item.publish, item)
+          debug "Created collection '#{item.label}' with id #{collection_id} in Rosetta.", item
+        end
         item.properties['collection_id'] = collection_id
-
-        debug "Created/found collection '#{item.label}' with id #{collection_id} in Rosetta.", item
       end
 
       def create_collection_path(list)
