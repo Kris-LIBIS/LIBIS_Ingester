@@ -128,6 +128,7 @@ module Libis
         format_identifier(file)
         convert(file, representation, convert_hash)
       end
+
       def assemble_images(items, representation, convert_hash)
         target_format = convert_hash[:target_format].to_sym
         assemble(
@@ -145,7 +146,7 @@ module Libis
             convert_file(source, nil, source_format, source_format, options)[0]
           end if options
           Libis::Format::Converter::ImageConverter.new.assemble_and_convert(sources, new_file, target_format)
-          sources.each {|f| FileUtils.rm f, force: true} if options
+          sources.each { |f| FileUtils.rm_f f } if options
           options = convert_hash[:options][1] rescue nil
           convert_file(new_file, new_file, target_format, target_format, options) if options
         end
@@ -314,7 +315,7 @@ module Libis
         end.each do |opts|
           opts = opts.dup
           tgt_format = opts.delete(:target_format) || target_format
-          tgt_file = tempfile(src_file, tgt_format)
+          tgt_file = tempname(src_file, tgt_format)
           temp_files << tgt_file
           tgt_file = tgt_file.path
           src_file, converter = convert_one_file(src_file, tgt_file, src_format, tgt_format, opts)
@@ -324,12 +325,11 @@ module Libis
         converter = converterlist.join(' + ')
         if target_file
           FileUtils.mkpath(File.dirname(target_file))
-          FileUtils.move(src_file, target_file, force: true)
-        else
-          target_file = Dir::Tmpname.make_tmpname [File.basename(source_file, '.*'), File.extname(src_file)], nil
           FileUtils.cp(src_file, target_file)
+        else
+          target_file = temp_files.pop
         end
-        temp_files.each { |tmp_file| tmp_file.unlink }
+        temp_files.each { |tmp_file| FileUtils.rm_f tmp_file }
         [target_file, converter]
       end
 
@@ -369,8 +369,8 @@ module Libis
         item.properties['puid'] = format[:puid]
       end
 
-      def tempfile(source_file, target_format)
-        Tempfile.new([File.basename(source_file, '.*'), ".#{extname(target_format)}"])
+      def tempname(source_file, target_format)
+        Dir::Tmpname.make_tmpname([File.basename(source_file, '.*'), ".#{extname(target_format)}"], nil)
       end
 
       def extname(format)
