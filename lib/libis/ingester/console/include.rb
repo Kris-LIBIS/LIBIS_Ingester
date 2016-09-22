@@ -190,7 +190,7 @@ end
 
 def worker_detail(worker)
   result = worker_name(worker)
-  parameters = worker.args.last.map {|p| "\t\t#{p.first} = #{p.last}"}
+  parameters = worker.args.last.map { |p| "\t\t#{p.first} = #{p.last}" }
   if parameters.size > 0
     result += "\n" + parameters.join("\n")
   end
@@ -252,4 +252,35 @@ require 'awesome_print/ext/mongoid'
 
 def item_info(item)
   ap item
+end
+
+require 'time_difference'
+
+def time_diff(start_time, end_time)
+  TimeDifference.between(start_time, end_time)
+end
+
+def time_diff_human(start_time, end_time)
+  diff_parts = []
+  time_diff(start_time, end_time).in_general.each do |part, quantity|
+    next if quantity <= 0
+    part = part.to_s.humanize
+    part = part.singularize if quantity <= 1
+    diff_parts << "#{quantity} #{part}"
+  end
+
+  last_part = diff_parts.pop
+  return last_part if diff_parts.empty?
+
+  [diff_parts.join(', '), last_part].join(' and ')
+
+end
+
+def time_diff_in_hours(start_time, end_time)
+  seconds = time_diff(start_time, end_time).in_seconds.round
+  minutes = seconds / 60
+  seconds = seconds % 60
+  hours = minutes / 60
+  minutes = minutes % 60
+  "#{'%4d' % hours}:#{'%02d' % minutes}:#{'%02d' % seconds}"
 end

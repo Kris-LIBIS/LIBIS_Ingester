@@ -6,33 +6,34 @@ require 'open3'
 
 def item_status(item)
   puts "Status overview for [#{item.class.name.split('::').last}] '#{item.name}':"
-  format_str = '%-30s %-20s %-20s %-10s %s'
-  puts format_str % %w'Task Started Updated Status Progress'
-  puts '-' * 95
+  format_str = '%-30s %-12s %-10s %-20s %-20s %10s'
+  puts format_str % %w'Task Progress Status Started Updated Elapsed'
+  puts '-' * 107
   item.reload.status_log.inject({}) do |hash, status|
     task = status['task'].gsub(/[^\/]*\//, '- ')
     task = '- ' + task unless task == 'Run'
-    data = [
-        task,
-        status['created'].localtime.strftime('%d/%m/%Y %T'),
-        status['updated'].localtime.strftime('%d/%m/%Y %T'),
-        status['status'].to_s.capitalize,
-        ''
-    ]
+    data = {
+        status: status['status'].to_s.capitalize,
+        start: status['created'].localtime,
+        end: status['updated'].localtime
+    }
     if status['progress']
-      data[4] = status['progress'].to_s
-      data[4] += ' of ' + status['max'].to_s if status['max']
+      data[:progress] = status['progress'].to_s
+      data[:progress] += ' of ' + status['max'].to_s if status['max']
     end
-    if hash[task]
-      hash[task][2] = data[2]
-      hash[task][3] = data[3]
-      hash[task][4] = data[4]
-    else
-      hash[task] = data
-    end
+    data.delete :start if hash[task]
+    (hash[task] ||= {}).merge! data
     hash
-  end.each do |_, data|
-    puts format_str % data
+  end.each do |task, data|
+    data_array = [
+        task,
+        data[:progress].to_s,
+        data[:status],
+        data[:start].strftime('%d/%m/%Y %T'),
+        data[:end].strftime('%d/%m/%Y %T'),
+        time_diff_in_hours(data[:start], data[:end]),
+    ]
+    puts format_str % data_array
   end
 end
 
