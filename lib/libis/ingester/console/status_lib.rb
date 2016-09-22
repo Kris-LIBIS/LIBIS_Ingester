@@ -8,8 +8,8 @@ def item_status(item)
   puts "Status overview for [#{item.class.name.split('::').last}] '#{item.name}':"
   format_str = '%-30s %-20s %-20s %-10s %s'
   puts format_str % %w'Task Started Updated Status Progress'
-  puts '-' * 90
-  item.reload.status_log.each do |status|
+  puts '-' * 95
+  item.reload.status_log.inject({}) do |hash, status|
     task = status['task'].gsub(/[^\/]*\//, '- ')
     task = '- ' + task unless task == 'Run'
     data = [
@@ -23,6 +23,9 @@ def item_status(item)
       data[4] = status['progress'].to_s
       data[4] += ' of ' + status['max'].to_s if status['max']
     end
+    hash[task] = data
+    hash
+  end.each do |_, data|
     puts format_str % data
   end
 end
