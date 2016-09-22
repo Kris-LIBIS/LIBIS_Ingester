@@ -23,7 +23,13 @@ def item_status(item)
       data[4] = status['progress'].to_s
       data[4] += ' of ' + status['max'].to_s if status['max']
     end
-    hash[task] = data
+    if hash[task]
+      hash[task][2] = data[2]
+      hash[task][3] = data[3]
+      hash[task][4] = data[4]
+    else
+      hash[task] = data
+    end
     hash
   end.each do |_, data|
     puts format_str % data
