@@ -2,7 +2,7 @@
 require_relative '../lib/libis/ingester/console/status_lib'
 require_relative '../lib/libis/ingester/console/submit_lib'
 require_relative '../lib/libis/ingester/console/retry_lib'
-require_relative '../lib/libis/ingester/console/setup_db_lib'
+require_relative '../lib/libis/ingester/console/database_lib'
 require_relative '../lib/libis/ingester/console/queue_lib'
 require_relative '../lib/libis/ingester/console/process_lib'
 
@@ -18,7 +18,7 @@ get_initializer
 loop do
   item = selection_menu(
       'Ingester menu',
-      [:status, :submit, :retry, :setup_db, :queue, :process]
+      [:status, :submit, :retry, :database, :queue, :process]
   )
   break unless item
   send("#{item}_menu") if item.is_a?(Symbol)

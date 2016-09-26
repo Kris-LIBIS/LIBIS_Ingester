@@ -89,11 +89,13 @@ def select_job
   end
 end
 
-def select_run(multiselect = false)
+def select_run(options = {})
   return unless select_job
 
+  options.merge!(parent: @options[:job].name) { |_k, _v1, _v2| _v1 }
+
   # noinspection RubyResolve
-  db_menu('Run', @options[:job].runs, parent: @options[:job].name, multiselect: multiselect) {
+  db_menu('Run', @options[:job].runs, options) {
       |run| "#{run.name} - #{run.status_label}"
   }
 end

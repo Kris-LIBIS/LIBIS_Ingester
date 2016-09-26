@@ -20,6 +20,7 @@ def delete_menu
 end
 
 def delete_run(item, quiet = false)
+  puts "Deleting #{item.name} ..." if quiet
   item.destroy! if quiet || @hl.agree("This will destroy all evidence of run #{item.name}. OK?", false)
 end
 
@@ -30,20 +31,71 @@ def delete_item(item, quiet = false)
   )
 end
 
-def delete_all_finshed_runs
-  ::Libis::Ingester::Run.each do |run|
+def delete_all_finshed_runs(job = nil)
+  quiet = false
+  # noinspection RubyResolve
+  (job&.runs || ::Libis::Ingester::Run).each do |run|
     next unless run.check_status(:DONE)
-    puts '  ' + run.name
+    if quiet
+      puts "Deleting #{run.name} ..."
+    else
+      q = @hl.ask("Deleting #{run.name} ... OK ? [Yes/No/All/Quit] ") { |a| a.character = false, a.validate = /[ynaq]/i }.downcase
+      next if q == 'n'
+      return if q == 'q'
+      quiet = true if q == 'a'
+    end
     run.destroy!
-  end if @hl.agree('This will delete all finished runs. OK?', false)
+  end
 end
 
-def delete_all_failed_runs
-  ::Libis::Ingester::Run.each do |run|
+def delete_all_failed_runs(job = nil)
+  quiet = false
+  # noinspection RubyResolve
+  (job&.runs || ::Libis::Ingester::Run).each do |run|
     next unless run.check_status(:FAILED)
-    puts '  ' + run.name
+    if quiet
+      puts "Deleting #{run.name} ..."
+    else
+      q = @hl.ask("Deleting #{run.name} ... OK ? [Yes/No/All/Quit] ") { |a| a.character = false, a.validate = /[ynaq]/i }.downcase
+      next if q == 'n'
+      return if q == 'q'
+      quiet = true if q == 'a'
+    end
     run.destroy!
-  end if @hl.agree('This will delete all failed runs. OK?', false)
+  end
+end
+
+def delete_all_runs(job = nil)
+  quiet = false
+  # noinspection RubyResolve
+  (job&.runs || ::Libis::Ingester::Run).each do |run|
+    if quiet
+      puts "Deleting #{run.name} ..."
+    else
+      q = @hl.ask("Deleting #{run.name} ... OK ? [Yes/No/All/Quit] ") { |a| a.character = false, a.validate = /[ynaq]/i }.downcase
+      next if q == 'n'
+      return if q == 'q'
+      quiet = true if q == 'a'
+    end
+    run.destroy!
+  end
+end
+
+def delete_orphan_items
+  quiet = false
+  ::Libis::Ingester::Item.each do |item|
+    next if item.is_a? Libis::Ingester::Run
+    next if item.parent
+    if quiet
+      puts "Deleting #{item.name} ..."
+    else
+      q = @hl.ask("Deleting #{item.name} ... OK ? [Yes/No/All/Quit] ") { |a| a.character = false, a.validate = /[ynaq]/i }.downcase
+      next if q == 'n'
+      return if q == 'q'
+      quiet = true if q == 'a'
+    end
+    item.destroy!
+  end
 end
 
 def reset_database
