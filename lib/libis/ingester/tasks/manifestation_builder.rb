@@ -369,7 +369,11 @@ module Libis
       end
 
       def tempname(source_file, target_format)
-        Dir::Tmpname.create([File.basename(source_file, '.*'), ".#{extname(target_format)}"], nil) {}
+        # noinspection RubyResolve
+        Dir::Tmpname.create(
+            [File.basename(source_file, '.*'), ".#{extname(target_format)}"],
+            Libis::Ingester::Config.tempdir
+        ) {}
       end
 
       def extname(format)
