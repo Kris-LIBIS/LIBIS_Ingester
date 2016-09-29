@@ -90,7 +90,16 @@ def status_menu
             menu['errors'] = Proc.new do
               item = item.is_a?(Libis::Ingester::Run) ? item : item.get_run
               # noinspection RubyResolve
-              pid = Process.spawn 'grep', '-Pn', '"^[WEF]"', item.log_filename
+              cmd = [
+                  'GREP_COLORS="ms=01;31:mc=01;31:sl=02;31:cx=:fn=35:ln=32:bn=32:se=36"',
+                  'grep', '--color=always', '-Pn', '-B 2', '-A 4',
+                  '"( ERROR | WARN | FATAL)"',
+                  "\"#{item.log_filename}\"",
+                  '|',
+                  'less', '-R'
+              ].join(' ')
+              puts cmd
+              pid = Process.spawn cmd
               wait_for(pid)
               item
             end
