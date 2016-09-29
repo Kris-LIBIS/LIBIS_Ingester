@@ -90,7 +90,7 @@ def status_menu
             menu['errors'] = Proc.new do
               item = item.is_a?(Libis::Ingester::Run) ? item : item.get_run
               # noinspection RubyResolve
-              pid = Process.spawn 'grep', '-En', '"( ERROR | WARN )"', item.log_filename
+              pid = Process.spawn 'grep', '-Pn', '"^[WEF]"', item.log_filename
               wait_for(pid)
               item
             end
@@ -100,12 +100,12 @@ def status_menu
               Libis::Ingester::RunWorker.push_retry_job(item.id.to_s, queue.name) if queue
               item
             end
-            menu['again'] = Proc.new do
-              item = item.is_a?(Libis::Ingester::Run) ? item : item.get_run
-              queue = select_defined_queue
-              Libis::Ingester::RunWorker.push_restart_job(item.id.to_s, queue.name) if queue
-              item
-            end
+            # menu['again'] = Proc.new do
+            #   item = item.is_a?(Libis::Ingester::Run) ? item : item.get_run
+            #   queue = select_defined_queue
+            #   Libis::Ingester::RunWorker.push_restart_job(item.id.to_s, queue.name) if queue
+            #   item
+            # end
             item = selection_menu('action', [], hidden: menu, header: '', prompt: '', layout: :one_line) || item.parent
           end
           break unless item
