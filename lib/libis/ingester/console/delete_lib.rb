@@ -34,7 +34,7 @@ end
 def delete_all_finshed_runs(job = nil)
   quiet = false
   # noinspection RubyResolve
-  (job&.runs || ::Libis::Ingester::Run).each do |run|
+  (job&.runs || ::Libis::Ingester::Run).no_timeout.each do |run|
     next unless run.check_status(:DONE)
     if quiet
       puts "Deleting #{run.name} ..."
@@ -51,7 +51,7 @@ end
 def delete_all_failed_runs(job = nil)
   quiet = false
   # noinspection RubyResolve
-  (job&.runs || ::Libis::Ingester::Run).each do |run|
+  (job&.runs || ::Libis::Ingester::Run).no_timeout.each do |run|
     next unless run.check_status(:FAILED)
     if quiet
       puts "Deleting #{run.name} ..."
@@ -68,7 +68,7 @@ end
 def delete_all_runs(job = nil)
   quiet = false
   # noinspection RubyResolve
-  (job&.runs || ::Libis::Ingester::Run).each do |run|
+  (job&.runs || ::Libis::Ingester::Run).no_timeout.each do |run|
     if quiet
       puts "Deleting #{run.name} ..."
     else
@@ -83,7 +83,7 @@ end
 
 def delete_orphan_items
   quiet = false
-  ::Libis::Ingester::Item.each do |item|
+  (::Libis::Ingester::Item).no_timeout.each do |item|
     next if item.is_a? Libis::Ingester::Run
     next if item.parent
     if quiet
