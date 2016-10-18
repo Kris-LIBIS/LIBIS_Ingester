@@ -36,8 +36,9 @@ module Libis
             rep.label = manifestation.label
             rep.parent = item
           end
+          set_status(rep, :STARTED)
           build_manifestation(rep, manifestation)
-          rep.save!
+          set_status(rep, :DONE)
           item.status_progress(self.namepath)
         end
 
@@ -94,7 +95,6 @@ module Libis
                 convert item, representation, convert_hash
                 representation.status_progress(self.namepath)
               end
-              set_status representation, :DONE
           end
         end
       end
