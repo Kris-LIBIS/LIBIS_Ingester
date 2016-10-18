@@ -24,7 +24,37 @@ def db_menu(title, items, options = {}, &block)
   end
   options[:proc] = lambda { |item| @options[title.downcase.to_sym] = item }
   block = Proc.new { |item| item.name } unless block_given?
-  selection_menu(title, items, options, &block)
+  paging = 25
+  if items.count > paging
+    paged_items = items.limit(paging)
+    no_pages = (items.count - 1) / paging + 1
+    max_page = no_pages - 1
+    page = min_page = 0
+    options[:hidden] ||= {}
+    hidden = options[:hidden]
+    loop do
+      page = [page, min_page].max
+      page = [page, max_page].min
+      options[:hidden] = hidden.dup
+      options[:hidden]['previous'] = Proc.new { :previous } if page > min_page
+      options[:hidden]['next'] = Proc.new { page += 1; :next } if page < max_page
+      options[:hidden]['goto'] = Proc.new { :goto }
+      result = selection_menu("#{title} (#{page * paging + 1}-#{(page + 1) * paging})",
+                              paged_items.offset(page * paging), options, &block)
+      case result
+        when :previous
+          page -= 1 if page > min_page
+        when :next
+          page += 1 if page < max_page
+        when :goto
+          page == @hl.ask('Enter page number', Integer) { |q| q.in = Range.new(min_page, max_page) }
+        else
+          return result
+      end
+    end
+  else
+    selection_menu(title, items, options, &block)
+  end
 end
 
 def common_opts(opts)
