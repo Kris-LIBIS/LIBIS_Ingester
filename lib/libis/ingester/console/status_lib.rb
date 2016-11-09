@@ -54,8 +54,7 @@ def status_menu
         case item
           when Array
             item_array_menu(item)
-            item = true
-          when Libis::Ingester::Item
+          when Libis::Ingester::Run
             item_menu(item)
           else
             # do nothing
@@ -76,23 +75,17 @@ def item_array_menu(item)
   menu = {}
   menu['-'] = Proc.new do
     parent = item[0].parent
-    if @hl.agree('Destroy all selected items?', false)
-      if item[0].is_a?(Libis::Ingester::Run)
-        item.each { |i| delete_run(i, true) }
-      else
-        item.each { |i| delete_item(i, true) }
-      end
+    if @hl.agree('Destroy all selected runs?', false)
+      item.each { |i| delete_run(i, true) }
     end
     parent
   end
-  if item[0].is_a?(Libis::Ingester::Run)
-    menu['retry'] = Proc.new do
-      queue = select_defined_queue
-      item.each do |run|
-        Libis::Ingester::RunWorker.push_retry_job(run.id.to_s, queue.name) if run.is_a?(Libis::Ingester::Run)
-      end if queue
-      nil
-    end
+  menu['retry'] = Proc.new do
+    queue = select_defined_queue
+    item.each do |run|
+      Libis::Ingester::RunWorker.push_retry_job(run.id.to_s, queue.name) if run.is_a?(Libis::Ingester::Run)
+    end if queue
+    nil
   end
   selection_menu('action', [], hidden: menu, header: '', prompt: '', layout: :one_line)
 end
