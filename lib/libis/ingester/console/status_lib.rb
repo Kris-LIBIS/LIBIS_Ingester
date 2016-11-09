@@ -51,14 +51,14 @@ def status_menu
             '.' => Proc.new { true }
         }
         break unless (item = select_run(multiselect: true, hidden: opts))
-        case item
-          when Array
-            item_array_menu(item)
-          when Libis::Ingester::Run
-            item_menu(item)
-          else
-            # do nothing
-        end
+        item = case item
+                 when Array
+                   item_array_menu(item)
+                 when Libis::Ingester::Run
+                   item_menu(item)
+                 else
+                   item
+               end
         break unless item
         @options[:run] = nil
       end
@@ -74,18 +74,17 @@ def item_array_menu(item)
   item.each { |run| puts "- #{run.name} - #{run.status_label}" }
   menu = {}
   menu['-'] = Proc.new do
-    parent = item[0].parent
     if @hl.agree('Destroy all selected runs?', false)
       item.each { |i| delete_run(i, true) }
     end
-    parent
+    true
   end
   menu['retry'] = Proc.new do
     queue = select_defined_queue
     item.each do |run|
       Libis::Ingester::RunWorker.push_retry_job(run.id.to_s, queue.name) if run.is_a?(Libis::Ingester::Run)
     end if queue
-    nil
+    true
   end
   selection_menu('action', [], hidden: menu, header: '', prompt: '', layout: :one_line)
 end
@@ -136,6 +135,7 @@ def item_menu(item)
     item = selection_menu('action', [], hidden: menu, header: '', prompt: '', layout: :one_line) || item.parent
     break unless item
   end
+  true
 end
 
 def wait_for(pid)
