@@ -47,83 +47,101 @@ def status_menu
         opts = {
             'finished delete' => Proc.new { delete_all_finshed_runs(@options[:job]); true },
             'failed delete' => Proc.new { delete_all_failed_runs(@options[:job]); true },
-            'all delete' => Proc.new { delete_all_runs(@options[:job]); true }
+            'all delete' => Proc.new { delete_all_runs(@options[:job]); true },
+            '.' => Proc.new { true }
         }
         break unless (item = select_run(multiselect: true, hidden: opts))
-        loop do
-          if item.is_a?(Array)
-            break if item.blank?
-            puts 'Selected:'
-            item.each { |run| puts "- #{run.name} - #{run.status_label}" }
-            menu = {
-                '-' => Proc.new do
-                  parent = item[0].parent
-                  item.each do |i|
-                    delete_run(i, true) if i.is_a?(Libis::Ingester::Run)
-                    delete_item(i, true) unless i.is_a?(Libis::Ingester::Run)
-                  end if @hl.agree('Destroy all selected items?', false)
-                  parent
-                end,
-                'retry' => Proc.new do
-                  queue = select_defined_queue
-                  item.each do |run|
-                    Libis::Ingester::RunWorker.push_retry_job(run.id.to_s, queue.name) if run.is_a?(Libis::Ingester::Run)
-                  end if queue
-                  nil
-                end
-            }
-            item = selection_menu('action', [], hidden: menu, header: '', prompt: '', layout: :one_line)
+        case item
+          when Array
+            item_array_menu(item)
+            item = true
+          when Libis::Ingester::Item
+            item_menu(item)
           else
-            item_status(item)
-            menu = {'.' => Proc.new { item }}
-            menu['?'] = Proc.new { item_info(item); item }
-            menu['+'] = Proc.new { select_item(item) } if item.items.count > 0
-            menu['-'] = Proc.new { delete_run(item); nil } if item.is_a?(Libis::Ingester::Run)
-            menu['-'] = Proc.new { delete_item(item); nil } unless item.is_a?(Libis::Ingester::Run)
-            menu['log'] = Proc.new do
-              item = item.is_a?(Libis::Ingester::Run) ? item : item.get_run
-              # noinspection RubyResolve
-              pid = Process.spawn 'less', item.log_filename
-              wait_for(pid)
-              item
-            end
-            menu['errors'] = Proc.new do
-              item = item.is_a?(Libis::Ingester::Run) ? item : item.get_run
-              # noinspection RubyResolve
-              cmd = [
-                  'GREP_COLORS="ms=01;31:mc=01;31:sl=02;31:cx=:fn=35:ln=32:bn=32:se=36"',
-                  'grep', '--color=always', '-Pn', '-B 2', '-A 4',
-                  '"( ERROR | WARN | FATAL)"',
-                  "\"#{item.log_filename}\"",
-                  '|',
-                  'less', '-R'
-              ].join(' ')
-              puts cmd
-              pid = Process.spawn cmd
-              wait_for(pid)
-              item
-            end
-            menu['retry'] = Proc.new do
-              item = item.is_a?(Libis::Ingester::Run) ? item : item.get_run
-              queue = select_defined_queue
-              Libis::Ingester::RunWorker.push_retry_job(item.id.to_s, queue.name) if queue
-              item
-            end
-            # menu['again'] = Proc.new do
-            #   item = item.is_a?(Libis::Ingester::Run) ? item : item.get_run
-            #   queue = select_defined_queue
-            #   Libis::Ingester::RunWorker.push_restart_job(item.id.to_s, queue.name) if queue
-            #   item
-            # end
-            item = selection_menu('action', [], hidden: menu, header: '', prompt: '', layout: :one_line) || item.parent
-          end
-          break unless item
-        end unless item.is_a? TrueClass
+            # do nothing
+        end
+        break unless item
         @options[:run] = nil
       end
       @options[:job] = nil
     end
     @options[:organization] = nil
+  end
+end
+
+def item_array_menu(item)
+  return true if item.blank?
+  puts 'Selected:'
+  item.each { |run| puts "- #{run.name} - #{run.status_label}" }
+  menu = {}
+  menu['-'] = Proc.new do
+    parent = item[0].parent
+    if @hl.agree('Destroy all selected items?', false)
+      if item[0].is_a?(Libis::Ingester::Run)
+        item.each { |i| delete_run(i, true) }
+      else
+        item.each { |i| delete_item(i, true) }
+      end
+    end
+    parent
+  end
+  if item[0].is_a?(Libis::Ingester::Run)
+    menu['retry'] = Proc.new do
+      queue = select_defined_queue
+      item.each do |run|
+        Libis::Ingester::RunWorker.push_retry_job(run.id.to_s, queue.name) if run.is_a?(Libis::Ingester::Run)
+      end if queue
+      nil
+    end
+  end
+  selection_menu('action', [], hidden: menu, header: '', prompt: '', layout: :one_line)
+end
+
+def item_menu(item)
+  loop do
+    item_status(item)
+    menu = {'.' => Proc.new { item }}
+    menu['?'] = Proc.new { item_info(item); item }
+    menu['+'] = Proc.new { select_item(item) } if item.items.count > 0
+    menu['-'] = Proc.new { delete_run(item); nil } if item.is_a?(Libis::Ingester::Run)
+    menu['-'] = Proc.new { r = item.parent; delete_item(item); r } unless item.is_a?(Libis::Ingester::Run)
+    menu['log'] = Proc.new do
+      item = item.is_a?(Libis::Ingester::Run) ? item : item.get_run
+      # noinspection RubyResolve
+      pid = Process.spawn 'less', item.log_filename
+      wait_for(pid)
+      item
+    end
+    menu['errors'] = Proc.new do
+      item = item.is_a?(Libis::Ingester::Run) ? item : item.get_run
+      # noinspection RubyResolve
+      cmd = [
+          'GREP_COLORS="ms=01;31:mc=01;31:sl=02;31:cx=:fn=35:ln=32:bn=32:se=36"',
+          'grep', '--color=always', '-Pn', '-B 2', '-A 4',
+          '"( ERROR | WARN | FATAL)"',
+          "\"#{item.log_filename}\"",
+          '|',
+          'less', '-R'
+      ].join(' ')
+      puts cmd
+      pid = Process.spawn cmd
+      wait_for(pid)
+      item
+    end
+    menu['retry'] = Proc.new do
+      item = item.is_a?(Libis::Ingester::Run) ? item : item.get_run
+      queue = select_defined_queue
+      Libis::Ingester::RunWorker.push_retry_job(item.id.to_s, queue.name) if queue
+      item
+    end
+    # menu['again'] = Proc.new do
+    #   item = item.is_a?(Libis::Ingester::Run) ? item : item.get_run
+    #   queue = select_defined_queue
+    #   Libis::Ingester::RunWorker.push_restart_job(item.id.to_s, queue.name) if queue
+    #   item
+    # end
+    item = selection_menu('action', [], hidden: menu, header: '', prompt: '', layout: :one_line) || item.parent
+    break unless item
   end
 end
 
