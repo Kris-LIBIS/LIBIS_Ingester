@@ -32,7 +32,7 @@ def selection_menu(title, items, options = {})
     if options[:multiselect]
       menu.hidden('*') {
         answer = @hl.ask('Enter a list of numbers and/or ranges: ')
-        return nil if answer.blank?
+        return true if answer.blank?
         result = Set.new
         answer.split(/\s*[,;\s]\s*/).each do |entry|
           case entry
