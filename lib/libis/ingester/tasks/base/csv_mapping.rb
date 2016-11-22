@@ -1,149 +1,109 @@
 require 'libis/workflow'
-require 'roo'
-require 'roo-xls'
 require 'libis/tools/spreadsheet'
+require 'set'
 
 module Libis
   module Ingester
     module CsvMapping
 
+      XLS_KEYS = [:required, :optional, :extension, :encoding, :col_sep, :quote_char]
+
+      # Open and parse a mapping file.
+      #
+      # This method relies heavily on the ::Libis::Tools::Spreadsheet class. It will read any CSV, TSV or Excel file and
+      # return a mapping table based on the options given. Optionally it can check for 'flags'. A flag is a column that
+      # can contain any value and the result will be a list of entries that have a value in that column.
+      #
+      # All configuration parameters are supplied via a options Hash. The options Hash supports the following keys:
+      # - :file : file name (required).
+      # - :sheet : sheet name (optional). Only used for spreadsheet formats, not for CSV or TSV. If omitted the first
+      #     sheet will be used
+      # - :key : the name of the key lookup column (required).
+      # - :values : a list of value columns (required).
+      # - :flags : a list of flag columns (optional).
+      # - :required : a list of columns that must have a value (optional).
+      # - :collect_errors : return errors in result instead of raising an exception (optional). If present and evaluates
+      #     as 'true', the routine will collect error messages as it parses the file and returns them in the result.
+      #     Otherwise the method will throw a ::Libis::WorkflowError on the first error.
+      #
+      # The following option keys are passed on to the Spreadsheet class:
+      # - :extension : :csv, :xlsx, :xlsm, :ods, :xls, :google to help the library in deciding what format the file is in.
+      # - :encoding : the encoding of the CSV file. e.g. 'windows-1252:UTF-8' to convert the input from windows code page
+      #     1252 to UTF-8 during file reading.
+      # - :col_sep : column separator. Default is ',', but can be set to "\t" for TSV files.
+      # - :quote_char : character used as string delimiter. Default is the double-quote character ('"').
+      #
+      # The method will return a Hash with the following keys:
+      # - :mapping : a Hash with the designated key values as keys and another Hash as value. For each value in the
+      #     options :values list a key-value pair will be present if the value is not empty.
+      # - :flagged : a Hash with a list for each flag column listed in options :flags. Each list contains the key values
+      #     of the rows that have a non-empty value in the flag column.
+      # - :errors : list of error messages (see :collect_errors option flag above).
+      #
+      # Note: files without headers are supported, but the file's columns will be interpreted in the order that the
+      # header values are supplied: first the :key column, then the :values column, then the :flags columns.
+      #
+      # @param [Hash] options
+      # @return [Hash] result structure
       def load_mapping(options = {})
-        file, sheet = options[:file].split('|')
-        format = options[:format] || 'csv'
-        options[:value] = [options[:value]] unless options[:value].is_a?(Array)
-        options[:flag] = [options[:flag]] unless options[:flag].is_a?(Array)
-        raise Libis::WorkflowError, 'Mapping file name is empty' if file.blank?
-        unless File.exist?(file) && File.readable?(file)
-          raise Libis::WorkflowError, "Cannot open mapping file '#{file}'"
-        end
-        case format
-          when 'xls'
-            load_xls(file, sheet, options)
-          when 'csv'
-            load_csv(file, options)
-          when 'tsv'
-            load_tsv(file, options)
-          else
-            raise Libis::WorkflowError, "Unsupported mapping format: #{format}"
-        end
-      end
-
-      private
-
-      def load_tsv(file, options)
-        load_csv_or_tsv("\t", file, options)
-      end
-
-      def load_csv(file, options)
-        load_csv_or_tsv(',', file, options)
-      end
-
-      def load_csv_or_tsv(col_sep, file, options)
         result = {
             mapping: {},
-            flagged: [],
+            flagged: options[:flag].inject({}) { |hash, flag| hash[flag] = []; hash },
             errors: []
         }
-        csv = Libis::Tools::Csv.open(file, col_sep: col_sep, required: options[:headers], optional: options[:optional_headers] || [])
-        csv.each_with_index do |row, i|
-          key = row[options[:key]]
-          values = options[:value].split('|')
-          value = case values.size
-                    when 1
-                      row[values[0]]
-                    when 0
-                      nil
-                    else
-                      values.inject({}) { |v, h| h[v] = row[v]; h }
-                  end
-          next if options[:ignore_empty_value] && value.blank?
-          if key.blank?
-            result[:errors] << "Emtpy #{options[:key]} column in row #{i+1} : #{row.to_hash}"
-            raise Libis::WorkflowError, result[:errors].last unless options[:collect_errors]
-          end
-          if value.blank?
-            result[:errors] << "Emtpy #{options[:value]} column in row #{i+1} : #{row.to_hash}"
-            raise Libis::WorkflowError, result[:errors].last unless options[:collect_errors]
-          end
-          result[:mapping][key] = value
-          result[:flagged] << key if options[:flag] && !row[options[:flag]].blank?
-        end
-      rescue CSV::MalformedCSVError
-        result[:errors] << "Error parsing mapping file #{file}"
-        raise Libis::WorkflowError, result[:errors].last unless options[:collect_errors]
-      ensure
-        csv.close rescue nil
-        result
-      end
 
-      def load_xls(file, sheet, options)
-        result = {
-            mapping: {},
-            flagged: [],
-            errors: []
-        }
-        key_field = options[:key]
-        value_fields = options[:value]
-        flag_fields = options[:flag].split('|')
-        ignore_empty_value = options[:ignore_empty_value]
-
-        xls = Libis::Tools::Spreadsheet.new(
-            "#{file}|#{sheet}",
-            required: {key: options[:key]}.merge(Hash[options[:value].map {|v| [v] * 2}])
-        )
-
-        xls.each do |h|
-          result[:mapping][h[:key]] = options[:value].size == 1 ? h[options[:value].first] : h.select { |k,_| k != :key }
-          result
-        end
-
-      rescue Exception => e
-        result[:errors] << "Error parsing spreadsheet file '#{file}': #{e.message}"
-        raise Libis::WorkflowError, result[:errors].last unless options[:collect_errors]
-
-      ensure
-        result
-      end
-
-=begin
-        col_sep = case format
-                    when 'tsv'
-                      "\t"
-                    when 'csv'
-                      ','
-                    when 'xls'
-                      ''
-                    else
-                      raise Libis::WorkflowError, "Unsupported mapping format: #{format}"
-                  end
-        begin
-          csv = Libis::Tools::Csv.open(file, col_sep: col_sep, required: options[:headers], optional: options[:optional_headers] || [])
-          csv.each_with_index do |row, i|
-            key = row[key_field]
-            value = row[value_field]
-            next if ignore_empty_value && value.blank?
-            if key.blank?
-              result[:errors] << "Emtpy #{key_field} column in row #{i+1} : #{row.to_hash}"
-              raise Libis::WorkflowError, result[:errors].last unless options[:collect_errors]
-            end
-            if value.blank?
-              result[:errors] << "Emtpy #{value_field} column in row #{i+1} : #{row.to_hash}"
-              raise Libis::WorkflowError, result[:errors].last unless options[:collect_errors]
-            end
-            result[:mapping][key] = value
-            result[:flagged] << key if flag_field && !row[flag_field].blank?
-          end
-        rescue CSV::MalformedCSVError
-          result[:errors] << "Error parsing mapping file #{file}"
+        # check required options
+        [:file, :key, :values].each do |key|
+          result[:errors] << "Missing #{key} option in CSV Mapper"
           raise Libis::WorkflowError, result[:errors].last unless options[:collect_errors]
-        ensure
-          csv.close rescue nil
+        end
+        return result unless result[:errors].empty?
+
+        # check if file can be read
+        file = options[:file]
+        if file.blank?
+          result[:errors] << 'Mapping file name is empty'
+          raise Libis::WorkflowError, result[:errors].last unless options[:collect_errors]
+          return result
+        end
+        unless File.exist?(file) && File.readable?(file)
+          result[:errors] << "Cannot open mapping file '#{file}'"
+          raise Libis::WorkflowError, result[:errors].last unless options[:collect_errors]
+          return result
+        end
+
+        # options setup
+        options[:values] = options[:values]
+        options[:flags] = options[:flags]
+        required = Set[*(options[:key] + (options[:required] || []))]
+        options[:required] = required.to_a
+        options[:optional] = (Set[*(options[:values] + options[:flags])] - required).to_a
+
+        # open spreadsheet
+        file += '|' + options[:sheet] if options[:sheet]
+        begin
+          xls = Libis::Tools::Spreadsheet.new(file, options.select { |k, _| XLS_KEYS.include?(k) })
+        rescue Exception => e
+          result[:errors] << "Error parsing spreadsheet file '#{file}': #{e.message}"
+          raise Libis::WorkflowError, result[:errors].last unless options[:collect_errors]
+        end
+
+        # iterate over content
+        xls.each do |row|
+          key = row[options[:key]]
+          next if key.blank?
+          options[:required].each do |c|
+            if row[c].blank?
+              result[:errors] << "Emtpy #{c} column for key #{key} : #{row}"
+              raise Libis::WorkflowError, result[:errors].last unless options[:collect_errors]
+            end
+          end
+          result[:mapping][key] = row.select { |k, _| k != :key }
+          options[:flag].each { |flag| result[:flagged][flag] << key unless row[flag].blank? }
         end
 
         result
-
       end
-=end
 
     end
   end

@@ -144,15 +144,16 @@ class CsvChecker
 
   def check_csv_mms
     alma = Libis::Services::Alma::SruService.new
-    mapping = load_mapping(
+    opts = {
         file: csv_mms_file,
-        headers: options[:mms_headers],
         key: options[:name_header],
-        value: options[:mms_header],
-        ignore_empty_value: options[:ignore_empty_mms],
+        values: options[:mms_headers],
         collect_errors: true
-    )
-    mapping[:mapping].each do |name, mms|
+    }
+    opts[:required] = [options[:mms_header]] unless options[:ignore_empty_mms]
+    mapping = load_mapping(opts)
+    mapping[:mapping].each do |name, map|
+      mms = map[options[:mms_header]]
       found = groups.find { |d| d =~ /^#{name}$/ }
       if found
         groups.delete(found)
@@ -170,15 +171,16 @@ class CsvChecker
   end
 
   def check_csv_label
-    mapping = load_mapping(
-                  file: csv_label_file,
-                  headers: options[:label_headers],
-                  key: options[:name_header],
-                  value: options[:label_header],
-                  ignore_empty_values: options[:ignore_empty_label],
-                  collect_errors: true
-    )
-    mapping[:mapping].each do |name, _label|
+    opts= {
+        file: csv_label_file,
+        key: options[:name_header],
+        values: options[:label_headers],
+        collect_errors: true
+    }
+    opts[:required] = options[:label_header] unless options[:ignore_empty_label]
+    mapping = load_mapping(opts)
+
+    mapping[:mapping].each do |name, _values|
       files.delete(name) { |_| mapping[:errors] << "File matching '#{name}' not found." }
     end
     files.each { |_, path| mapping[:errors] << "File not referenced in CSV: #{path}" }

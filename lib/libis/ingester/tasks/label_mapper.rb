@@ -31,17 +31,24 @@ module Libis
 
       def apply_options(opts)
         super(opts)
-        result = load_mapping(
+        options = {
             file: parameter(:mapping_file),
-            format: parameter(:mapping_format),
-            headers: parameter(:mapping_headers),
+            values: parameter(:mapping_headers),
             key: parameter(:lookup_field),
-            value: parameter(:label_field),
-            flag: parameter(:thumbnail_field),
-            ignore_empty_value: parameter(:ignore_empty_label)
-        )
-        @mapping = result[:mapping]
-        @thumbnails = result[:flagged]
+            flags: [parameter(:thumbnail_field)],
+        }
+        options[:required] = [parameter(:label_field)] if parameter(:ignore_empty_label)
+        case parameter(:mapping_format)
+          when 'csv'
+            options[:col_sep] = ','
+          when 'tsv'
+            options[:col_sep] = "\t"
+          else
+            # do nothing
+        end
+        result = load_mapping(options)
+        @mapping = Hash[result[:mapping].map { |k, v| [k, v[parameter(:label_field)]] }]
+        @thumbnails = result[:flagged][parameter(:thumbnail_field)]
       end
 
       protected
