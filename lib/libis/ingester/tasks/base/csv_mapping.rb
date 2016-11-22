@@ -48,7 +48,7 @@ module Libis
       def load_mapping(options = {})
         result = {
             mapping: {},
-            flagged: options[:flag].inject({}) { |hash, flag| hash[flag] = []; hash },
+            flagged: options[:flags].nil? ? {} : options[:flags].inject({}) { |hash, flag| hash[flag] = []; hash },
             errors: []
         }
 
@@ -73,8 +73,6 @@ module Libis
         end
 
         # options setup
-        options[:values] = options[:values]
-        options[:flags] = options[:flags]
         required = Set[*(options[:key] + (options[:required] || []))]
         options[:required] = required.to_a
         options[:optional] = (Set[*(options[:values] + options[:flags])] - required).to_a
