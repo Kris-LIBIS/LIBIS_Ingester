@@ -39,7 +39,7 @@ def get_path_expression(path_expression)
     puts
     puts 'Supply the relative or absolute path for each matching file (including file name).'
     puts 'Use $x for referencing the value of the the x-th group in the regex. "file_name" refers to the original file name.'
-    path_expression = @hl.ask('Enter path expression (default: no action): ') { |q| q.default = path_expression }
+    path_expression = @hl.ask('Enter path expression: ') { |q| q.default = path_expression }
   end
   path_expression
 end
@@ -48,7 +48,7 @@ def get_report_file(report_file)
   if !@unattended || report_file.nil?
     puts
     puts 'Enter a file name for the report. Extension (csv/tsv/xml/yml) specifies the type. Type "-none-" for no report.'
-    report_file = @hl.ask('Report file name (default: no report): ') { |q| q.default = report_file }
+    report_file = @hl.ask('Report file name: ') { |q| q.default = report_file }
   end
   report_file = nil if !report_file || report_file.empty? || report_file == '-none-'
   report_file
@@ -58,7 +58,7 @@ def get_move_files(move_files)
   if !@unattended || move_files.nil?
     puts
     puts 'Do you want to move the files? If not, a copy operation will be performed and the original files will be left untouched.'
-    move_files = @hl.agree('Move files? ', false) { |q| q.default = !!move_files }
+    move_files = @hl.agree('Move files? ', true) { |q| q.default = !!move_files }
   end
   !!move_files
 end
@@ -131,7 +131,7 @@ end
 
 def get_dummy_operation(dummy_operation)
   if !@unattended || dummy_operation.nil?
-    dummy_operation = !@hl.agree('Perform physical operation on the files?')
+    dummy_operation = !@hl.agree('Perform physical operation on the files?', true)
   end
   dummy_operation
 end

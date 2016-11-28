@@ -110,7 +110,7 @@ puts report_file ? "Creating report file #{report_file}" : 'Not creating a repor
 puts (dummy_operation ? 'Not p' : 'P') + 'erforming physical operations'
 puts '========================================================================================='
 puts
-exit unless @unattended || @hl.agree('Last chance to bail out. Continue?')
+exit unless @unattended || @hl.agree('Last chance to bail out. Continue?', true)
 
 puts
 puts 'This can take a while. Please sit back and relax, grab a cup of coffee, have a quick nap or read a good book ...'
