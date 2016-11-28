@@ -54,6 +54,16 @@ def get_report_file(report_file)
   report_file
 end
 
+def get_copy_files(copy_files)
+  if !@unattended || copy_files.nil?
+    puts
+    puts 'Now enter a regular expression that needs to be applied to each file in the directory.'
+    puts 'Create groups for reference later in the directory structure to be created.'
+    copy_files = @hl.agree('Copy files? ', true) { |q| q.default = !!copy_files }
+  end
+  !!copy_files
+end
+
 def open_report(report_file)
   if report_file
     @report_type = {'.csv' => :csv, '.tsv' => :tsv, '.xml' => :xml, '.yml' => :yml}[File.extname(report_file)]
@@ -135,12 +145,13 @@ def configurations
   Dir.glob(File.join(ENV['HOME'], '.reorg*.data')).map {|x| x.scan(/reorg(.*).data$/).first.first rescue '' }
 end
 
-def save_config(base_dir, parse_regex, path_expression, report_file, config)
+def save_config(base_dir, parse_regex, path_expression, report_file, copy_files, config)
   File.open(config_file(config), 'w') do |f|
     f.puts "dir: #{base_dir}"
     f.puts "regex: #{parse_regex}"
     f.puts "expr: #{path_expression}"
     f.puts "report: #{report_file}"
+    f.puts "copy: #{copy_files ? 'true' : 'false'}"
   end
 end
 
@@ -154,13 +165,13 @@ def read_config(config)
   end rescue nil
   [:dir, :regex, :expr, :report].map do |s|
     result[s]
-  end
+  end << result[:copy_files] == 'true'
 end
 
 def puts_config
   configurations.each do |c|
     x = read_config(c)
-    puts "- #{c}:\n   - dir: #{x[0]}\n   - regex: #{x[1]}\n   - expr: #{x[2]}\n   - report: #{x[3]}"
+    puts "- #{c}:\n   - dir: #{x[0]}\n   - regex: #{x[1]}\n   - expr: #{x[2]}\n   - report: #{x[3]}\n   - copy: #{x[4]}"
   end
 end
 

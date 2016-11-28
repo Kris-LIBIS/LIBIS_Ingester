@@ -5,9 +5,10 @@ require 'filesize'
 
 ######## Command-line
 config = nil
-base_dir, parse_regex, path_expression, report_file = read_config('')
+base_dir, parse_regex, path_expression, report_file, copy_files = read_config('')
 dummy_operation = nil
 interactive = false
+overwrite = false
 
 OptionParser.new do |opts|
   opts.banner = "Usage: #{$0} [options]"
@@ -16,11 +17,19 @@ OptionParser.new do |opts|
 
   opts.on('-c', '--config [STRING]', 'Configuration name') do |v|
     config = v
-    base_dir, parse_regex, path_expression, report_file = read_config(v)
+    base_dir, parse_regex, path_expression, report_file, copy_files = read_config(v)
   end
 
   opts.on('-i', '--interactive', 'Ask for action when changed files are found.') do
     interactive = true
+  end
+
+  opts.on('-o', '--overwrite', 'Overwrite target if changed.') do
+    overwrite = true
+  end
+
+  opts.on('--copy-files', 'Copy files instead of moving') do
+    copy_files = true
   end
 
   opts.on('-b', '--base STRING', 'Directory that needs to be reorganized') do |v|
@@ -72,6 +81,9 @@ report_file = get_report_file(report_file)
 ######### Dummy operations
 dummy_operation = get_dummy_operation(dummy_operation)
 
+######### Copy files
+copy_files = get_copy_files(copy_files)
+
 ######### Start
 puts
 puts 'OK. We are all set. Starting to parse the files in the directory.'
@@ -91,7 +103,7 @@ puts
 puts 'This can take a while. Please sit back and relax, grab a cup of coffee, have a quick nap or read a good book ...'
 
 # Save entries
-save_config(base_dir, parse_regex, path_expression, report_file, config)
+save_config(base_dir, parse_regex, path_expression, report_file, copy_files, config)
 
 # keeps track of folders created
 require 'set'
@@ -136,10 +148,14 @@ Dir.new(base_dir).entries.each do |file_name|
     else
       puts "source: #{File.mtime(entry)} #{'%11s' % Filesize.new(File.size(entry)).pretty} #{entry}"
       puts "target: #{File.mtime(target_path)} #{'%11s' % Filesize.new(File.size(target_path)).pretty} #{target_path}"
-      if interactive ? @hl.agree('Overwrite target?') { |q| q.default = false } : false
+      if interactive ? @hl.agree('Overwrite target?') { |q| q.default = overwrite } : overwrite
           remark = 'Duplicate - updated'
-          puts "-> Move '#{file_name}' to '#{target}'" unless @report
-          FileUtils.move(entry, File.join(target_dir, target_file), force: true) unless dummy_operation
+          puts "-> #{copy_files ? 'Copy' : 'Move'} '#{file_name}' to '#{target}'" unless @report
+          if copy_files
+            FileUtils.copy(entry, File.join(target_dir, target_file))
+          else
+            FileUtils.move(entry, File.join(target_dir, target_file), force: true)
+          end unless dummy_operation
           count[:update] += 1
       else
         remark = 'Duplicate - rejected.'
