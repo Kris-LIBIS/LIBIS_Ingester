@@ -54,14 +54,13 @@ def get_report_file(report_file)
   report_file
 end
 
-def get_copy_files(copy_files)
-  if !@unattended || copy_files.nil?
+def get_move_files(move_files)
+  if !@unattended || move_files.nil?
     puts
-    puts 'Now enter a regular expression that needs to be applied to each file in the directory.'
-    puts 'Create groups for reference later in the directory structure to be created.'
-    copy_files = @hl.agree('Copy files? ', true) { |q| q.default = !!copy_files }
+    puts 'Do you want to move the files? If not, a copy operation will be performed and the original files will be left untouched.'
+    move_files = @hl.agree('Copy files? ', false) { |q| q.default = !!move_files }
   end
-  !!copy_files
+  !!move_files
 end
 
 def open_report(report_file)
@@ -145,13 +144,13 @@ def configurations
   Dir.glob(File.join(ENV['HOME'], '.reorg*.data')).map { |x| x.scan(/reorg(.*).data$/).first.first rescue '' }
 end
 
-def save_config(base_dir, parse_regex, path_expression, report_file, copy_files, config)
+def save_config(base_dir, parse_regex, path_expression, report_file, move_files, config)
   File.open(config_file(config), 'w') do |f|
     f.puts "dir: #{base_dir}"
     f.puts "regex: #{parse_regex}"
     f.puts "expr: #{path_expression}"
     f.puts "report: #{report_file}"
-    f.puts "copy: #{copy_files ? 'true' : 'false'}"
+    f.puts "move: #{move_files ? 'true' : 'false'}"
   end
 end
 
@@ -163,7 +162,7 @@ def read_config(config)
       result[v.first.to_sym] = v.last if v.last
     end
   end rescue nil
-  result[:copy_files] = result[:copy_files] == 'true'
+  result[:move] = result[:move] == 'true'
   result
 end
 
