@@ -58,7 +58,7 @@ def get_move_files(move_files)
   if !@unattended || move_files.nil?
     puts
     puts 'Do you want to move the files? If not, a copy operation will be performed and the original files will be left untouched.'
-    move_files = @hl.agree('Copy files? ', false) { |q| q.default = !!move_files }
+    move_files = @hl.agree('Move files? ', false) { |q| q.default = !!move_files }
   end
   !!move_files
 end
