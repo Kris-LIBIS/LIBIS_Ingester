@@ -5,6 +5,7 @@ require_relative '../lib/libis/ingester/tasks/base/csv_mapping'
 require 'libis/services/alma/sru_service'
 
 require 'set'
+require 'awesome_print'
 
 # noinspection RubyExpressionInStringInspection
 options = {
@@ -15,6 +16,7 @@ options = {
     name_header: 'Name',
     mms_header: 'MMS',
     label_header: 'Label',
+    thumbnail_flag: 'Thumbnail',
     ignore_empty_mms: false,
     ignore_empty_label: false,
     file_regex: '^(DIGI_[^_]+_[^_]+)_([0-9]+)\.(tif|TIF)$',
@@ -63,6 +65,10 @@ OptionParser.new do |opts|
 
   opts.on('--name_header STRING', "Header value for the name column (default: '#{options[:name_header]}')") do |v|
     options[:name_header] = v
+  end
+
+  opts.on('--thumb_header STRING', "Header value for the thumbnail flag (default: '#{options[:thumbnail_flag]}')") do |v|
+    options[:thumbnail_flag] = v
   end
 
   opts.on('--file_regex', "Regular expression for file names (default: '#{options[:file_regex]}')") do |v|
@@ -148,10 +154,12 @@ class CsvChecker
         file: csv_mms_file,
         key: options[:name_header],
         values: options[:mms_headers],
-        collect_errors: true
+        collect_errors: false
     }
     opts[:required] = [options[:mms_header]] unless options[:ignore_empty_mms]
     mapping = load_mapping(opts)
+    puts 'MMS mapping read:'
+    ap mapping
     mapping[:mapping].each do |name, map|
       mms = map[options[:mms_header]]
       found = groups.find { |d| d =~ /^#{name}$/ }
@@ -171,15 +179,20 @@ class CsvChecker
   end
 
   def check_csv_label
-    opts= {
+    opts = {
         file: csv_label_file,
         key: options[:name_header],
         values: options[:label_headers],
-        collect_errors: true
+        flags: [options[:thumbnail_flag]],
+        collect_errors: false
     }
-    opts[:required] = options[:label_header] unless options[:ignore_empty_label]
+    opts[:required] = [options[:label_header]] unless options[:ignore_empty_label]
     mapping = load_mapping(opts)
-
+    puts 'Label mapping read:'
+    ap mapping
+    mapping[:mapping].map do |k, v|
+      puts "#{k} : #{v[options[:label_header]]}"
+    end
     mapping[:mapping].each do |name, _values|
       files.delete(name) { |_| mapping[:errors] << "File matching '#{name}' not found." }
     end

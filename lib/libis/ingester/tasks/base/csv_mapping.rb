@@ -1,12 +1,11 @@
 require 'libis/workflow'
 require 'libis/tools/spreadsheet'
 require 'set'
+require 'awesome_print'
 
 module Libis
   module Ingester
     module CsvMapping
-
-      XLS_KEYS = [:required, :optional, :extension, :encoding, :col_sep, :quote_char]
 
       # Open and parse a mapping file.
       #
@@ -19,7 +18,9 @@ module Libis
       # - :sheet : sheet name (optional). Only used for spreadsheet formats, not for CSV or TSV. If omitted the first
       #     sheet will be used
       # - :key : the name of the key lookup column (required).
-      # - :values : a list of value columns (required).
+      # - :values : a list of value columns (required). It should contain the :key column too if that column is not the
+      #     first column and the CSV is headerless. In that case, all columns are expected to be in the order as given
+      #     in this array.
       # - :flags : a list of flag columns (optional).
       # - :required : a list of columns that must have a value (optional).
       # - :collect_errors : return errors in result instead of raising an exception (optional). If present and evaluates
@@ -46,14 +47,20 @@ module Libis
       # @param [Hash] options
       # @return [Hash] result structure
       def load_mapping(options = {})
+        # defaults for optional options
+        options[:flags] ||= []
+        options[:required] ||= []
+
+        # prepare result
         result = {
             mapping: {},
-            flagged: options[:flags].nil? ? {} : options[:flags].inject({}) { |hash, flag| hash[flag] = []; hash },
+            flagged: options[:flags].inject({}) { |hash, flag| hash[flag] = []; hash },
             errors: []
         }
 
         # check required options
         [:file, :key, :values].each do |key|
+          next if options.has_key?(key) and options[key] != nil
           result[:errors] << "Missing #{key} option in CSV Mapper"
           raise Libis::WorkflowError, result[:errors].last unless options[:collect_errors]
         end
@@ -73,14 +80,24 @@ module Libis
         end
 
         # options setup
-        required = Set[*(options[:key] + (options[:required] || []))]
-        options[:required] = required.to_a
-        options[:optional] = (Set[*(options[:values] + options[:flags])] - required).to_a
+        opts = {noheader: options[:values]}
+        headers = options[:values].dup
+        headers = [options[:key]] + headers unless headers.include?(options[:key])
+        opts[:required] = []
+        opts[:optional] = headers.dup
+        options[:required].each do |r|
+          next if opts[:required].include?(r)
+          opts[:required], opts[:optional] = headers.slice_after(r).to_a
+        end
+        opts[:extension] = options[:extension] if options.has_key?(:extension)
+        opts[:encoding] = options[:encoding] if options.has_key?(:encoding)
+        opts[:col_sep] = options[:col_sep] if options.has_key?(:col_sep)
+        opts[:quote_char] = options[:quote_char] if options.has_key?(:quote_char)
 
         # open spreadsheet
         file += '|' + options[:sheet] if options[:sheet]
         begin
-          xls = Libis::Tools::Spreadsheet.new(file, options.select { |k, _| XLS_KEYS.include?(k) })
+          xls = Libis::Tools::Spreadsheet.new(file, opts)
         rescue Exception => e
           result[:errors] << "Error parsing spreadsheet file '#{file}': #{e.message}"
           raise Libis::WorkflowError, result[:errors].last unless options[:collect_errors]
@@ -96,8 +113,8 @@ module Libis
               raise Libis::WorkflowError, result[:errors].last unless options[:collect_errors]
             end
           end
-          result[:mapping][key] = row.select { |k, _| k != :key }
-          options[:flag].each { |flag| result[:flagged][flag] << key unless row[flag].blank? }
+          result[:mapping][key] = row.select { |k, _| k != options[:key] }
+          options[:flags].each { |flag| result[:flagged][flag] << key unless row[flag].blank? }
         end
 
         result

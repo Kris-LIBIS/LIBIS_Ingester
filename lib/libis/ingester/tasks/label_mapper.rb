@@ -13,8 +13,8 @@ module Libis
                 description: 'Path of mapping file.'
       parameter mapping_format: 'csv',
                 description: 'Format in which the mapping file is written.',
-                constraint: %w'tsv csv'
-      parameter mapping_headers: %w'Name X Label',
+                constraint: %w'tsv csv xls'
+      parameter mapping_headers: %w'Name Thumbnail Label',
                 description: 'Headers for mapping file.'
       parameter ignore_empty_label: false,
                 description: 'Ignore lines with empty label column.'
@@ -37,7 +37,7 @@ module Libis
             key: parameter(:lookup_field),
             flags: [parameter(:thumbnail_field)],
         }
-        options[:required] = [parameter(:label_field)] if parameter(:ignore_empty_label)
+        options[:required] = [parameter(:label_field)] unless parameter(:ignore_empty_label)
         case parameter(:mapping_format)
           when 'csv'
             options[:col_sep] = ','
