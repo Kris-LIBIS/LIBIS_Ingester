@@ -47,10 +47,10 @@ end
 def get_report_file(report_file)
   if !@unattended || report_file.nil?
     puts
-    puts 'Enter a file name for the report. Extension (csv/tsv/xml/yml) specifies the type.'
+    puts 'Enter a file name for the report. Extension (csv/tsv/xml/yml) specifies the type. Type "-none-" for no report.'
     report_file = @hl.ask('Report file name (default: no report): ') { |q| q.default = report_file }
   end
-  report_file = nil if !report_file || report_file.empty?
+  report_file = nil if !report_file || report_file.empty? || report_file == '-none-'
   report_file
 end
 
