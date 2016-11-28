@@ -137,12 +137,12 @@ def get_dummy_operation(dummy_operation)
   dummy_operation
 end
 
-def config_file(config )
+def config_file(config)
   File.join(ENV['HOME'], ".reorg#{config}.data")
 end
 
 def configurations
-  Dir.glob(File.join(ENV['HOME'], '.reorg*.data')).map {|x| x.scan(/reorg(.*).data$/).first.first rescue '' }
+  Dir.glob(File.join(ENV['HOME'], '.reorg*.data')).map { |x| x.scan(/reorg(.*).data$/).first.first rescue '' }
 end
 
 def save_config(base_dir, parse_regex, path_expression, report_file, copy_files, config)
@@ -163,16 +163,15 @@ def read_config(config)
       result[v.first.to_sym] = v.last if v.last
     end
   end rescue nil
-  [:dir, :regex, :expr, :report].map do |s|
-    result[s]
-  end << result[:copy_files] == 'true'
+  result[:copy_files] = result[:copy_files] == 'true'
   result
 end
 
 def puts_config
   configurations.each do |c|
     x = read_config(c)
-    puts "- #{c}:\n   - dir: #{x[0]}\n   - regex: #{x[1]}\n   - expr: #{x[2]}\n   - report: #{x[3]}\n   - copy: #{x[4]}"
+    puts "- #{c}:"
+    x.each { |k, v| puts "   - #{k}: #{v}" }
   end
 end
 

@@ -5,7 +5,12 @@ require 'filesize'
 
 ######## Command-line
 config = nil
-base_dir, parse_regex, path_expression, report_file, copy_files = read_config('')
+x = read_config('')
+base_dir = x[:dir]
+parse_regex = x[:regex]
+path_expression = x[:expr]
+report_file = x[:report]
+copy_files = x[:copy]
 dummy_operation = nil
 interactive = false
 overwrite = false
@@ -17,7 +22,15 @@ OptionParser.new do |opts|
 
   opts.on('-c', '--config [STRING]', 'Configuration name') do |v|
     config = v
-    base_dir, parse_regex, path_expression, report_file, copy_files = read_config(v)
+    x = read_config(v)
+    base_dir = x[:dir]
+    parse_regex = x[:regex]
+    path_expression = x[:expr]
+    report_file = x[:report]
+    copy_files = x[:copy]
+    dummy_operation = nil
+    interactive = false
+    overwrite = false
   end
 
   opts.on('-i', '--interactive', 'Ask for action when changed files are found.') do
@@ -149,18 +162,18 @@ Dir.new(base_dir).entries.each do |file_name|
       puts "source: #{File.mtime(entry)} #{'%11s' % Filesize.new(File.size(entry)).pretty} #{entry}"
       puts "target: #{File.mtime(target_path)} #{'%11s' % Filesize.new(File.size(target_path)).pretty} #{target_path}"
       if interactive ? @hl.agree('Overwrite target?') { |q| q.default = overwrite } : overwrite
-          remark = 'Duplicate - updated'
-          puts "-> #{copy_files ? 'Copy' : 'Move'} '#{file_name}' to '#{target}'" unless @report
-          if copy_files
-            FileUtils.copy(entry, File.join(target_dir, target_file))
-          else
-            FileUtils.move(entry, File.join(target_dir, target_file), force: true)
-          end unless dummy_operation
-          count[:update] += 1
+        remark = 'Duplicate - updated'
+        puts "-> #{copy_files ? 'Copy' : 'Move'} '#{file_name}' to '#{target}'" unless @report
+        if copy_files
+          FileUtils.copy(entry, File.join(target_dir, target_file))
+        else
+          FileUtils.move(entry, File.join(target_dir, target_file), force: true)
+        end unless dummy_operation
+        count[:update] += 1
       else
         remark = 'Duplicate - rejected.'
         error_count += 1
-        $stderr.puts "ERROR: #{entry} exists with different content."  unless @report
+        $stderr.puts "ERROR: #{entry} exists with different content." unless @report
         count[:reject] += 1
       end
     end
