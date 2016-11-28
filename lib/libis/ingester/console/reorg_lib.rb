@@ -166,6 +166,7 @@ def read_config(config)
   [:dir, :regex, :expr, :report].map do |s|
     result[s]
   end << result[:copy_files] == 'true'
+  result
 end
 
 def puts_config
