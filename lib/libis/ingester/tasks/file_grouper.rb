@@ -1,11 +1,9 @@
 require 'libis-ingester'
-require_relative 'base/csv_mapping'
 
 module Libis
   module Ingester
 
     class FileGrouper < Libis::Ingester::Task
-      include Libis::Ingester::CsvMapping
 
       parameter group_regex: nil,
                 description: 'Regular expression for matching against the file names; nothing happens if nil.'
@@ -34,7 +32,8 @@ module Libis
         if grouping && item.filename =~ Regexp.new(grouping)
           collections = eval(parameter(:collection_label)).to_s.split('/') rescue []
           target_parent = item.parent
-          collections.each do |collection|
+          collections.each do |collection|      include Libis::Ingester::CsvMapping
+
             sub_parent = target_parent.get_items.select do |c|
               c.is_a?(Libis::Ingester::Collection) && c.name == collection
             end.first

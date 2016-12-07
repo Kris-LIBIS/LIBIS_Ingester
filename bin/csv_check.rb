@@ -152,14 +152,12 @@ class CsvChecker
     alma = Libis::Services::Alma::SruService.new
     opts = {
         file: csv_mms_file,
-        key: options[:name_header],
+        keys: [options[:name_header]],
         values: options[:mms_headers],
         collect_errors: false
     }
     opts[:required] = [options[:mms_header]] unless options[:ignore_empty_mms]
     mapping = load_mapping(opts)
-    puts 'MMS mapping read:'
-    ap mapping
     mapping[:mapping].each do |name, map|
       mms = map[options[:mms_header]]
       found = groups.find { |d| d =~ /^#{name}$/ }
@@ -181,7 +179,7 @@ class CsvChecker
   def check_csv_label
     opts = {
         file: csv_label_file,
-        key: options[:name_header],
+        keys: [options[:name_header]],
         values: options[:label_headers],
         flags: [options[:thumbnail_flag]],
         collect_errors: false

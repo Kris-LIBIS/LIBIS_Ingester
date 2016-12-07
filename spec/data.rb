@@ -10,7 +10,10 @@ def check_data(item, names, print_log = false)
     match_count += 1
   end
   if item.get_items.length > 0
-    item.get_items.each { |i| match_count += check_data(i, names.select { |name| name =~ /^#{i.labelpath}(\/|$)/ }, print_log) }
+    item.get_items.each do |i|
+      puts "Sub item: #{i.labelpath}" if print_log
+      match_count += check_data(i, names.select { |name| name =~ /^#{i.labelpath}(\/|$)/ }, print_log)
+    end
   end
   puts "check match_count (#{match_count}) against expected (#{names.length}) for #{item.namepath} ..." if print_log
   expect(match_count).to be names.length

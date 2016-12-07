@@ -2,61 +2,18 @@
 
 require 'libis/ingester'
 
-require_relative 'base/csv_mapping'
-
 module Libis
   module Ingester
 
     class MetadataCollector < Libis::Ingester::Task
-      include Libis::Ingester::CsvMapping
 
       parameter item_types: %w'Libis::Ingester::IntellectualEntity Libis::Ingester::Collection',
                 description: 'Items types to process for metadata.'
       parameter recursive: true, frozen: true
 
-      parameter field: nil,
-                description: 'Field to search on. If nil (default) no search will be performed, ' +
-                    'but a simple id lookup will happen instead.\n'
-
-      parameter term: nil,
-                description: 'Ruby expression that builds the search term to be used in the metadata lookup. ' +
-                    'If no term is given, the item name will be used. Use match_regex and match_term to create ' +
-                    'a term dynamically.' +
-                    'Available data are: \n' +
-                    '- item.filename: file name of the object, \n' +
-                    '- item.filepath: relative path of the object, \n' +
-                    '- item.fullpath: full path of the object, \n' +
-                    '- item.name: name of the object.'
-
-      parameter match_regex: nil,
-                description: 'Regular expression to check against the \'match_term\' value. \n' +
-                    'The results of the match can be used in the \'term\' parameter. \n' +
-                    'If nil, no Regexp matching is performed.'
-      parameter match_term: 'item.name',
-                description: 'Ruby expression evaluating to the value to be checked against the \'match_regex\'.'
-
-      parameter converter: 'Kuleuven',
+      parameter converter: '',
                 description: 'Dublin Core metadata converter to use.',
                 constraint: ['', 'Kuleuven', 'Flandrica', 'Scope']
-
-      parameter mapping_file: nil,
-                description: 'File that maps search term to identifier for metadata lookup.'
-
-      parameter mapping_format: 'csv',
-                description: 'Format in which the mapping file is written.',
-                constraint: %w'tsv csv'
-
-      parameter mapping_headers: %w'Name MMS',
-                description: 'Headers for the mapping file.'
-
-      parameter mapping_key: 'Name',
-                description: 'Field name for the column that contains the lookup value.'
-
-      parameter mapping_value: 'MMS',
-                description: 'Field name for the column that contains the search value.'
-
-      parameter ignore_empty_value: false,
-                description: 'Ingore lines with empty value column.'
 
       parameter title_to_name: false,
                 description: 'Update the item name with the title in the metadata?'
@@ -70,35 +27,21 @@ module Libis
       parameter new_label: nil,
                 description: 'Ruby expression that transforms the label.'
 
-      parameter fail_on_not_found: false,
-                description: 'Raise an error if a metadata record cannot be found?'
-
-      def apply_options(opts)
-        super(opts)
-        options = {
-            file: parameter(:mapping_file),
-            key: parameter(:mapping_key),
-            values: parameter(:mapping_headers),
-        }
-        options[:required] = [parameter(:mapping_value)] if parameter(:ignore_empty_value)
-        case parameter(:mapping_format)
-          when 'csv'
-            options[:col_sep] = ','
-          when 'tsv'
-            options[:col_sep] = "\t"
-          else
-            # do nothing
-        end
-        @mapping = Hash[load_mapping(options)[:mapping].map { |k, v| [k, v[parameter(:mapping_value)]] }]
-      end
+      parameter fail_on_missing: false,
+                description: 'Raise an error if a metadata record is missing?'
 
       protected
 
       def process(item)
         record = get_record(item)
-        return unless record
+        unless record
+          raise Libis::WorkflowError, 'No metadata record.' if parameter(:fail_on_missing)
+          return
+        end
         record = convert_metadata(record)
         assign_metadata(item, record)
+      rescue Libis::WorkflowError
+        raise
       rescue Exception => e
         error 'Error getting metadata: %s', e.message
         debug 'At: %s', e.backtrace.first
@@ -106,37 +49,11 @@ module Libis
         raise Libis::WorkflowError, 'MetadataCollector failed.'
       end
 
-      def get_search_term(item)
-        if parameter(:match_regex)
-          match_term = eval parameter(:match_term)
-          return nil unless match_term =~ Regexp.new(parameter(:match_regex))
-        end
-        search_term = parameter(:term).blank? ? item.name : eval(parameter(:term))
-        lookup search_term
+      def get_record(item)
+        nil
       end
 
       private
-
-      def get_record(item)
-        term = get_search_term(item)
-        return nil if term.blank?
-
-        item.properties['metadata_search_term'] = term
-        item.save!
-
-        @metadata_cache ||= {}
-
-        unless @metadata_cache[term]
-          @metadata_cache[term] = search(term)
-          debug 'Metadata for item \'%s\' not found.', item.namepath unless @metadata_cache[term]
-        end
-
-        @metadata_cache[term]
-      end
-
-      def search(_)
-        nil
-      end
 
       def assign_metadata(item, record)
         metadata_record = Libis::Ingester::MetadataRecord.new
@@ -166,10 +83,6 @@ module Libis
         record.to_dc
       end
 
-      def lookup(term)
-        return term if @mapping.blank?
-        @mapping[term]
-      end
     end
 
   end

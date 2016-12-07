@@ -17,10 +17,10 @@ module Libis
       # - :file : file name (required).
       # - :sheet : sheet name (optional). Only used for spreadsheet formats, not for CSV or TSV. If omitted the first
       #     sheet will be used
-      # - :key : the name of the key lookup column (required).
-      # - :values : a list of value columns (required). It should contain the :key column too if that column is not the
-      #     first column and the CSV is headerless. In that case, all columns are expected to be in the order as given
-      #     in this array.
+      # - :keys : a list of key lookup columns (required).
+      # - :values : a list of value columns (required). It should contain the :keys columns too if that column is not
+      #     the first column and the CSV is headerless. In that case, all columns are expected to be in the order as
+      #     given in this array.
       # - :flags : a list of flag columns (optional).
       # - :required : a list of columns that must have a value (optional).
       # - :collect_errors : return errors in result instead of raising an exception (optional). If present and evaluates
@@ -42,7 +42,7 @@ module Libis
       # - :errors : list of error messages (see :collect_errors option flag above).
       #
       # Note: files without headers are supported, but the file's columns will be interpreted in the order that the
-      # header values are supplied: first the :key column, then the :values column, then the :flags columns.
+      # header values are supplied: first the :keys columns, then the :values columns, then the :flags columns.
       #
       # @param [Hash] options
       # @return [Hash] result structure
@@ -59,15 +59,20 @@ module Libis
         }
 
         # check required options
-        [:file, :key, :values].each do |key|
+        [:file, :keys, :values].each do |key|
           next if options.has_key?(key) and options[key] != nil
           result[:errors] << "Missing #{key} option in CSV Mapper"
           raise Libis::WorkflowError, result[:errors].last unless options[:collect_errors]
         end
         return result unless result[:errors].empty?
 
+        # make sure options[:keys] is an array
+        options[:keys] = [options[:keys]] unless options[:keys].is_a?(Array)
+
         # check if file can be read
         file = options[:file]
+        sheet = options[:sheet]
+        file, sheet = file.split('|') if file =~ /|/
         if file.blank?
           result[:errors] << 'Mapping file name is empty'
           raise Libis::WorkflowError, result[:errors].last unless options[:collect_errors]
@@ -82,7 +87,7 @@ module Libis
         # options setup
         opts = {noheader: options[:values]}
         headers = options[:values].dup
-        headers = [options[:key]] + headers unless headers.include?(options[:key])
+        headers = (options[:keys] - headers) + headers
         opts[:required] = []
         opts[:optional] = headers.dup
         options[:required].each do |r|
@@ -95,7 +100,7 @@ module Libis
         opts[:quote_char] = options[:quote_char] if options.has_key?(:quote_char)
 
         # open spreadsheet
-        file += '|' + options[:sheet] if options[:sheet]
+        file += '|' + sheet if sheet
         begin
           xls = Libis::Tools::Spreadsheet.new(file, opts)
         rescue Exception => e
@@ -105,16 +110,18 @@ module Libis
 
         # iterate over content
         xls.each do |row|
-          key = row[options[:key]]
-          next if key.blank?
+          keys = options[:keys].map { |k| row[k] }
+          next if keys.all? { |k| k.blank? }
           options[:required].each do |c|
             if row[c].blank?
-              result[:errors] << "Emtpy #{c} column for key #{key} : #{row}"
+              result[:errors] << "Emtpy #{c} column for keys #{keys} : #{row}"
               raise Libis::WorkflowError, result[:errors].last unless options[:collect_errors]
             end
           end
-          result[:mapping][key] = row.select { |k, _| k != options[:key] }
-          options[:flags].each { |flag| result[:flagged][flag] << key unless row[flag].blank? }
+          mapping = result[:mapping]
+          keys.each { |key| mapping = mapping[key] ||= {} }
+          mapping.merge!(row.reject { |k, _| options[:keys].include?(k) })
+          options[:flags].each { |flag| result[:flagged][flag] << keys unless row[flag].blank? }
         end
 
         result

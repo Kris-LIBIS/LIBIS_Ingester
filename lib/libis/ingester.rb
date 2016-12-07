@@ -31,8 +31,10 @@ module Libis
     autoload :FileItem, 'libis/ingester/file_item'
 
     autoload :Collection, 'libis/ingester/collection'
+    autoload :DirCollection, 'libis/ingester/dir_collection'
     autoload :IntellectualEntity, 'libis/ingester/intellectual_entity'
     autoload :Division, 'libis/ingester/division'
+    autoload :DirDivision, 'libis/ingester/dir_division'
     autoload :Representation, 'libis/ingester/representation'
 
     autoload :MetadataRecord, 'libis/ingester/metadata_record'

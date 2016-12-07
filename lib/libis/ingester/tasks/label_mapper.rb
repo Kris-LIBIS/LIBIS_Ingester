@@ -48,7 +48,7 @@ module Libis
         end
         result = load_mapping(options)
         @mapping = Hash[result[:mapping].map { |k, v| [k, v[parameter(:label_field)]] }]
-        @thumbnails = result[:flagged][parameter(:thumbnail_field)]
+        @thumbnails = result[:flagged][parameter(:thumbnail_field)].flatten
       end
 
       protected

@@ -14,6 +14,7 @@ describe 'Ingester' do
   before(:all) do
     config_file = File.join(Libis::Ingester::ROOT_DIR, 'site.config.yml')
     initializer = ::Libis::Ingester::Initializer.init(config_file)
+    initializer.database.clear
     initializer.seed_database
   end
 
@@ -67,14 +68,14 @@ describe 'Ingester' do
 
   context 'DirCollector' do
 
-    let(:print_log) { false }
+    let(:print_log) { true }
     let(:job_name) { 'Simple Test Job' }
 
     it 'collect top level files' do
       run = job.execute location: datadir
       expect(run.items.size).to be 1
       expect(run.items.count).to be 1
-      expect(run.items[0].name).to eq 'test.pdf'
+      expect(run.items[0].filename).to eq 'test.pdf'
     end
 
     it 'collect files recursively' do
@@ -85,8 +86,8 @@ describe 'Ingester' do
 
     it 'collect files in collections' do
       run = job.execute location: datadir, subdirs: 'collection'
-      expect(run.items.count).to be 2
       check_data(run, FILES_TREE + [run.name], print_log)
+      expect(run.items.count).to be 2
       expect(run.items[0]).to be_a(Libis::Ingester::Collection)
     end
 
