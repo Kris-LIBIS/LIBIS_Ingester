@@ -58,43 +58,42 @@ module Libis
       end
 
       def add(item, file)
+        @counter ||= 0
         child = nil
         if File.directory?(file)
           case parameter(:subdirs).to_s.downcase
             when 'recursive'
               collect(item, file)
             when 'collection'
-              child = Libis::Ingester::Collection.new
-              child.extend Libis::Workflow::Base::DirItem
+              child = Libis::Ingester::DirCollection.new
               child.filename = file
               debug 'Created Collection item `%s`', child.name
+              item.add_item(child)
               collect(child, file)
             when 'complex'
-              child = Libis::Ingester::Division.new
-              child.extend Libis::Workflow::Base::DirItem
+              child = Libis::Ingester::DirDivision.new
               child.filename = file
               debug 'Created Division item `%s`', child.name
+              item.add_item(child)
               collect(child, file)
             else
               info "Ignoring subdir #{file}."
           end
         elsif File.file?(file)
-          @counter ||= 0
-          if @counter > parameter(:file_limit)
-            fatal 'Number of files found exceeds limit (%d). Consider splitting into separate runs or raise limit.',
-                  item.get_run, parameter(:file_limit)
-            raise Libis::WorkflowAbort, 'Number of files exceeds preset limit.'
-          end
           child = Libis::Ingester::FileItem.new
           child.filename = file
           debug 'Created File item `%s`', child.name
           @counter += 1
-          item.get_run.status_progress(self.namepath, @counter)
+          item.add_item(child)
+        end
+        if @counter > parameter(:file_limit)
+          fatal 'Number of files found exceeds limit (%d). Consider splitting into separate runs or raise limit.',
+                item.get_run, parameter(:file_limit)
+          raise Libis::WorkflowAbort, 'Number of files exceeds preset limit.'
         end
         return unless child
-        child.filename = file
-        item.add_item(child)
         child.save!
+        item.get_run.status_progress(self.namepath, @counter)
       end
 
     end
