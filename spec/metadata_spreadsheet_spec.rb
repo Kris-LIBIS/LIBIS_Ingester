@@ -81,8 +81,8 @@ describe 'MetadataSpreadsheetMapper' do
       expect(record).not_to be_nil
       expect(record).to be_a(Libis::Ingester::MetadataRecord)
       record = Libis::Tools::Metadata::DublinCoreRecord.new(record.data)
-      expect(record['title']).to eq 'test (PDF)'
-      expect(record['description']).to eq 'PDF file for Ingester testing'
+      expect(record['//title']).to eq 'test (PDF)'
+      expect(record['//description']).to eq 'PDF file for Ingester testing'
     end
   end
 

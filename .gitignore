@@ -19,7 +19,7 @@ mkmf.log
 .ruby-gemset
 .ruby-version
 
-/spec/data
+/spec/data/db
 /spec/work
 
 site.config.yml
