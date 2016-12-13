@@ -172,7 +172,6 @@ Dir.new(base_dir).entries.each do |file_name|
         count[:update] += 1
       else
         remark = 'Duplicate - rejected.'
-        error_count += 1
         $stderr.puts "ERROR: #{entry} exists with different content." unless @report
         count[:reject] += 1
       end
