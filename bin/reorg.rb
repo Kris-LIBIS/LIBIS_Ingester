@@ -159,8 +159,8 @@ Dir.new(base_dir).entries.each do |file_name|
       count[:duplicate] += 1
       $stderr.puts "Duplicate file entry: #{entry}." unless @report
     else
-      puts "source: #{File.mtime(entry)} #{'%11s' % Filesize.new(File.size(entry)).pretty} #{entry}"
-      puts "target: #{File.mtime(target_path)} #{'%11s' % Filesize.new(File.size(target_path)).pretty} #{target_path}"
+      # puts "source: #{File.mtime(entry)} #{'%11s' % Filesize.new(File.size(entry)).pretty} #{entry}"
+      # puts "target: #{File.mtime(target_path)} #{'%11s' % Filesize.new(File.size(target_path)).pretty} #{target_path}"
       if interactive ? @hl.agree('Overwrite target?') { |q| q.default = overwrite } : overwrite
         remark = 'Duplicate - updated'
         puts "-> #{move_files ? 'Move' : 'Copy'} '#{file_name}' to '#{target}'" unless @report
