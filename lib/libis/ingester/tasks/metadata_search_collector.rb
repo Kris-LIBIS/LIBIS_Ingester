@@ -30,25 +30,6 @@ module Libis
       parameter match_term: 'item.name',
                 description: 'Ruby expression evaluating to the value to be checked against the \'match_regex\'.'
 
-      def apply_options(opts)
-        super(opts)
-        options = {
-            file: parameter(:mapping_file),
-            key: parameter(:mapping_key),
-            values: parameter(:mapping_headers),
-        }
-        options[:required] = [parameter(:mapping_value)] if parameter(:ignore_empty_value)
-        case parameter(:mapping_format)
-          when 'csv'
-            options[:col_sep] = ','
-          when 'tsv'
-            options[:col_sep] = "\t"
-          else
-            # do nothing
-        end
-        @mapping = Hash[load_mapping(options)[:mapping].map { |k, v| [k, v[parameter(:mapping_value)]] }]
-      end
-
       protected
 
       def get_record(item)
