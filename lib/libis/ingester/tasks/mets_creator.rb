@@ -29,6 +29,7 @@ module Libis
           debug "Preparing ingest in #{@ingest_dir}.", item
           FileUtils.rmtree @ingest_dir
           FileUtils.mkpath @ingest_dir
+          FileUtils.chmod 'a+rwX', @ingest_dir
         end
         create_ie(item)
         stop_processing_subitems
@@ -112,6 +113,8 @@ module Libis
         mets_filename = File.join(ie_ingest_dir, 'content', "#{item.name}.xml")
         FileUtils.mkpath(File.dirname(mets_filename))
         mets.xml_doc.save mets_filename
+
+        FileUtils.chmod_R 'a+rwX', ie_ingest_dir
 
         debug "Created METS file '#{mets_filename}'.", item
       end
