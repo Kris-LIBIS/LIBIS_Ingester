@@ -15,16 +15,15 @@ module Libis
       protected
 
       def search(term)
-        unless @scope
-          @scope = ::Libis::Services::Scope::Search.new
-          @scope.connect(
-              ::Libis::Ingester::Config['scope_user'],
-              ::Libis::Ingester::Config['scope_passwd']
-          )
-        end
-        @scope.query(term)
+        scope = ::Libis::Services::Scope::Search.new
+        scope.connect(
+            ::Libis::Ingester::Config['scope_user'],
+            ::Libis::Ingester::Config['scope_passwd']
+        )
 
-        @scope.next_record { |doc| return ::Libis::Tools::Metadata::DublinCoreRecord.new(doc.to_xml) }
+        scope.query(term)
+
+        scope.next_record { |doc| return ::Libis::Tools::Metadata::DublinCoreRecord.new(doc.to_xml) }
 
       rescue Exception => e
         raise ::Libis::WorkflowError, "Scope request failed: #{e.message}"
