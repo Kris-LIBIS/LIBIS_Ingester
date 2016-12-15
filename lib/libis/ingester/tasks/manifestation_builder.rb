@@ -92,7 +92,8 @@ module Libis
               # No generator - convert each source file according to the specifications
               representation.status_progress(self.namepath, 0, source_items.count)
               source_items.each do |item|
-                convert item, representation, convert_hash
+                convert item, representation, convert_hash if convert_hash[:source_files].blank? ||
+                    Regexp.new(convert_hash[:source_files]).match(item.filename)
                 representation.status_progress(self.namepath)
               end
           end

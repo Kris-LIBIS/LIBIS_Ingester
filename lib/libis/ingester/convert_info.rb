@@ -10,6 +10,7 @@ module Libis
       field :generator
       field :generated_file
       field :source_formats, type: Array
+      field :source_files, type: String
       field :target_format
       field :options, type: Array
       field :from_manifestation
