@@ -87,7 +87,7 @@ module Libis
           item.add_item(child)
         end
         if @counter > parameter(:file_limit)
-          fatal 'Number of files found exceeds limit (%d). Consider splitting into separate runs or raise limit.',
+          fatal_error 'Number of files found exceeds limit (%d). Consider splitting into separate runs or raise limit.',
                 item.get_run, parameter(:file_limit)
           raise Libis::WorkflowAbort, 'Number of files exceeds preset limit.'
         end
