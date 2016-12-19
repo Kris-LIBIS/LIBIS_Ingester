@@ -33,8 +33,7 @@ module Libis
         # noinspection RubyResolve
         rosetta = Libis::Services::Rosetta::Service.new(Libis::Ingester::Config.base_url, Libis::Ingester::Config.pds_url)
         producer_info = item.get_run.producer
-        handle = rosetta.login(producer_info[:agent], producer_info[:password], producer_info[:institution])
-        raise Libis::WorkflowAbort, 'Could not log in into Rosetta.' if handle.nil?
+        rosetta.login(producer_info[:agent], producer_info[:password], producer_info[:institution])
         sip_handler = rosetta.sip_service
         sip_info = sip_handler.get_info(item.properties['ingest_sip'])
         item.properties['ingest_status'] = sip_info.to_hash

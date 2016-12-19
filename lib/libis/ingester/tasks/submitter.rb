@@ -35,11 +35,7 @@ module Libis
         # noinspection RubyResolve
         rosetta = Libis::Services::Rosetta::Service.new(Libis::Ingester::Config.base_url, Libis::Ingester::Config.pds_url)
         producer_info = item.get_run.producer
-        handle = rosetta.login(producer_info[:agent], producer_info[:password], producer_info[:institution])
-        if handle.nil?
-          fatal 'PDS login failed.'
-          raise Libis::WorkflowAbort, 'Could not log in into Rosetta.'
-        end
+        rosetta.login(producer_info[:agent], producer_info[:password], producer_info[:institution])
 
         begin
           deposit_result = rosetta.deposit_service.submit(
