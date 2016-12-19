@@ -21,6 +21,10 @@ module Libis
         item_list
       end
 
+      def parent_of(klass)
+        self.ancestors.find { |a| a.is_a?(klass) }
+      end
+
       def to_hash
         result = super
         # noinspection RubyResolve
