@@ -13,46 +13,52 @@ module Libis
           fail("#{klass.name} should be a ParameterContainer.") unless klass.ancestors.include? Libis::Tools::ParameterContainer
 
           klass.parameter mapping_file: nil,
-                    description: 'File that maps search term to identifier for metadata lookup.'
+                          description: 'File that maps search term to identifier for metadata lookup.'
+
+          klass.parameter mapping_sheet: nil,
+                          description: 'Sheet in the mapping file to use. Only used for XLS format.'
 
           klass.parameter mapping_format: 'csv',
-                    description: 'Format in which the mapping file is written.',
-                    constraint: %w'tsv csv xls'
+                          description: 'Format in which the mapping file is written.',
+                          constraint: %w'tsv csv xls'
 
           klass.parameter mapping_headers: %w'key value',
-                    description: 'Headers for the mapping file.'
+                          description: 'Headers for the mapping file.'
+
+          klass.parameter mapping_flags: [],
+                          description: 'A list of column names that need to be interpreted as flags.'
 
           klass.parameter mapping_key: 'key',
-                    description: 'Name of the column that contains the lookup value.'
-
-          klass.parameter mapping_value: nil,
-                    description: 'Optional name of the column to return. If empty, a Hash with all values will be returned.'
+                          description: 'Name of the column that contains the lookup value.'
 
           klass.parameter filter_keys: [],
-                    desription: 'Optional name of the column to filter on.'
+                          desription: 'Names of the columns to filter on.'
 
           klass.parameter filter_values: [],
-                    description: 'Optional value for the filter.'
+                          description: 'Values for the filter columns.' +
+                              ' These values should be expressions as they will be evaluated.'
 
-          klass.parameter ignore_empty_value: false,
-                    description: 'Ingore lines with empty value column.'
+          klass.parameter required_fields: [],
+              description: 'Columns that should be present and not empty.'
 
         end
 
-        def apply_options(opts)
-          super(opts)
+        protected
+
+        def result
+          @result if @result
           options = {
               file: parameter(:mapping_file),
+              sheet: parameter(:mapping_sheet),
               keys: [parameter(:mapping_key)],
               values: parameter(:mapping_headers),
+              flags: parameter(:mapping_flags),
+              required: parameter(:required_fields)
           }
-          if parameter(:ignore_empty_value) and !parameter(:mapping_value).blank?
-            options[:required] = [parameter(:mapping_value)]
-          end
           unless parameter(:filter_keys).size == parameter(:filter_values).size
             raise WorkflowError, 'Parameters :filter_keys and :filter_values should have the same number of values.'
           end
-          options[:keys] = parameter(:filter_keys) + options[:keys] unless parameter(:filter_keys).blank?
+          options[:keys] = parameter(:filter_keys) + options[:keys]
           case parameter(:mapping_format)
             when 'csv'
               options[:col_sep] = ','
@@ -61,21 +67,26 @@ module Libis
             else
               # do nothing
           end
-          @mapping = load_mapping(options)[:mapping]
+          @result = load_mapping(options)
         end
 
-        protected
-
-        def lookup(term)
-          return term if @mapping.blank?
-          mapping = filter(parameter(:filter_values))[term]
-          parameter(:mapping_value).blank? ? mapping : mapping[parameter(:mapping_value)]
+        def mapping
+          self.result[:mapping]
         end
 
-        def filter(filter_value)
-          return @mapping if filter_value.blank?
-          filter_value = eval(parameter(:filter_value))
-          @mapping[filter_value]
+        def flagged(flag = nil)
+          return self.result[:flagged] unless flag
+          self.result[:flagged][flag] || []
+        end
+
+        def lookup(term, value_name = nil)
+          return term if self.mapping.blank?
+          map = filter(parameter(:filter_values))[term]
+          value_name.blank? ? map : map[value_name]
+        end
+
+        def filter(filter_values = [])
+          filter_values.inject(self.mapping) { |map, fv| map[eal(fv)] }
         end
 
       end
