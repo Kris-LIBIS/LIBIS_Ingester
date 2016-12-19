@@ -9,7 +9,12 @@ module Libis
       protected
 
       def search(term)
-        super(lookup(term))
+        record = Libis::Tools::Metadata::DublinCoreRecord.new
+        lookup(term).each do |key, value|
+          next unless key =~ /^\s*<([^>]+)>(\d\s)*$/
+          record.add_node($1.strip, value)
+        end
+        record
       end
 
     end
