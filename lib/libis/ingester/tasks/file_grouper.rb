@@ -32,8 +32,7 @@ module Libis
         if grouping && item.filename =~ Regexp.new(grouping)
           collections = eval(parameter(:collection_label)).to_s.split('/') rescue []
           target_parent = item.parent
-          collections.each do |collection|      include Libis::Ingester::CsvMapping
-
+          collections.each do |collection|
             sub_parent = target_parent.get_items.select do |c|
               c.is_a?(Libis::Ingester::Collection) && c.name == collection
             end.first
