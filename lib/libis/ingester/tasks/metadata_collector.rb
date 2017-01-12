@@ -67,10 +67,24 @@ module Libis
       end
 
       def transform_item(item, title)
-        item.name = title if parameter(:title_to_name)
-        item.name = eval(parameter(:new_name)) if parameter(:new_name)
-        item.label = title if parameter(:title_to_label)
-        item.label = eval(parameter(:new_label)) if parameter(:new_label)
+        if parameter(:title_to_name)
+          debug "Setting name to '#{title}'"
+          item.name = title
+        end
+        if parameter(:new_name)
+          new_name = eval(parameter(:new_name))
+          debug "Setting name to '#{new_name}'"
+          item.name = new_name
+        end
+        if parameter(:title_to_label)
+          debug "Setting label to '#{title}'"
+          item.label = title
+        end
+        if parameter(:new_label)
+          new_label = eval(parameter(:new_label))
+          debug "Setting label to #{new_label}"
+          item.label = new_label
+        end
       end
 
       def convert_metadata(record)
