@@ -16,6 +16,9 @@ module Libis
       parameter copy_files: false,
                 description: 'Copy file info ingest dir instead of creating a symbolic link'
 
+      parameter force_label_to_title: false,
+                description: 'Force the IE\'s label into the metadata\'s dc:title field'
+
       parameter recursive: true, frozen: true
 
       def pre_process(item)
@@ -66,8 +69,8 @@ module Libis
                       Libis::Tools::Metadata::DublinCoreRecord.new
                     end
 
-        if dc_record.title.text.blank?
-          debug "Setting DC title to #{item.label}"
+        if dc_record.title.text.blank? || parameter(:force_label_to_title)
+          debug "Setting DC title to '#{item.label}'"
           dc_record.title = item.label
         end
 
@@ -87,6 +90,7 @@ module Libis
         mets.dc_record = dc_record.root.to_xml
 
         amd = {
+            status: item.properties['status'] || ingest_model.status || 'ACTIVE',
             entity_type: item.properties['entity_type'] || ingest_model.entity_type,
             user_a: item.properties['user_a'] || ingest_model.user_a,
             user_b: item.properties['user_b'] || ingest_model.user_b,
