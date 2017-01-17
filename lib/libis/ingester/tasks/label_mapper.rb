@@ -41,8 +41,6 @@ module Libis
         self.thumbnails.include?(name)
       end
 
-      private
-
       def thumbnails
         return @thumbnails if @thumbnails
         @thumbnails = self.flagged(parameter(:thumbnail_field)).flatten
