@@ -43,10 +43,10 @@ module Libis
         storage = DomainStorage.where(domain: 'Masterthesis').find_or_create_by(name: 'Loaded')
         loaded = storage.data
         @file_service ||= parameter(:local_storage).blank? ?
-            Libis::Ingester::FileService.new(parameter(:local_storage)) :
             Libis::Ingester::FtpsService.new(
                 parameter(:ftp_host), parameter(:ftp_port), parameter(:ftp_user), parameter(:ftp_password)
-            )
+            ) :
+            Libis::Ingester::FileService.new(parameter(:local_storage))
         dirs = @file_service.ls parameter(:ftp_subdir)
         dirs.each do |dir|
           next if @file_service.is_file?(dir)

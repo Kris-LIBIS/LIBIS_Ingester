@@ -77,10 +77,10 @@ module Libis
         debug 'Item %s saved in persistent storage', item, identifier
 
         @file_service ||= parameter(:local_storage).blank? ?
-            Libis::Ingester::FileService.new(parameter(:local_storage)) :
             Libis::Ingester::FtpsService.new(
                 parameter(:ftp_host), parameter(:ftp_port), parameter(:ftp_user), parameter(:ftp_password)
-            )
+            ) :
+            Libis::Ingester::FileService.new(parameter(:local_storage))
         done_file = File.join(parameter(:done_dir), "#{identifier}.out")
         @file_service.put_file(
             done_file,
