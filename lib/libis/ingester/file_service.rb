@@ -22,17 +22,17 @@ module Libis
       # Download a file
       # param [String] remote_path remote file path
       # param [String] local_path
-      # param [Symbol] mode :binary or :text
-      def get_file(remote_path, local_path, mode = :binary)
-        FileUtils.cp abspath(remote_path), local_path, preserve: (mode == :binary)
+      # param [Symbol] _mode :binary or :text
+      def get_file(remote_path, local_path, _mode = :binary)
+        FileUtils.cp abspath(remote_path), local_path
       end
 
       # Upload a file
       # param [String] remote_path remote file path
       # param [Object] data
-      # param [Symbol] mode :binary or :text
-      def put_file(remote_path, data, mode = :text)
-        File.open abspath(remote_path), 'w' + (mode == :binary ? 'b' : 't') do |f|
+      # param [Symbol] _mode :binary or :text
+      def put_file(remote_path, data, _mode = :text)
+        File.open abspath(remote_path), 'w' do |f|
           f.write(data)
         end
       end
