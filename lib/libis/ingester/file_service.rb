@@ -40,19 +40,19 @@ module Libis
       # Delete a file
       # param [String] remote_path remote file path
       def del_file(remote_path)
-        FileUtils.rm([abspath remote_path])
+        FileUtils.rm([abspath(remote_path)])
       end
 
       # Delete a directory
       # param [String] remote_path remote directory
       def del_dir(remote_path)
-        FileUtils.rm([abspath remote_path])
+        FileUtils.rm([abspath(remote_path)])
       end
 
       # Delete a directory
       # param [String] remote_path remote directory
       def del_tree(remote_path)
-        FileUtils.rmtree [abspath remote_path]
+        FileUtils.rmtree [abspath(remote_path)]
       end
 
       def exist?(remote_path)
