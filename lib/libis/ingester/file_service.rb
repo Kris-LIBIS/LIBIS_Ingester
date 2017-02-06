@@ -70,8 +70,8 @@ module Libis
 
       attr_accessor :root
 
-      def abspath(dir, file = '')
-        File.join(@root, dir, file)
+      def abspath(dir, file = nil)
+        file.nil? ? File.join(@root, dir) : File.join(@root, dir, file)
       end
 
       def relpath(path)
