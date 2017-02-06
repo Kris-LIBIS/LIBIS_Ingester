@@ -15,7 +15,7 @@ module Libis
       # return [Array<String>]
       def ls(dir)
         Dir.entries(abspath(dir)).map do |entry|
-          (File.file?(abspath(dir, entry)) || entry =~ /^\.+$/) ? nil : File.join(dir, entry)
+          entry =~ /^\.+$/ ? nil : File.join(dir, entry)
         end.delete_if { |x| x.nil? }
       end
 
