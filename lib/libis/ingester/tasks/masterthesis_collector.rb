@@ -2,6 +2,7 @@ require 'libis-tools'
 require 'libis-workflow'
 require 'libis-ingester'
 
+require 'libis/ingester/file_service'
 require 'libis/ingester/ftps_service'
 
 require 'set'
@@ -11,6 +12,8 @@ module Libis
 
     class MasterthesisCollector < Libis::Ingester::Task
 
+      parameter local_storage: '',
+                description: 'Local directory for file storage. If empty, FTP remote storage is used.'
       parameter ftp_host: 'ftpsap.cc.kuleuven.be',
                 description: 'FTP host where theses are uploaded.'
       parameter ftp_port: 990,
@@ -39,12 +42,14 @@ module Libis
         @work_dir = item.work_dir
         storage = DomainStorage.where(domain: 'Masterthesis').find_or_create_by(name: 'Loaded')
         loaded = storage.data
-        @ftp_service ||= Libis::Ingester::FtpsService.new(
-            parameter(:ftp_host), parameter(:ftp_port), parameter(:ftp_user), parameter(:ftp_password)
-        )
-        dirs = @ftp_service.ls parameter(:ftp_subdir)
+        @file_service ||= parameter(:local_storage).blank? ?
+            Libis::Ingester::FileService.new(parameter(:local_storage)) :
+            Libis::Ingester::FtpsService.new(
+                parameter(:ftp_host), parameter(:ftp_port), parameter(:ftp_user), parameter(:ftp_password)
+            )
+        dirs = @file_service.ls parameter(:ftp_subdir)
         dirs.each do |dir|
-          next if @ftp_service.is_file?(dir)
+          next if @file_service.is_file?(dir)
           name = File.basename(dir)
           next unless parameter(:selection_regex).nil? or Regexp.new(parameter(:selection_regex)) =~ name
           if loaded[name]
@@ -68,10 +73,10 @@ module Libis
         # Copy all files to local work dir
         work_dir = File.join(@work_dir, dir_name)
         FileUtils.mkpath(work_dir)
-        files = @ftp_service.ls(dir)
+        files = @file_service.ls(dir)
         files = files.map do |file|
           local_file = File.join(work_dir, File.basename(file))
-          @ftp_service.get_file(file, local_file)
+          @file_service.get_file(file, local_file)
           local_file
         end
 
@@ -80,7 +85,7 @@ module Libis
         xml_file = files.find { |file| File.basename(file) == xml_file_name }
         unless xml_file
           error 'XML file missing in %s', dir_name
-          @ftp_service.put_file(File.join(parameter(:ftp_errdir), "#{dir_name}.error"), ['XML file missing in %s' % dir_name])
+          @file_service.put_file(File.join(parameter(:ftp_errdir), "#{dir_name}.error"), ['XML file missing in %s' % dir_name])
           return
         end
 
@@ -91,7 +96,7 @@ module Libis
         proef, files_from_xml = check_thesis(dir_name, files, xml_doc, xml_file_name)
 
         unless proef
-          @ftp_service.put_file(File.join(parameter(:ftp_errdir), "#{dir_name}.error"), files_from_xml)
+          @file_service.put_file(File.join(parameter(:ftp_errdir), "#{dir_name}.error"), files_from_xml)
           return
         end
 
@@ -119,7 +124,7 @@ module Libis
 
         # add files to IE
         files_from_xml.each do |fname|
-          file = files.find {|f| File.basename(f) == fname}
+          file = files.find { |f| File.basename(f) == fname }
           file_item = Libis::Ingester::FileItem.new
           file_item.filename = file
           ie_item << file_item

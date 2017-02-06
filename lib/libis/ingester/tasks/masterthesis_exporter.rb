@@ -3,6 +3,7 @@ require 'fileutils'
 require 'libis/tools/xml_document'
 
 require 'libis-ingester'
+require 'libis/ingester/file_service'
 require 'libis/ingester/ftps_service'
 
 module Libis
@@ -10,6 +11,8 @@ module Libis
 
     class MasterthesisExporter < ::Libis::Ingester::Task
 
+      parameter local_storage: '',
+                description: 'Local directory for file storage. If empty, FTP remote storage is used.'
       parameter ftp_host: 'ftpsap.cc.kuleuven.be',
                 description: 'FTP host where theses are uploaded.'
       parameter ftp_port: 990,
@@ -73,25 +76,27 @@ module Libis
         storage.save!
         debug 'Item %s saved in persistent storage', item, identifier
 
-        @ftp_service ||= Libis::Ingester::FtpsService.new(
-            parameter(:ftp_host), parameter(:ftp_port), parameter(:ftp_user), parameter(:ftp_password)
-        )
+        @file_service ||= parameter(:local_storage).blank? ?
+            Libis::Ingester::FileService.new(parameter(:local_storage)) :
+            Libis::Ingester::FtpsService.new(
+                parameter(:ftp_host), parameter(:ftp_port), parameter(:ftp_user), parameter(:ftp_password)
+            )
         done_file = File.join(parameter(:done_dir), "#{identifier}.out")
-        @ftp_service.put_file(
+        @file_service.put_file(
             done_file,
             ["Geingest op #{Time.now.strftime('%d/%m/%Y')} met id #{item.pid}."]
         )
         debug 'Done file created in %s.', item, done_file
 
         error_file = File.join(parameter(:error_dir), "#{identifier}.error")
-        if @ftp_service.exist?(error_file)
-          @ftp_service.del_file(error_file)
+        if @file_service.exist?(error_file)
+          @file_service.del_file(error_file)
           debug 'Error file %s deleted.', item, error_file
         end
 
         if parameter(:remove_input)
           source_dir = item.properties['source_path']
-          @ftp_service.del_tree(source_dir)
+          @file_service.del_tree(source_dir)
           debug 'Source dir %s deleted.', item, source_dir
         end
 

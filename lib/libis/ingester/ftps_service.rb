@@ -18,31 +18,6 @@ module Libis
         connect
       end
 
-      # Connect to FTP server
-      def connect
-        ftp_service.open_timeout = 10.0
-        ftp_service.ftps_mode = DoubleBagFTPS::EXPLICIT
-        ftp_service.connect(host, port)
-        ftp_service.login user, password
-        ftp_service.passive = true
-        ftp_service.read_timeout = 120.0
-      end
-
-      # Disconnect from FTP server
-      def disconnect
-        ftp_service.close
-      rescue
-        # do nothing
-      end
-
-      # Change current directory on the FTP server
-      # param [String] dir
-      def chdir(dir)
-        check do
-          ftp_service.chdir(dir)
-        end
-      end
-
       # Get directory listing
       # param [String] dir
       # return [Array<String>]
@@ -143,6 +118,23 @@ module Libis
           connect
           yield
         end
+      end
+
+      # Connect to FTP server
+      def connect
+        ftp_service.open_timeout = 10.0
+        ftp_service.ftps_mode = DoubleBagFTPS::EXPLICIT
+        ftp_service.connect(host, port)
+        ftp_service.login user, password
+        ftp_service.passive = true
+        ftp_service.read_timeout = 120.0
+      end
+
+      # Disconnect from FTP server
+      def disconnect
+        ftp_service.close
+      rescue
+        # do nothing
       end
 
     end
