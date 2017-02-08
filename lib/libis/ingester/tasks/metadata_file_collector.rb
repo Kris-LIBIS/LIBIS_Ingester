@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 require 'libis/ingester'
 require 'libis/tools/metadata/dublin_core_record'
 
