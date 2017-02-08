@@ -86,7 +86,7 @@ module Libis
         end
 
         def filter(filter_values = [])
-          filter_values.inject(self.mapping) { |map, fv| map[eal(fv)] }
+          filter_values.inject(self.mapping) { |map, fv| map[eval(fv)] }
         end
 
       end
