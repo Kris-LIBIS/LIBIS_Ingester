@@ -72,7 +72,7 @@ module Libis
         # check if file can be read
         file = options[:file]
         sheet = options[:sheet]
-        file, sheet = file.split('|') if file =~ /|/
+        file, sheet = file.split('|') if file =~ /\|/
         if file.blank?
           result[:errors] << 'Mapping file name is empty'
           raise Libis::WorkflowError, result[:errors].last unless options[:collect_errors]
