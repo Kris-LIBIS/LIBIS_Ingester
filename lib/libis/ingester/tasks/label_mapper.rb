@@ -30,11 +30,11 @@ module Libis
       protected
 
       def get_label(name, item)
-        return name if self.mapping.empty?
+        return nil if self.mapping.empty?
         label = self.lookup(name, parameter(:label_field))
         return label if label
         warn 'Could not find label in mapping table', item
-        name
+        nil
       end
 
       def thumbnail?(name)
