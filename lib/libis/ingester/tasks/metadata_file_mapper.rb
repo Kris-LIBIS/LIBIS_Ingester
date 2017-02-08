@@ -1,9 +1,12 @@
-require_relative 'metadata_file_collector'
+require 'libis/ingester'
+require 'libis/tools/metadata/dublin_core_record'
+
 require_relative 'base/mapping'
+require_relative 'metadata_collector'
 module Libis
   module Ingester
 
-    class MetadataMapper < MetadataFileCollector
+    class MetadataFileMapper < MetadataCollector
       include Base::Mapping
 
       protected
