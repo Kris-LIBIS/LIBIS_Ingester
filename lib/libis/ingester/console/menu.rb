@@ -62,7 +62,8 @@ def selection_menu(title, items, options = {})
   end
 end
 
-def select_path(dir = true, file = true, base_dir = '.')
+def select_path(dir = true, file = true, base_dir)
+  base_dir ||= '.'
   base_dir = File.absolute_path(File.join(base_dir, '..')) until File.exists?(base_dir) && File.directory?(base_dir)
   old_completer = Readline.completion_proc
   old_append_character = Readline.completion_append_character
