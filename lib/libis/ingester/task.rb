@@ -1,5 +1,6 @@
 # encoding: utf-8
 require 'libis/workflow/task'
+require 'libis-ingester'
 
 module Libis
   module Ingester
