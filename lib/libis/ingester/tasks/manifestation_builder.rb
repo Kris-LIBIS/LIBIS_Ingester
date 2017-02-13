@@ -100,6 +100,12 @@ module Libis
         end
       end
 
+      def copy_file(file, to_parent)
+        debug "Copying '#{file.name}' to '#{to_parent.name}' in object tree."
+        file = to_parent.copy_item(file)
+        process_files(file)
+      end
+
       def move_file(file, to_parent)
         debug "Moving '#{file.name}' to '#{to_parent.name}' in object tree."
         file = to_parent.move_item(file)
@@ -240,6 +246,7 @@ module Libis
             end
 
             if convert_hash[:target_format].blank?
+              return copy_file(item, new_parent) if convert_hash[:copy_file]
               return move_file(item, new_parent)
             end
 
