@@ -39,7 +39,10 @@ module Libis
         return nil if term.blank?
 
         data = lookup(term)
-        return nil if data.blank?
+        if data.blank?
+          debug "No metadata found for #{term}"
+          return nil
+        end
 
         record = Libis::Tools::Metadata::DublinCoreRecord.new
         data.each do |key,value|
