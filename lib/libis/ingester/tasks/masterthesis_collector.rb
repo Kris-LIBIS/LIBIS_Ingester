@@ -101,7 +101,7 @@ module Libis
 
         # Check AccessRight
         pub = xml_doc.embargo('isPubliek').blank?
-        instelling_id = xml_doc['//instellingId']
+        instelling_id = xml_doc['//instellingId'] || '50000050'
         # noinspection RubyNestedTernaryOperatorsInspection
         ar_extension =  embargo == 0 ? (pub ? 'PUBLIC' : 'IP-RESTRICTED') : 'PROTECTED'
         ar_name = "AR_MT_#{instelling_id}_#{ar_extension}"
