@@ -104,7 +104,7 @@ module Libis
         pub = xml_doc.embargo('isPubliek').blank?
         instelling_id = xml_doc['//instellingId'] || '50000050'
         # noinspection RubyNestedTernaryOperatorsInspection
-        ar_extension =  embargo == 0 ? (pub ? 'PUBLIC' : 'IP-RESTRICTED') : 'PROTECTED'
+        ar_extension =  embargo == 0 ? (!pub.blank? ? 'PUBLIC' : 'IP-RESTRICTED') : 'PROTECTED'
         ar_name = "AR_MT_#{instelling_id}_#{ar_extension}"
         unless Libis::Ingester::AccessRight.find_by(name: ar_name)
           raise Libis::WorkflowError, "AccessRight #{ar_name} not found."
