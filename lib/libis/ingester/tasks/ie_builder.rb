@@ -6,6 +6,8 @@ module Libis
 
     class IeBuilder < Libis::Ingester::Task
 
+      taskgroup :preingester
+
       parameter recursive: true
 
       protected

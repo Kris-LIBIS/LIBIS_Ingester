@@ -7,6 +7,8 @@ module Libis
 
     class FileExistChecker < ::Libis::Ingester::Task
 
+      taskgroup :preprocessor
+
       parameter item_types: [Libis::Ingester::FileItem], frozen: true
 
       protected

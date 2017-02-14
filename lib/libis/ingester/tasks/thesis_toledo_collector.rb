@@ -10,6 +10,8 @@ module Libis
 
     class ThesisToledoCollector < Libis::Ingester::Task
 
+      taskgroup :collector
+
       parameter location: nil,
                 description: 'Directory path where the values.csv files are located'
 

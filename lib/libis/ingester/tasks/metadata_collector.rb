@@ -7,6 +7,8 @@ module Libis
 
     class MetadataCollector < Libis::Ingester::Task
 
+      taskgroup :preingester
+
       parameter item_types: %w'Libis::Ingester::IntellectualEntity Libis::Ingester::Collection',
                 description: 'Items types to process for metadata.'
       parameter recursive: true, frozen: true

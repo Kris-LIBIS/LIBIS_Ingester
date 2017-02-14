@@ -9,6 +9,8 @@ module Libis
 
     class CollectionCreator < Libis::Ingester::Task
 
+      taskgroup :collector
+
       parameter collection: nil,
                 description: 'Existing collection to add the documents to.'
       parameter navigate: true,

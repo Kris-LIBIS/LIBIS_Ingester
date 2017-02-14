@@ -7,6 +7,8 @@ module Libis
 
     class FileMimetypeChecker < ::Libis::Ingester::Task
 
+      taskgroup :preprocessor
+
       parameter mimetype_regexp: nil,
                 description: 'Match files with MIME types that match the given regular expression. Ignored if empty.'
 

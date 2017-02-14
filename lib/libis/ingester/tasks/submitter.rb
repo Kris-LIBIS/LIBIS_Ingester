@@ -11,6 +11,8 @@ module Libis
 
     class Submitter < ::Libis::Ingester::Task
 
+      taskgroup :ingester
+
       parameter recursive: true, frozen: true
 
       protected

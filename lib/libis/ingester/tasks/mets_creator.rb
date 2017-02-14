@@ -10,6 +10,8 @@ module Libis
 
     class MetsCreator < Libis::Ingester::Task
 
+      taskgroup :ingester
+
       parameter collection: nil,
                 description: 'Collection to add the documents to.'
 

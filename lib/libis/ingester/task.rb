@@ -9,6 +9,11 @@ module Libis
       parameter item_types: nil, datatype: Array,
                 description: 'Item types to process.'
 
+      def self.taskgroup(name = nil)
+        @taskgroup = name if name
+        @taskgroup || superclass.group rescue nil
+      end
+
       def run(item)
         new_item = super(item)
         item = new_item if new_item.is_a?(Libis::Workflow::WorkItem)

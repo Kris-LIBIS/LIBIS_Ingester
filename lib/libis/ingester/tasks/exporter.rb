@@ -9,6 +9,8 @@ module Libis
 
     class Exporter < ::Libis::Ingester::Task
 
+      taskgroup :postingester
+
       parameter export_dir: '.', description: 'Directory where the export files will be copied'
       parameter export_file_name: nil, description: 'File name of the export file (default: derived from ingest run name).'
       parameter export_key: 'item.name',

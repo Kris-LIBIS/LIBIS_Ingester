@@ -5,6 +5,8 @@ module Libis
 
     class FileGrouper < Libis::Ingester::Task
 
+      taskgroup :preingester
+
       parameter group_regex: nil,
                 description: 'Regular expression for matching against the file names; nothing happens if nil.'
       parameter collection_label: nil,

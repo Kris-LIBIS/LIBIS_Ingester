@@ -7,6 +7,8 @@ module Libis
 
     class DirCollector < Libis::Ingester::Task
 
+      taskgroup :collector
+
       parameter location: '.',
                 description: 'Directory to start scanning in.'
 

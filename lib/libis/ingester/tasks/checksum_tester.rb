@@ -8,6 +8,8 @@ module Libis
 
     class ChecksumTester < ::Libis::Ingester::Task
 
+      taskgroup :preprocessor
+
       parameter checksum_type: nil,
                 description: 'Checksum type to use.',
                 constraint: ::Libis::Tools::Checksum::CHECKSUM_TYPES.map { |x| x.to_s }

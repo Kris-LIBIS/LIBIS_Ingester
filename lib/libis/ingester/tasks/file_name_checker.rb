@@ -7,6 +7,8 @@ module Libis
 
     class FileNameChecker < ::Libis::Ingester::Task
 
+      taskgroup :preprocessor
+
       parameter filename_regexp: nil,
                 description: 'Match files with names that match the given regular expession. Ignored if empty.'
 

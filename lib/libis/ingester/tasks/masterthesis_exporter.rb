@@ -11,6 +11,8 @@ module Libis
 
     class MasterthesisExporter < ::Libis::Ingester::Task
 
+      taskgroup :postingester
+
       parameter local_storage: '',
                 description: 'Local directory for file storage. If empty, FTP remote storage is used.'
       parameter ftp_host: 'ftpsap.cc.kuleuven.be',

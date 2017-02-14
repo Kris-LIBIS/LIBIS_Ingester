@@ -8,6 +8,8 @@ module Libis
 
       class VirusChecker < ::Libis::Ingester::Task
 
+        taskgroup :preprocessor
+
         parameter item_types: [Libis::Ingester::FileItem], frozen: true
 
         def pre_process(item)

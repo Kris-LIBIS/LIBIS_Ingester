@@ -8,6 +8,8 @@ module Libis
 
       class DirVirusChecker < ::Libis::Ingester::Task
 
+        taskgroup :preprocessor
+
         parameter location: '.',
                   description: 'Directory to scan for viruses'
 

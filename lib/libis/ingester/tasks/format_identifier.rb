@@ -8,6 +8,8 @@ module Libis
 
     class FormatIdentifier < ::Libis::Ingester::Task
 
+      taskgroup :preprocessor
+
       parameter formats: nil,
                 description: 'Format file to load.'
 

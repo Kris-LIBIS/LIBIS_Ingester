@@ -7,6 +7,8 @@ module Libis
 
     class Labeler < Libis::Ingester::Task
 
+      taskgroup :preingester
+
       parameter lookup_expr: 'item.name',
                 description: 'A Ruby expression that returns the lookup value.'
 

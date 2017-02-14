@@ -9,6 +9,8 @@ module Libis
 
     class BbNotesCollector < Libis::Ingester::Task
 
+      taskgroup :collector
+
       include Libis::Ingester::CsvMapping
 
       parameter root_dir: '/',
