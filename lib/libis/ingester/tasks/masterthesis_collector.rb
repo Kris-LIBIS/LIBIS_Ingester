@@ -100,6 +100,7 @@ module Libis
         end
 
         # Check AccessRight
+        embargo = xml_doc['//embargo'].to_i
         pub = xml_doc.embargo('isPubliek').blank?
         instelling_id = xml_doc['//instellingId'] || '50000050'
         # noinspection RubyNestedTernaryOperatorsInspection
