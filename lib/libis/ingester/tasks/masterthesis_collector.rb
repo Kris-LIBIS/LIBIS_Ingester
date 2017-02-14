@@ -12,6 +12,8 @@ module Libis
 
     class MasterthesisCollector < Libis::Ingester::Task
 
+      taskgroup :collector
+
       parameter local_storage: '',
                 description: 'Local directory for file storage. If empty, FTP remote storage is used.'
       parameter ftp_host: 'ftpsap.cc.kuleuven.be',
@@ -28,9 +30,6 @@ module Libis
                 description: 'Path where theses errors are stored.'
       parameter selection_regex: nil,
                 description: 'RegEx for selection only part of the directories'
-
-      parameter embargo_ar: nil,
-                description: 'Access right to use for theses with embargo != 00'
 
       parameter item_types: [Libis::Ingester::Run], frozen: true
 
@@ -100,14 +99,24 @@ module Libis
           return
         end
 
+        # Check AccessRight
+        pub = xml_doc.embargo('isPubliek').blank?
+        instelling_id = xml_doc['//instellingId']
+        # noinspection RubyNestedTernaryOperatorsInspection
+        ar_extension =  embargo == 0 ? (pub ? 'PUBLIC' : 'IP-RESTRICTED') : 'PROTECTED'
+        ar_name = "AR_MT_#{instelling_id}_#{ar_extension}"
+        unless Libis::Ingester::AccessRight.find_by(name: ar_name)
+          raise Libis::WorkflowError, "AccessRight #{ar_name} not found."
+        end
+
+
         # Create IE for thesis
         ie_item = Libis::Ingester::IntellectualEntity.new
         ie_item.name = dir_name
         ie_item.label = xml_doc['//titel1/tekst'].strip
         ie_item.properties['source_path'] = dir
         ie_item.properties['identifier'] = dir_name
-        embargo = xml_doc['//embargo'].to_i
-        ie_item.properties['access_right'] = parameter(:embargo_ar) if parameter(:embargo_ar) && embargo != 0
+        ie_item.properties['access_right'] = ar_name
         ie_item.properties['user_a'] = 'Ingest from SAP'
         ie_item.properties['user_b'] = xml_doc['//voorkeurbib']
 
