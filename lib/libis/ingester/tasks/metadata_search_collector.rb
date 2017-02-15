@@ -39,6 +39,10 @@ module Libis
         item.properties['metadata_search_term'] = term
         item.save!
 
+        get_metadata(item, term)
+      end
+
+      def get_metadata(item, term)
         @metadata_cache ||= {}
 
         @metadata_cache[term] ||= search(term)

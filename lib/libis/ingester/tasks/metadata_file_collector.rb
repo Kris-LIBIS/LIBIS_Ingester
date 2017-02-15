@@ -1,11 +1,11 @@
 require 'libis/ingester'
 require 'libis/tools/metadata/dublin_core_record'
 
-require_relative 'metadata_collector'
+require_relative 'metadata_search_collector'
 module Libis
   module Ingester
 
-    class MetadataFileCollector < MetadataCollector
+    class MetadataFileCollector < MetadataSearchCollector
 
       parameter location: '.',
                 description: 'Directory where the metadata files can be found.'

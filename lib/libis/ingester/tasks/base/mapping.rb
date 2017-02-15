@@ -80,7 +80,7 @@ module Libis
         end
 
         def lookup(term, value_name = nil)
-          return term if self.mapping.blank?
+          return nil if self.mapping.blank?
           map = filter(parameter(:filter_values))[term]
           value_name.blank? ? map : map[value_name]
         end
