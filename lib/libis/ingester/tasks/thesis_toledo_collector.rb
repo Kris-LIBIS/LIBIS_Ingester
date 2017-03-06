@@ -70,7 +70,7 @@ module Libis
             files.each do |f|
               f[:path] = File.join(parameter(:unzip_dir), f['file name old'])
               unless File.exists?(f[:path])
-                error 'File %s could not be found. Thesis %s skipped.', item, f[:path], row['label']
+                error 'File %s could not be found. Thesis %s skipped.', f[:path], row['label']
                 throw :error
               end
               f[:order] = 0
