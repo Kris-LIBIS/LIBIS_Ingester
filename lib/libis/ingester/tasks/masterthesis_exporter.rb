@@ -30,6 +30,10 @@ module Libis
       parameter remove_input: false,
                 description: 'Should input files be removed after successful ingest'
       parameter export_dir: '.', description: 'Directory where the exported XML files will be copied'
+      parameter mail_to: '',
+                description: 'E-mail address (or comma-separated list of addresses) to send report to.'
+      parameter mail_cc: '',
+                description: 'E-mail address (or comma-separated list of addresses) to send report to in cc.'
       parameter item_types: ['Libis::Ingester::IntellectualEntity'], frozen: true
       parameter recursive: true, frozen: true
 
@@ -38,6 +42,11 @@ module Libis
       def process(item)
         export_item(item)
         stop_processing_subitems
+      end
+
+      def post_process(item)
+        return unless item.is_a?(Libis::Ingester::Run)
+        email_report item
       end
 
       private
@@ -102,6 +111,23 @@ module Libis
           debug 'Source dir %s deleted.', item, source_dir
         end
 
+      end
+
+      def email_report(item)
+        return if parameter(:mail_to).blank?
+        mail = Mail.new
+        mail.from 'teneo.libis@gmail.com'
+        mail.to parameter(:mail_to)
+        mail.cc parameter(:mail_cc) unless parameter(:mail_cc).blank?
+        mail.subject 'Ingest complete.'
+        mail.body <<~STR
+            The ingest '#{item.name}' finished successfully.
+            
+            The exported XML files can be found at '#{parameter(:export_dir)}'.
+        STR
+        mail.add_file get_export_file(item)
+        mail.deliver!
+        debug "Report sent to #{parameter(:mail_to)}#{parameter(:mail_cc).blank? ? '' : " and #{parameter(:mail_cc)}"}."
       end
 
     end

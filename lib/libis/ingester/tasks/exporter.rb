@@ -198,6 +198,7 @@ module Libis
         mail.body "The ingest '#{item.name}' finished successfully. Please find the ingest summary in attachment."
         mail.add_file get_export_file(item)
         mail.deliver!
+        debug "Report sent to #{parameter(:mail_to)}#{parameter(:mail_cc).blank? ? '' : " and #{parameter(:mail_cc)}"}."
       end
 
     end
