@@ -11,6 +11,33 @@ module Libis
 
       taskgroup :collector
 
+      description 'Special collector for ingesting Lotus Notes export of Boerenbond.'
+
+      help <<-STR.align_left
+        This collector requires a CSV file with the export of the Lotus Notes documents. The CSV file is expected to be
+        in windows-1253 encoding and requires at least one column with heading 'Pad'.
+
+        For each entry in the CSV file, the 'Pad' column is read, the starting 'c:\export\' text stripped from it and
+        converted to Unix style path. Each such entry must be the relative path from the 'root_dir' and refer to a HTML
+        file that is the export of a Lotus Notes document. Duplicate entries and entries to non-existing file are
+        skipped, but reported with warning messages.
+
+        For each HTML file, a collection tree is created for the relative path from the 'root_dir' and the HTML file is
+        parsed for information:
+        - the first /div/table/tr/td/div/span/strong element's content is considered to be the title. If not found, the
+          file name is used as title and a warning is logged.
+        - all file ('//a/@href') and image ('//img/@src') links are searched and checked for existance. 'mailto' and 
+          'http' links and a number of well-know artifacts files are skipped. Other missing links are reported with
+          warning messages. If files are referenced that have previously been referenced (even by other HTML files) are
+          reported with warning messages and ignored.
+
+        Finally, for each HTML file a new IE is created and the HTML and all referenced files are added to it.
+
+        This collector may throw a lot of warning messages as many things go wrong in the Lotus Notes exports. It has
+        been decided to continue the ingest nevertheless and try to ingest as many objects as possible. The warning
+        messages should be reported to the producers of the data after successful ingest.
+      STR
+
       include Libis::Ingester::CsvMapping
 
       parameter root_dir: '/',

@@ -10,6 +10,14 @@ module Libis
 
         taskgroup :preprocessor
 
+        description 'Scan all files in a directory tree for viruses.'
+
+        help <<-STR.align_left
+          Scanning a complete directory tree for viruses can be much faster that performing a virusscan on each file
+          individually, but it has the discadvantage that you cannot skip infected files and continue with the good
+          files. This task will fail if any file in the directory tree is infected.
+        STR
+
         parameter location: '.',
                   description: 'Directory to scan for viruses'
 

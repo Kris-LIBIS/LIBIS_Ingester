@@ -10,6 +10,19 @@ module Libis
 
       taskgroup :preprocessor
 
+      description 'Check the checksum of FileItem objects.'
+
+      help <<-STR.align_left
+        This preprocessor task calculates the checksum of a file if the 'checksum_type' parameter is filled in. See the
+        parameter's definition for a list of supported checksum algorithms.
+
+        By also filling in a value for the 'checksum_file' parameter, you can supply a file with known checksums for 
+        each file. The task will then also verify the calculated checksum with the one in the file and report an error
+        if there is a mismatch.
+
+        If the 'checksum_file' file cannot be found/read, checksum testing is skipped.
+      STR
+
       parameter checksum_type: nil,
                 description: 'Checksum type to use.',
                 constraint: ::Libis::Tools::Checksum::CHECKSUM_TYPES.map { |x| x.to_s }

@@ -9,6 +9,18 @@ module Libis
 
       taskgroup :preprocessor
 
+      description 'Check the MIME type of the collected files.'
+
+      help <<-STR.align_left
+        With the help of this task a check can be performed if the files found are all of the expected type.
+
+        Each file's MIME type will be checked against the regular expression in the 'mimetype_regexp' parameter. If a
+        file's MIME type has not yet been determined, a warning will be logged and the file will be accepted without
+        verifying the MIME type.
+
+        If the 'mimetype_regexp' is not filled in, no MIME type checking will be performed at all.
+      STR
+
       parameter mimetype_regexp: nil,
                 description: 'Match files with MIME types that match the given regular expression. Ignored if empty.'
 

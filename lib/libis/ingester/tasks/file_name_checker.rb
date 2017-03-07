@@ -9,6 +9,12 @@ module Libis
 
       taskgroup :preprocessor
 
+      description 'Checks the names of files against a regular expression.'
+
+      help <<-STR.align_left
+        This task will check each FileItem found and match its file name against the regular expression in the
+        'filename_regexp' parameter. Failures will lead to error messages and an interrupted ingest workflow.
+      STR
       parameter filename_regexp: nil,
                 description: 'Match files with names that match the given regular expession. Ignored if empty.'
 

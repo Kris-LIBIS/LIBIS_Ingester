@@ -7,6 +7,29 @@ module Libis
 
       taskgroup :preingester
 
+      description 'Groups files into object based on file name.'
+
+      help <<-STR.align_left
+        Files that have part of their filename in common can be grouped into a single IE with this task.
+
+        First of all each file is matched against an expression defined in the 'group_regex' parameter. This regex
+        should define groups that will be used to extract common and unique pieces of the file names. Based on the
+        result of the regex matching, collections and IEs can be generated and file name and labels can be altered.
+
+        If the 'collection_label' parameter is filled in, the value will be evaluated and the resulting value will
+        be the name of a newly created Collection object. If no value is present, no Collection will be created.
+
+        The value of the parameters 'collection_navigate' and 'collection_publish' set the respective properties of
+        the newly created collections.
+
+        The 'group_label' parameter defines the Ruby expression that will be evaluated to retrieve the name of the
+        group (IE) that will be created later. It the value is not present, no grouping of files into IEs will be
+        performed. Optionally a different expression for the group name can be added in 'group_name'.
+
+        With the 'file_label' and 'file_name' parameters, expressions can be defined that will change the name and
+        label of the files.
+      STR
+
       parameter group_regex: nil,
                 description: 'Regular expression for matching against the file names; nothing happens if nil.'
       parameter collection_label: nil,

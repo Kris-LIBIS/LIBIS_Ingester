@@ -2,6 +2,8 @@
 require 'libis/workflow/task'
 require 'libis-ingester'
 
+require 'libis/tools/extend/string'
+
 module Libis
   module Ingester
     class Task < ::Libis::Workflow::Task
@@ -12,6 +14,16 @@ module Libis
       def self.taskgroup(name = nil)
         @taskgroup = name if name
         @taskgroup || superclass.group rescue nil
+      end
+
+      def self.description(text = nil)
+        @description ||= (text || '')
+        @description
+      end
+
+      def self.help(text = nil)
+        @helptext ||= (text || '')
+        @helptext
       end
 
       def run(item)

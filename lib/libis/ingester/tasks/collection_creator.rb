@@ -9,12 +9,25 @@ module Libis
 
     class CollectionCreator < Libis::Ingester::Task
 
-      taskgroup :collector
+      taskgroup :ingester
+
+      description 'Create the collection tree in Rosetta corresponding to the tree of Collection objects in the ingest run.'
+
+      help <<-STR.align_left
+        For each Collection object in the ingest run tree, a Rosetta collection is created. The collection tree can be
+        created as subtree of an existing Rosetta collection by filling in the path in the 'collection' parameter. The
+        collection path does not have to exist and will be created on the fly if missing. 
+
+        By default, the Rosetta collections will be created with 'navigate' and 'publish' flags on, but this behaviour
+        can be changed with the parameters with corresponding names. The ingest Collection object's respective 
+        properties have priority over these parameter values. The parameter values will also be used when automatically 
+        creating intermediate collections in the tree.
+      STR
 
       parameter collection: nil,
-                description: 'Existing collection to add the documents to.'
+                description: 'Existing collection path to add the documents to.'
       parameter navigate: true,
-                description: 'Allow the user to navigate in the collections. This '
+                description: 'Allow the user to navigate in the collections.'
       parameter publish: true,
                 description: 'Publish the collections.'
 
@@ -82,7 +95,7 @@ module Libis
         return nil unless parent_id or list.empty?
 
         begin
-          collection_id = create_collection_id(parent_id, list, collection_name, parameter(:navigate), parameter(:publish))
+          collection_id = create_collection_id(parent_id, list, collection_name)
           debug "Created collection '#{collection_name}' with id #{collection_id} in Rosetta."
           collection_id
         rescue Exception => e
@@ -90,7 +103,7 @@ module Libis
         end
       end
 
-      def create_collection_id(parent_id, collection_list, collection_name, navigate, publish, item = nil)
+      def create_collection_id(parent_id, collection_list, collection_name, navigate = nil, publish = nil, item = nil)
 
         # noinspection RubyResolve
         if item && item.metadata_record
@@ -108,8 +121,8 @@ module Libis
         collection_data[:name] = collection_name
         collection_data[:description] = 'Created by Ingester'
         collection_data[:parent_id] = parent_id if parent_id
-        collection_data[:navigate] = navigate
-        collection_data[:publish] = publish
+        collection_data[:navigate] = navigate.nil? ? parameter(:navigate) : navigate
+        collection_data[:publish] = publish.nil? ? parameter(:publish) : publish
         if item
           collection_data[:external_system] = item.external_system
           collection_data[:external_id] = item.external_id

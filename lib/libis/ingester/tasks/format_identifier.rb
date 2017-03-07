@@ -10,6 +10,14 @@ module Libis
 
       taskgroup :preprocessor
 
+      description 'Tries to determine the format of the files found.'
+
+      help <<-STR.align_left
+        This task will perform the format identification on each FileItem object in the ingest run. It relies completely
+        on the format identification algorithms in Libis::Format::Identifier. If a format could not be determined, the
+        MIME type 'application/octet-stream' will be set and a warning message is logged.
+      STR
+
       parameter formats: nil,
                 description: 'Format file to load.'
 
