@@ -43,14 +43,22 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'mail'
 
   # server requirements
-  spec.add_runtime_dependency 'grape'
+  spec.add_runtime_dependency 'puma'
   spec.add_runtime_dependency 'rack-cors'
-  spec.add_runtime_dependency 'grape-rabl'
+  spec.add_runtime_dependency 'grape'
+  spec.add_runtime_dependency 'kaminari-grape'
+  spec.add_runtime_dependency 'grape-kaminari'
+  spec.add_runtime_dependency 'kaminari-mongoid'
+  spec.add_runtime_dependency 'grape-roar'
+  spec.add_runtime_dependency 'roar'
+  spec.add_runtime_dependency 'roar-contrib'
+  spec.add_runtime_dependency 'roar-jsonapi'
 
   spec.add_development_dependency 'bundler', '~> 1.7'
   spec.add_development_dependency 'rake', '~> 10.0'
   spec.add_development_dependency 'rspec'
   spec.add_development_dependency 'coveralls'
   spec.add_development_dependency 'github_changelog_generator'
+  spec.add_development_dependency 'shotgun'
 
 end

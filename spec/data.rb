@@ -128,7 +128,7 @@ files = <<STR
 - - - - abc.doc [application/msword]
 - - - - Archive (1)
 - - - - - abc.doc [application/msword]
-- - - - HQ view (1)
+- - - - HQ representers (1)
 - - - - - abc.doc [application/msword]
 - - - - LQ watermarked (1)
 - - - - - abc.doc [application/pdf]
@@ -136,7 +136,7 @@ files = <<STR
 - - - - def.doc [application/msword]
 - - - - Archive (1)
 - - - - - def.doc [application/msword]
-- - - - HQ view (1)
+- - - - HQ representers (1)
 - - - - - def.doc [application/msword]
 - - - - LQ watermarked (1)
 - - - - - def.doc [application/pdf]
@@ -147,7 +147,7 @@ files = <<STR
 - - - - Archive (2)
 - - - - - page-1 [image/jpeg]
 - - - - - page-2 [image/jpeg]
-- - - - HQ view (2)
+- - - - HQ representers (2)
 - - - - - page-1 [image/jpeg]
 - - - - - page-2 [image/jpeg]
 - - - - LQ watermarked (2)
@@ -159,7 +159,7 @@ files = <<STR
 - - - - Archive (2)
 - - - - - page-1 [image/jpeg]
 - - - - - page-2 [image/jpeg]
-- - - - HQ view (2)
+- - - - HQ representers (2)
 - - - - - page-1 [image/jpeg]
 - - - - - page-2 [image/jpeg]
 - - - - LQ watermarked (2)
@@ -169,7 +169,7 @@ files = <<STR
 - - test.pdf [application/pdf]
 - - Archive (1)
 - - - test.pdf [application/pdf]
-- - HQ view (1)
+- - HQ representers (1)
 - - - test.pdf [application/pdf]
 - - LQ watermarked (1)
 - - - test.pdf [application/pdf]
