@@ -1,13 +1,16 @@
 require_relative 'organization'
+require_relative 'item_detail'
 
 module Libis::Ingester::API::Representer
   class OrganizationDetailRepresenter < OrganizationRepresenter
 
+    include ItemDetail
+
     attributes do
-      property :code, type: 'String', desc: 'institution code'
-      property :material_flow, type: 'Hash', desc: 'supported material flows'
-      property :ingest_dir, type: 'String', desc: 'directory where the SIPs will be uploaded'
-      property :c_at, as: :created_at, type: 'Date', desc: 'Date when the organization was created'
+      property :code, type: String, desc: 'institution code'
+      property :material_flow, type: JSON, desc: 'supported material flows'
+      property :ingest_dir, type: String, desc: 'directory where the SIPs will be uploaded'
+      property :c_at, as: :created_at, writable: false, type: DateTime, desc: 'Date when the organization was created'
 
       nested :producer do
         property :producer_id, as: :id, type: 'String', desc: 'producer identifier'
@@ -15,10 +18,6 @@ module Libis::Ingester::API::Representer
         property :producer_pwd, as: :password, type: 'String', desc: 'producer agent password'
       end
 
-    end
-
-    link :self do |opts|
-      "#{opts[:base_url]}api/v1/organizations/#{represented.id}"
     end
 
   end

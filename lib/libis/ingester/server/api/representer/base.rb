@@ -1,15 +1,19 @@
-require 'roar/json/json_api'
+require 'roar/coercion'
 
 module Libis::Ingester::API::Representer
-  class Base < Grape::Roar::Decorator
-    include Roar::JSON
-    include Representable::Hash
-    include Representable::Hash::AllowSymbols
+  module Base
 
-    include Roar::JSON::JSONAPI::Mixin
+    def self.included(klass)
+      klass.include Roar::JSON
+      klass.include Roar::Coercion
+      klass.include Representable::Hash
+      klass.include Representable::Hash::AllowSymbols
+      klass.include Roar::JSON::JSONAPI::Mixin
+      klass.property :id, writable: false, render_filter: ->(input, _) { input.to_s },
+                     type: String, desc: 'Object\'s unique identifier'
+    end
 
-    property :id, writable: false, render_filter: ->(input, _) { input.to_s },
-             type: 'String', desc: 'Object\'s unique identifier'
 
   end
+
 end

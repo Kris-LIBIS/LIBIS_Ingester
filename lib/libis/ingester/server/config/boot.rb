@@ -5,4 +5,4 @@ require 'libis-ingester'
 
 require 'libis/ingester/initializer'
 
-::Libis::Ingester::Initializer.init(ENV['SITE_CONFIG'])
+::Libis::Ingester::Initializer.init(ENV['SITE_CONFIG'] || './site.config.yml')
