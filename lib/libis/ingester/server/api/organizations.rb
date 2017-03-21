@@ -1,6 +1,7 @@
 require 'libis/ingester/organization'
-require 'libis/ingester/server/api/representer/organizations'
+require 'libis/ingester/server/api/representer/organization'
 require 'libis/ingester/server/api/representer/organization_detail'
+require 'representable/debug'
 
 module Libis::Ingester::API
   class Organizations < Grape::API
@@ -9,12 +10,33 @@ module Libis::Ingester::API
     namespace :organizations do
 
       desc 'get list of organizations' do
-        success Representer::OrganizationsRepresenter
+        success Representer::OrganizationRepresenter
       end
       paginate per_page: 2, max_per_page: 10
+      params do
+        optional :fields, type: Hash, desc: 'Field selection as comma-separated list in a Hash with item type as key.'
+      end
       get '' do
         orgs = paginate(Libis::Ingester::Organization.all)
-        Representer::OrganizationsRepresenter.new(orgs).to_hash(pagination_hash(orgs))
+        Representer::OrganizationRepresenter.for_collection.prepare(orgs).
+            # extend(Representable::Debug).
+            to_hash(pagination_hash(orgs)
+            # .merge(include: [:jobs])
+            # .merge(fields_opts(declared(params).fields, {organizations: [:name]}))
+            )
+      end
+
+      desc 'create organization' do
+        success Representer::OrganizationRepresenter
+      end
+      params do
+        requires :data, type: Representer::OrganizationDetailRepresenter, desc: 'Organization info'
+      end
+      post do
+        org = Libis::Ingester::Organization.new
+        Representer::OrganizationDetailRepresenter.prepare(org).from_hash(declared(params))
+        org.save!
+        Representer::OrganizationDetailRepresenter.prepare(org).to_json(item_hash(org))
       end
 
       route_param :id do
@@ -22,40 +44,54 @@ module Libis::Ingester::API
           requires :id, type: String, desc: 'Organization ID', allow_blank: false
         end
 
-        desc 'get organization information' do
-          success Representer::OrganizationDetailRepresenter
-        end
-        get do
-          org = Libis::Ingester::Organization.find(declared(params).id)
-          Representer::OrganizationDetailRepresenter.new(org).to_hash(item_hash(org))
+        namespace do
+
+          desc 'get organization information' do
+            success Representer::OrganizationDetailRepresenter
+          end
+          params do
+            optional :fields, type: Hash, desc: 'Field selection as comma-separated list in a Hash with item type as key.'
+          end
+          get do
+            org = Libis::Ingester::Organization.find(declared(params).id)
+            Representer::OrganizationDetailRepresenter.prepare(org).
+                to_hash(
+                    item_hash(org)
+                        # .merge(fields_opts(declared(params).fields, {organizations: nil}))
+                )
+          end
+
+          desc 'get jobs of an organization' do
+            success Representer::JobRepresenter
+          end
+          paginate per_page: 4, max_per_page: 10
+          params do
+            optional :fields, type: Hash, desc: 'Field selection as comma-separated list in a Hash with item type as key.'
+          end
+          get 'jobs' do
+            jobs = paginate(Libis::Ingester::Job.all)
+            Representer::JobRepresenter.for_collection.prepare(jobs).
+                to_hash(
+                    pagination_hash(jobs)
+                        # .merge(fields_opts(declared(params).fields, {jobs: [:name, :description]}))
+                )
+          end
+
+          desc 'update organization information' do
+            success Representer::OrganizationDetailRepresenter
+          end
+          params do
+            requires :data, type: Representer::OrganizationDetailRepresenter, desc: 'Organization info'
+          end
+          put do
+            org = Libis::Ingester::Organization.find(declared(params).id)
+            Representer::OrganizationDetailRepresenter.new(org).from_hash(declared(params))
+            org.save!
+            Representer::OrganizationDetailRepresenter.new(org).to_hash(item_hash(org))
+          end
+
         end
 
-        desc 'update organization information' do
-          success Representer::OrganizationDetailRepresenter
-        end
-        params do
-          requires :data, type: Representer::OrganizationDetailRepresenter, desc: 'Organization info'
-        end
-        put do
-          org = Libis::Ingester::Organization.find(declared(params).id)
-          Representer::OrganizationDetailRepresenter.new(org).from_hash(declared(params).data)
-          org.save!
-          Representer::OrganizationDetailRepresenter.new(org).to_hash(item_hash(org))
-        end
-
-      end
-
-      desc 'create organization' do
-        success Representer::OrganizationDetailRepresenter
-      end
-      params do
-        requires :data, type: Representer::OrganizationDetailRepresenter, desc: 'Organization info'
-      end
-      post do
-        org = Libis::Ingester::Organization.new
-        Representer::OrganizationDetailRepresenter.new(org).from_hash(declared(params).data)
-        org.save!
-        Representer::OrganizationDetailRepresenter.new(org).to_hash(item_hash(org))
       end
 
     end

@@ -1,75 +1,73 @@
-require 'libis/ingester/job'
-require 'libis/ingester/server/api/representer/job'
-require 'libis/ingester/server/api/representer/job_detail'
-require 'representable/debug'
+require 'libis/ingester/run'
+require 'libis/ingester/server/api/representer/run'
 
 module Libis::Ingester::API
-  class Jobs < Grape::API
+  class Runs < Grape::API
     include Grape::Kaminari
 
-    namespace :jobs do
+    namespace :runs do
 
-      desc 'get list of jobs' do
-        success Representer::JobRepresenter
+      desc 'get list of runs' do
+        success Representer::RunRepresenter
       end
       paginate per_page: 2, max_per_page: 10
       params do
         optional :fields, type: Hash, desc: 'Field selection as comma-separated list in a Hash with item type as key.'
       end
       get '' do
-        jobs = paginate(Libis::Ingester::Job.all)
-        Representer::JobRepresenter.for_collection.prepare(jobs).
+        runs = paginate(Libis::Ingester::Run.all)
+        Representer::RunRepresenter.for_collection.prepare(runs).
             # extend(Representable::Debug).
-            to_hash(pagination_hash(jobs)
+            to_hash(pagination_hash(runs)
             # .merge(fields_opts(declared(params).fields, {jobs: [:name, :description]}))
             )
       end
 
-      desc 'create job' do
-        success Representer::JobDetailRepresenter
+      desc 'create run' do
+        success Representer::RunRepresenter
       end
       params do
-        requires :data, type: Representer::JobDetailRepresenter, desc: 'Job info'
+        requires :data, type: Representer::RunRepresenter, desc: 'Run info'
       end
       post do
-        job = Libis::Ingester::Job.new
-        Representer::JobDetailRepresenter.prepare(job).from_hash(declared(params))
-        job.save!
-        Representer::JobDetailRepresenter.prepare(job).to_json(item_hash(job))
+        run = Libis::Ingester::Run.new
+        Representer::RunRepresenter.prepare(run).from_hash(declared(params))
+        run.save!
+        Representer::RunRepresenter.prepare(run).to_json(item_hash(run))
       end
 
       route_param :id do
         params do
-          requires :id, type: String, desc: 'Job ID', allow_blank: false
+          requires :id, type: String, desc: 'Run ID', allow_blank: false
         end
 
         namespace do
 
-          desc 'get job information' do
-            success Representer::JobDetailRepresenter
+          desc 'get run information' do
+            success Representer::RunRepresenter
           end
           params do
             optional :fields, type: Hash, desc: 'Field selection as comma-separated list in a Hash with item type as key.'
           end
           get do
-            job = Libis::Ingester::Job.find(declared(params).id)
-            Representer::JobDetailRepresenter.prepare(job).
-                to_hash(item_hash(job)
+            run = Libis::Ingester::Run.find(declared(params).id)
+            Representer::RunRepresenter.prepare(run).
+                to_hash(item_hash(run)
                 # .merge(fields_opts(declared(params).fields, {jobs: nil}))
                 )
           end
 
-          desc 'update job information' do
-            success Representer::JobDetailRepresenter
+          desc 'update run information' do
+            success Representer::RunRepresenter
           end
           params do
-            requires :data, type: Representer::JobDetailRepresenter, desc: 'Job info'
+            requires :data, type: Representer::RunRepresenter, desc: 'Run info'
           end
           put do
-            job = Libis::Ingester::Job.find(declared(params).id)
-            Representer::JobDetailRepresenter.new(job).from_hash(declared(params))
-            job.save!
-            Representer::JobDetailRepresenter.new(job).to_hash(item_hash(job))
+            run = Libis::Ingester::Run.find(declared(params).id)
+            Representer::RunRepresenter.new(run).from_hash(declared(params))
+            run.save!
+            Representer::RunRepresenter.new(run).to_hash(item_hash(run))
           end
 
         end

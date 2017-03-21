@@ -1,11 +1,12 @@
-require 'roar/coercion'
+require_relative 'base'
 require 'active_support/concern'
 
 module Libis
   module Ingester
     module API
       module Representer
-        module Base
+        module BaseList
+          extend Base
           extend ActiveSupport::Concern
 
           module ClassMethods
@@ -63,8 +64,12 @@ module Libis
               link(:last, toplevel: true) { |opts| klass.last_url opts}
 
               meta toplevel: true do
-                property :limit_value, as: :per_page
-                property :total_count
+                property(:per_page) do |opts|
+                  represented.limit_value rescue nil
+                end
+                property :count do |opts|
+                  represented.count rescue nil
+                end
                 property :current_page
                 property :total_pages
                 property :next_page

@@ -2,7 +2,7 @@ require_relative 'base'
 require_relative 'organization'
 
 module Libis::Ingester::API::Representer
-  class UserRepresenter < Grape::Roar::Decorator
+  class UserList < Grape::Roar::Decorator
     include Base
 
     type :users
@@ -13,11 +13,6 @@ module Libis::Ingester::API::Representer
     end
 
     link(:organizations) { |opts| "#{self.class.self_url(opts.reject {|k,_| k == :pagination})}/#{represented.id}/organizations" }
-
-    has_many :organizations,
-             class: Libis::Ingester::Organization,
-             decorator: OrganizationRepresenter,
-             populator: ::Representable::FindOrInstantiate
 
   end
 end

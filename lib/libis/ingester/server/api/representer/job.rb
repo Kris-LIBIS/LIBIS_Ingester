@@ -1,13 +1,14 @@
-require_relative 'item_list'
+require_relative 'base'
 
 module Libis::Ingester::API::Representer
-  class OrganizationRepresenter < Grape::Roar::Decorator
-    include ItemList
+  class JobRepresenter < Grape::Roar::Decorator
+    include Base
 
-    type :organization
+    type :jobs
 
     attributes do
-      property :name, type: String, desc: 'organization name'
+      property :name, type: String, desc: 'job name'
+      property :description, type: String, desc: 'job description'
       # property :code, type: String, desc: 'institution code'
       # property :material_flow, type: JSON, desc: 'supported material flows'
       # property :ingest_dir, type: String, desc: 'directory where the SIPs will be uploaded'
