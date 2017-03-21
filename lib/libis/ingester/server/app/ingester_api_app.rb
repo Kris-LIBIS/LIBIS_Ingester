@@ -3,8 +3,8 @@ module Libis::Ingester
     def initialize
       @filenames = ['', '.html', 'index.html', '/index.html']
       @rack_static = ::Rack::Static.new(
-          lambda { [404, {}, []] },
-          root: File.expand_path('../../web', __FILE__),
+          lambda { |e| [404, {}, []] },
+          root: File.expand_path('../../web/doc', __FILE__),
           urls: ['/']
       )
     end
@@ -14,7 +14,7 @@ module Libis::Ingester
         use Rack::Cors do
           allow do
             origins '*'
-            resource '*', headers: :any, methods: :get
+            resource '*', headers: :any, methods: [:get, :post, :put, :delete, :options, :patch]
           end
         end
 

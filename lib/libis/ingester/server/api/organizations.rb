@@ -8,40 +8,54 @@ module Libis::Ingester::API
 
     namespace :organizations do
 
-      desc 'get list of organizations'
+      desc 'get list of organizations' do
+        success Representer::OrganizationsRepresenter
+      end
       paginate per_page: 2, max_per_page: 10
       get '' do
         orgs = paginate(Libis::Ingester::Organization.all)
-        Representer::OrganizationsRepresenter.for_collection.new(orgs).to_hash(
-            user_options: {
-                base_url: "#{base_url}api/organizations/",
-                links: pagination_links(orgs, "#{base_url}/api/organizations")
-            },
-        )
+        Representer::OrganizationsRepresenter.new(orgs).to_hash(pagination_hash(orgs))
       end
 
-      namespace do
+      route_param :id do
         params do
           requires :id, type: String, desc: 'Organization ID', allow_blank: false
         end
 
-        desc 'get organization information'
-        get ':id' do
+        desc 'get organization information' do
+          success Representer::OrganizationDetailRepresenter
+        end
+        get do
           org = Libis::Ingester::Organization.find(declared(params).id)
-          Representer::OrganizationDetailRepresenter.new(org).to_hash(
-              user_options: {
-                  base_url: "#{env['rack.url_scheme']}://#{env['SERVER_NAME']}:#{env['SERVER_PORT']}/"
-              }
-          )
+          Representer::OrganizationDetailRepresenter.new(org).to_hash(item_hash(org))
         end
 
-        desc 'update organization information'
+        desc 'update organization information' do
+          success Representer::OrganizationDetailRepresenter
+        end
         params do
+          requires :data, type: Representer::OrganizationDetailRepresenter, desc: 'Organization info'
         end
         put do
-
+          org = Libis::Ingester::Organization.find(declared(params).id)
+          Representer::OrganizationDetailRepresenter.new(org).from_hash(declared(params).data)
+          org.save!
+          Representer::OrganizationDetailRepresenter.new(org).to_hash(item_hash(org))
         end
 
+      end
+
+      desc 'create organization' do
+        success Representer::OrganizationDetailRepresenter
+      end
+      params do
+        requires :data, type: Representer::OrganizationDetailRepresenter, desc: 'Organization info'
+      end
+      post do
+        org = Libis::Ingester::Organization.new
+        Representer::OrganizationDetailRepresenter.new(org).from_hash(declared(params).data)
+        org.save!
+        Representer::OrganizationDetailRepresenter.new(org).to_hash(item_hash(org))
       end
 
     end

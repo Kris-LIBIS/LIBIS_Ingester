@@ -17,16 +17,6 @@ require 'kaminari/mongoid'
 require 'roar/json/json_api'
 require 'roar-contrib'
 
-# class Roar::JSON::JSONAPI::Renderer::Links
-#   def call(res, options)
-#     ((res.delete('links') || []) + (options.delete(:links) || {}).map { |key, value|
-#       {'rel' => key.to_s, 'href' => value}
-#     }).collect { |link|
-#       [Roar::JSON::JSONAPI::MemberName.(link['rel']), link['href']]
-#     }.to_h
-#   end
-# end
-
 Dir[File.expand_path('../../api/*.rb', __FILE__)].each do |f|
   # noinspection RubyResolve
   require f

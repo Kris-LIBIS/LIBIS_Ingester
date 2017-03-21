@@ -66,7 +66,7 @@ module Libis
       parameter file_limit: 5000,
                 description: 'Maximum number of files to collect. If the number of files found exceeds this limit, the task will fail.'
 
-      parameter recursive: false, frozen: true
+      parameter recursive: false
 
       parameter item_types: [Libis::Ingester::Run, Libis::Workflow::DirItem], frozen: true
 
