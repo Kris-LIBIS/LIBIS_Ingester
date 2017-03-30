@@ -1,5 +1,6 @@
 require 'grape-swagger'
 require 'grape-swagger/representable'
+require 'libis/ingester/server/api/representer/error'
 
 module Libis::Ingester
   class Api < Grape::API
@@ -22,67 +23,73 @@ module Libis::Ingester
         "#{host_url}/#{env['REQUEST_PATH']}"
       end
 
-      def pagination_links(_collection, _base_url)
-        _base_url += "?per_page=#{declared(params).per_page}&page="
+      def pagination_links(collection, base_url)
+        base_url += "?per_page=#{declared(params).per_page}&page="
         links = {
-            self: "#{_base_url}#{_collection.current_page}",
-            first: "#{_base_url}1",
-            last: "#{_base_url}#{_collection.total_pages}"
+            self: "#{base_url}#{collection.current_page}"
         }
-        links[:prev] = "#{_base_url}#{_collection.current_page - 1}" if _collection.current_page > 1
-        links[:next] = "#{_base_url}#{_collection.current_page + 1}" if _collection.current_page < _collection.total_pages
+        links[:first] = "#{base_url}1" if collection.total_pages > 1
+        links[:last] = "#{base_url}#{collection.total_pages}" if collection.total_pages > 1
+        links[:prev] = "#{base_url}#{collection.current_page - 1}" if collection.current_page > 1
+        links[:next] = "#{base_url}#{collection.current_page + 1}" if collection.current_page < collection.total_pages
         links
       end
 
-      def pagination_hash(_collection)
-        option_hash.tap do |h|
+      def pagination_hash(collection, default = {})
+        option_hash(default).tap do |h|
           h[:user_options].merge!(
               pagination: {
-                  page: _collection.current_page,
-                  total: _collection.total_pages,
+                  page: collection.current_page,
+                  total: collection.total_pages,
                   per: declared(params).per_page
               },
-              links: pagination_links(_collection, "#{base_url}#{namespace}")
+              links: pagination_links(collection, "#{base_url}#{namespace}")
           )
         end
       end
 
-      def meta_hash(_collection)
+      def meta_hash(collection)
         {
-            per_page: _collection.limit_value,
-            total: _collection.total_count,
-            current_page: _collection.current_page,
-            total_pages: _collection.total_pages,
-            next_page: _collection.next_page,
-            prev_page: _collection.prev_page
+            per_page: collection.limit_value,
+            total: collection.total_count,
+            current_page: collection.current_page,
+            total_pages: collection.total_pages,
+            next_page: collection.next_page,
+            prev_page: collection.prev_page
         }
       end
 
-      def item_links(_item, _base_url)
+      def item_links(item, base_url)
         {
-            self: "#{_base_url}/#{_item.id}",
-            all: "#{_base_url}",
+            self: "#{base_url}/#{item.id}",
+            all: "#{base_url}",
         }
       end
 
-      def item_hash(_item)
-        option_hash.tap do |h|
-          h[:user_options].merge!(links: item_links(_item, "#{base_url}#{namespace}"))
+      def item_hash(item, default = {})
+        option_hash(default).tap do |h|
+          h[:user_options].merge!(links: item_links(item, "#{base_url}#{namespace}"))
         end
       end
 
-      def option_hash
-        {
-            user_options: {
-                base_url: base_url
-            }
-        }
+      def option_hash(default = {})
+        default.dup.tap do |h|
+          (h[:user_options] ||= {})[:base_url] = base_url
+        end
       end
 
-      def fields_opts(_fields, _default = {})
-        opts = Hash[_fields.map { |t, f| [t.to_sym, f.split(/\s*,\s*/).map(&:to_sym)] }] rescue {}
-        opts = _default.merge opts
+      def fields_opts(fields, default = {})
+        opts = Hash[fields.map { |t, f| [t.to_sym, f.split(/\s*,\s*/).map(&:to_sym)] }] rescue {}
+        opts = default.merge opts
         opts.empty? ? {} : {fields: opts.select { |_, v| !v.nil? }}
+      end
+
+      def api_error(status, message, id = '')
+        obj = Hashie::Mash.new
+        obj.status = status
+        obj.message = message
+        obj.id = id
+        API::Representer::Error.prepare(obj)
       end
 
     end

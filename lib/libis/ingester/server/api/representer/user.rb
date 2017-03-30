@@ -12,12 +12,17 @@ module Libis::Ingester::API::Representer
       property :_role, as: :role, type: String, desc: 'user role'
     end
 
-    link(:organizations) { |opts| "#{self.class.self_url(opts.reject {|k,_| k == :pagination})}/#{represented.id}/organizations" }
+    link(:organizations) { |opts| "#{self_url(opts.reject {|k,_| k == :pagination})}/#{represented.id}/organizations" }
 
-    has_many :organizations,
+    has_many :organizations, extend: OrganizationRepresenter,
              class: Libis::Ingester::Organization,
-             decorator: OrganizationRepresenter,
-             populator: ::Representable::FindOrInstantiate
+             populator: ::Representable::FindOrInstantiate do
+      relationship do
+        link :self do |opts|
+          "#{opts[:base_url]}/users/#{represented.id}/organizations"
+        end
+      end
+    end
 
   end
 end

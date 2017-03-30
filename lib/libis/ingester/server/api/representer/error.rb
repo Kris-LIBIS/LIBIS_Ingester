@@ -10,10 +10,14 @@ module Libis
           include Representable::Hash::AllowSymbols
           include Roar::JSON::JSONAPI::Mixin
 
+          type :errors
+          property :id, type: String
+
           attributes do
             property :status, type: Integer
             property :message, type: String
           end
+
         end
 
       end
