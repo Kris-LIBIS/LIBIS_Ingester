@@ -1,6 +1,6 @@
 require 'grape-swagger'
 require 'grape-swagger/representable'
-require 'libis/ingester/server/api/representer/error'
+require 'libis/ingester/server/api/representer/status'
 
 module Libis::Ingester
   class Api < Grape::API
@@ -23,18 +23,6 @@ module Libis::Ingester
         "#{host_url}/#{env['REQUEST_PATH']}"
       end
 
-      def pagination_links(collection, base_url)
-        base_url += "?per_page=#{declared(params).per_page}&page="
-        links = {
-            self: "#{base_url}#{collection.current_page}"
-        }
-        links[:first] = "#{base_url}1" if collection.total_pages > 1
-        links[:last] = "#{base_url}#{collection.total_pages}" if collection.total_pages > 1
-        links[:prev] = "#{base_url}#{collection.current_page - 1}" if collection.current_page > 1
-        links[:next] = "#{base_url}#{collection.current_page + 1}" if collection.current_page < collection.total_pages
-        links
-      end
-
       def pagination_hash(collection, default = {})
         option_hash(default).tap do |h|
           h[:user_options].merge!(
@@ -42,8 +30,7 @@ module Libis::Ingester
                   page: collection.current_page,
                   total: collection.total_pages,
                   per: declared(params).per_page
-              },
-              links: pagination_links(collection, "#{base_url}#{namespace}")
+              }
           )
         end
       end
@@ -75,21 +62,37 @@ module Libis::Ingester
       def option_hash(default = {})
         default.dup.tap do |h|
           (h[:user_options] ||= {})[:base_url] = base_url
+          # noinspection RubyResolve
+          (h[:user_options] ||= {})[:this_url] = @request.url
         end
       end
 
       def fields_opts(fields, default = {})
-        opts = Hash[fields.map { |t, f| [t.to_sym, f.split(/\s*,\s*/).map(&:to_sym)] }] rescue {}
+        opts = Hash[fields.map {|t, f| [t.to_sym, f.split(/\s*,\s*/).map(&:to_sym)]}] rescue {}
         opts = default.merge opts
-        opts.empty? ? {} : {fields: opts.select { |_, v| !v.nil? }}
+        opts.empty? ? {} : {fields: opts.select {|_, v| !v.nil?}}
       end
 
-      def api_error(status, message, id = '')
-        obj = Hashie::Mash.new
-        obj.status = status
-        obj.message = message
-        obj.id = id
-        API::Representer::Error.prepare(obj)
+      def api_error(code, message)
+        error!(message, code)
+      end
+
+      def api_success(message = nil)
+        status 200
+        { message: message }
+        # obj = Hashie::Mash.new
+        # obj.message = message
+        # API::Representer::Status.prepare(obj)
+      end
+
+      def mongoid_guard
+        yield
+      rescue Mongoid::Errors::MongoidError => e
+        api_error(400, "#{e.problem} #{e.summary}")
+      end
+
+      def user(id = nil)
+        Libis::Ingester::User.find(id || declared(params).id)
       end
 
     end

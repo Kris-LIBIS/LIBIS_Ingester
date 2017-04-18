@@ -20,6 +20,9 @@ module Libis::Ingester::API::Representer
       end
     end
 
+    link :jobs do |opts|
+      "#{self.class.self_url(opts)}/#{represented.id}/jobs"
+    end
 
   end
 end

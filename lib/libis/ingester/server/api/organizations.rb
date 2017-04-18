@@ -1,6 +1,5 @@
 require 'libis/ingester/organization'
 require 'libis/ingester/server/api/representer/organization'
-require 'libis/ingester/server/api/representer/organization_detail'
 require 'representable/debug'
 
 module Libis::Ingester::API
@@ -30,13 +29,13 @@ module Libis::Ingester::API
         success Representer::OrganizationRepresenter
       end
       params do
-        requires :data, type: Representer::OrganizationDetailRepresenter, desc: 'Organization info'
+        requires :data, type: Representer::OrganizationRepresenter, desc: 'Organization info'
       end
       post do
         org = Libis::Ingester::Organization.new
-        Representer::OrganizationDetailRepresenter.prepare(org).from_hash(declared(params))
+        Representer::OrganizationRepresenter.prepare(org).from_hash(declared(params))
         org.save!
-        Representer::OrganizationDetailRepresenter.prepare(org).to_json(item_hash(org))
+        Representer::OrganizationRepresenter.prepare(org).to_json(item_hash(org))
       end
 
       route_param :id do
@@ -47,14 +46,14 @@ module Libis::Ingester::API
         namespace do
 
           desc 'get organization information' do
-            success Representer::OrganizationDetailRepresenter
+            success Representer::OrganizationRepresenter
           end
           params do
             optional :fields, type: Hash, desc: 'Field selection as comma-separated list in a Hash with item type as key.'
           end
           get do
             org = Libis::Ingester::Organization.find(declared(params).id)
-            Representer::OrganizationDetailRepresenter.prepare(org).
+            Representer::OrganizationRepresenter.prepare(org).
                 to_hash(
                     item_hash(org)
                         # .merge(fields_opts(declared(params).fields, {organizations: nil}))
@@ -78,16 +77,16 @@ module Libis::Ingester::API
           end
 
           desc 'update organization information' do
-            success Representer::OrganizationDetailRepresenter
+            success Representer::OrganizationRepresenter
           end
           params do
-            requires :data, type: Representer::OrganizationDetailRepresenter, desc: 'Organization info'
+            requires :data, type: Representer::OrganizationRepresenter, desc: 'Organization info'
           end
           put do
             org = Libis::Ingester::Organization.find(declared(params).id)
-            Representer::OrganizationDetailRepresenter.new(org).from_hash(declared(params))
+            Representer::OrganizationRepresenter.new(org).from_hash(declared(params))
             org.save!
-            Representer::OrganizationDetailRepresenter.new(org).to_hash(item_hash(org))
+            Representer::OrganizationRepresenter.new(org).to_hash(item_hash(org))
           end
 
         end

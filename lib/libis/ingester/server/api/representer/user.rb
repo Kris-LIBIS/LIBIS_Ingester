@@ -9,19 +9,11 @@ module Libis::Ingester::API::Representer
 
     attributes do
       property :name, type: String, desc: 'user name'
-      property :_role, as: :role, type: String, desc: 'user role'
+      property :role, type: String, desc: 'user role'
     end
 
-    link(:organizations) { |opts| "#{self_url(opts.reject {|k,_| k == :pagination})}/#{represented.id}/organizations" }
-
-    has_many :organizations, extend: OrganizationRepresenter,
-             class: Libis::Ingester::Organization,
-             populator: ::Representable::FindOrInstantiate do
-      relationship do
-        link :self do |opts|
-          "#{opts[:base_url]}/users/#{represented.id}/organizations"
-        end
-      end
+    link(:organizations) do |opts|
+      "#{self_url(opts)}/#{represented.id}/organizations"
     end
 
   end

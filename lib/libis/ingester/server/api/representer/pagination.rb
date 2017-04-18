@@ -1,3 +1,6 @@
+require 'uri'
+require 'uri/query_params'
+
 module Libis
   module Ingester
     module API
@@ -8,12 +11,13 @@ module Libis
             for_collection.tap do |representer|
               representer.class_eval do
                 def page_url(opts, page = nil, offset = nil)
-                  return nil unless opts
-                  page ||= opts[:pagination][:page] rescue 1
-                  offset ||= 0
-                  url = [self_url(opts)]
-                  url << %W(per_page=#{opts[:pagination][:per] rescue 10} page=#{page + offset}).join('&') if opts[:pagination]
-                  url.join('?')
+                  url = opts[:this_url]
+                  return url if page.nil? && offset.nil?
+                  return url unless opts && opts[:pagination] && opts[:pagination][:total] > 1
+                  page = (page || opts[:pagination][:page] rescue 1) + offset.to_i
+                  uri = URI::parse(url)
+                  uri.query_params['page'] = page
+                  uri.to_s
                 end
 
                 def next_url(opts)
@@ -25,18 +29,19 @@ module Libis
                 end
 
                 def first_url(opts)
-                  page_url(opts, 1)
+                  page_url(opts, 1) if (opts[:pagination][:total] > 1 rescue false)
                 end
 
                 def last_url(opts)
-                  page_url(opts, (opts[:pagination][:total] rescue 1))
+                  page_url(opts, (opts[:pagination][:total] rescue 1)) if (opts[:pagination][:total] > 1 rescue false)
                 end
 
-                link(:self) { |opts| page_url(opts) }
-                link(:next) { |opts| self.class.next_url opts }
-                link(:prev) { |opts| self.class.prev_url opts }
-                link(:first) { |opts| self.class.first_url opts }
-                link(:last) { |opts| self.class.last_url opts }
+                link(:self) {|opts| page_url(opts)}
+                link(:next) {|opts| next_url opts}
+                link(:prev) {|opts| prev_url opts}
+                link(:first) {|opts| first_url opts}
+                link(:last) {|opts| last_url opts}
+
                 meta do
                   property :total_pages, as: :per_page
                   property :total_count, as: :item_count
