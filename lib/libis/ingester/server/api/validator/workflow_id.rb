@@ -1,13 +1,13 @@
-require 'libis/ingester/user'
+require 'libis/ingester/run'
 require 'grape/validations'
 
 module Libis::Ingester::API::Validator
-  class UserId < Grape::Validations::Base
+  class WorkflowId < Grape::Validations::Base
     def validate_param!(attr_name, params)
-      unless Libis::Ingester::User.find_by(id: params[attr_name])
+      unless Libis::Ingester::Workflow.find_by(id: params[attr_name])
         fail Grape::Exceptions::Validation,
              params: [@scope.full_name(attr_name)],
-             message: "'#{params[attr_name]}': user could not be found."
+             message: "'#{params[attr_name]}': workflow could not be found."
       end
     end
   end

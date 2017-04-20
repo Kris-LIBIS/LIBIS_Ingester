@@ -1,109 +1,137 @@
-require 'libis/ingester/server/api/representer/status'
 require 'libis/ingester/user'
-require 'libis/ingester/server/api/representer/user'
-require 'libis/ingester/server/api/validator/user_id'
 
 module Libis::Ingester::API
   class Users < Grape::API
     include Grape::Kaminari
 
+    REPRESENTER = Representer::User
+    DB_CLASS = Libis::Ingester::User
+
     namespace :users do
 
+      helpers ParamHelper
+      helpers StatusHelper
+      helpers RepresentHelper
+      helpers ObjectHelper
+
       desc 'get list of users' do
-        success Representer::User
-      end
-      params do
-        optional :fields, type: Hash, desc: 'Field selection as comma-separated list in a Hash with item type as key.'
+        success REPRESENTER
       end
       paginate per_page: 10, max_per_page: 50
+      params do
+        use :field_selector
+      end
       get '' do
-        mongoid_guard do
-          users = paginate(Libis::Ingester::User.all)
-          Representer::User.for_pagination.prepare(users)
-              .to_hash(
-                  pagination_hash(users, {})
-                      .merge(fields_opts(declared(params).fields, {}))
-              )
+        guard do
+          present_collection(collection: paginate(DB_CLASS), representer: REPRESENTER, with_pagination: true)
         end
       end
 
       desc 'create user' do
-        success Representer::User
+        success REPRESENTER
       end
       params do
-        requires :data, type: Representer::User, desc: 'User info'
+        requires :data, type: REPRESENTER, desc: 'user info'
       end
       post do
-        mongoid_guard do
-          user = Libis::Ingester::User.new
-          Representer::User.prepare(user).from_hash(declared(params))
-          user.save!
-          Representer::User.prepare(user).to_hash(item_hash(user))
+        guard do
+          _user = DB_CLASS.new
+          _user = parse_item(item: _user, representer: REPRESENTER)
+          _user.save!
+          present_item(item: _user, representer: REPRESENTER)
         end
       end
 
-      route_param :id do
+      params do
+        requires :user_id, type: String, desc: 'user ID', allow_blank: false, user_id: true
+      end
+      route_param :user_id do
+
+        desc 'get user information' do
+          success REPRESENTER
+        end
         params do
-          requires :id, type: String, desc: 'User ID', allow_blank: false, user_id: true
+          use :field_selector
+        end
+        get do
+          present_item(representer: REPRESENTER, item: user)
         end
 
-        namespace do
+        desc 'update user information' do
+          success REPRESENTER
+        end
+        params do
+          requires :data, type: REPRESENTER, desc: 'user info'
+        end
+        put do
+          guard do
+            _user = user
+            parse_item(representer: REPRESENTER, item: _user)
+            _user.save!
+            present_item(representer: REPRESENTER, item: user)
+          end
+        end
 
-          desc 'get user information' do
-            success Representer::User
+        desc 'delete user' do
+        end
+        delete do
+          guard do
+            user.destroy
+            api_success("user (#{declared(params).id}) deleted")
           end
-          params do
-            optional :fields, type: Hash,
-                     desc: 'Field selection as comma-separated list in a Hash with item type as key.'
-          end
-          get do
-            Representer::User.prepare(user).
-                to_hash(item_hash(user).merge(fields_opts(declared(params).fields)))
-          end
+        end
+
+        namespace :organizations do
+
+          REPRESENTER_1 = Representer::Organization
 
           desc 'get user organizations' do
-            success Representer::OrganizationRepresenter
+            success REPRESENTER_1
           end
           params do
-            optional :fields, type: Hash, desc: 'Field selection as comma-separated list in a Hash with item type as key.'
+            use :field_selector
           end
-          get 'organizations' do
-            mongoid_guard do
-              orgs = user.organizations || []
-              Representer::OrganizationRepresenter.for_collection.prepare(orgs).
-                  to_hash(option_hash.merge(fields_opts(declared(params).fields)))
+          get '' do
+            guard do
+              present_collection(representer: REPRESENTER_1, collection: user.organizations)
             end
           end
 
-          desc 'update user information' do
-            success Representer::User
-          end
           params do
-            requires :data, type: Representer::User, desc: 'User info'
+            requires :organization_id, type: String, desc: 'organization ID', allow_blank: false, organization_id: true
           end
-          put do
-            mongoid_guard do
-              Representer::User.new(user).from_hash(declared(params))
-              user.save!
-              Representer::User.new(user).to_hash(item_hash(user))
+          route_param :organization_id do
+
+            desc 'add organization to user'
+            put do
+              guard do
+                _user = user
+                _organization = organization
+                _user.organizations.push(_organization)
+                _organization.save!
+                _user.save!
+                api_success("organization '#{_organization.name}' (#{_organization.id}) added to user '#{_user.name}' (#{_user.id})")
+              end
             end
-          end
 
-          desc 'delete user' do
-          end
-          delete do
-            mongoid_guard do
-              user.destroy
-              api_success("User with id '#{declared(params).id}' deleted.")
+            desc 'remove organization from user'
+            delete do
+              _user = user
+              _organization = organization
+              _user.organizations.delete(_organization)
+              _organization.save!
+              _user.save!
+              api_success("organization '#{_organization.name}' (#{_organization.id}) removed from user '#{_user.name}' (#{_user.id})")
             end
-          end
 
-        end
+          end # route_param :organization_id
 
-      end
+        end # namespace :organizations
 
-    end
+      end # route_param :user_id
 
-  end
+    end # namespace :users
 
-end
+  end # Class
+
+end # Module

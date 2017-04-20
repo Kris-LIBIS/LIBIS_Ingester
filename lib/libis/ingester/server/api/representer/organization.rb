@@ -1,7 +1,7 @@
 require_relative 'base'
 
 module Libis::Ingester::API::Representer
-  class OrganizationRepresenter < Grape::Roar::Decorator
+  class Organization < Grape::Roar::Decorator
     include Base
 
     type :organizations
@@ -14,10 +14,14 @@ module Libis::Ingester::API::Representer
       property :c_at, as: :created_at, writeable: false, type: DateTime, desc: 'Date when the organization was created'
 
       nested :producer do
-         property :producer_id, as: :id, type: 'String', desc: 'producer identifier'
-         property :producer_agent, as: :agent, type: 'String', desc: 'producer agent identifier'
-         property :producer_pwd, as: :password, type: 'String', desc: 'producer agent password'
+         property :producer_id, as: :id, type: String, desc: 'producer identifier'
+         property :producer_agent, as: :agent, type: String, desc: 'producer agent identifier'
+         property :producer_pwd, as: :password, type: String, desc: 'producer agent password'
       end
+    end
+
+    link :users do |opts|
+      "#{self.class.self_url(opts)}/#{represented.id}/users"
     end
 
     link :jobs do |opts|
