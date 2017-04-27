@@ -42,5 +42,10 @@ module Libis::Ingester::API::Representer
       "#{opts[:base_url]}/workflows/#{represented.workflow_id}"
     end
 
+    # noinspection RubyResolve
+    link :runs do |opts|
+      "#{opts[:base_url]}/#{represented.id}/runs"
+    end
+
   end
 end

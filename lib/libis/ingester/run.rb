@@ -8,10 +8,6 @@ module Libis
 
     class Run < ::Libis::Workflow::Mongoid::Run
 
-      field :producer, type: Hash
-      field :material_flow
-      field :ingest_dir
-
       set_callback(:destroy, :before) do |document|
         dir = document.ingest_dir
         FileUtils.rmtree dir if dir && !dir.blank? && Dir.exist?(dir)

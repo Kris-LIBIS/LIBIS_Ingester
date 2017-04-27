@@ -1,6 +1,8 @@
 require 'roar/coercion'
 require 'active_support/concern'
+require_relative 'resource_collection'
 require_relative 'pagination'
+
 
 Object.module_eval do
   def self.const_unset(const)

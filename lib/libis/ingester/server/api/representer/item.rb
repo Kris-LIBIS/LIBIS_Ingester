@@ -17,6 +17,7 @@ module Libis::Ingester::API::Representer
         property :format, type: String, desc: 'metadata format, typically \'DC\''
         property :data, type: String, desc: 'the metadata'
       end
+
     end
 
     link :access_right do |opts|
@@ -31,64 +32,61 @@ module Libis::Ingester::API::Representer
       "#{self_url(opts)}/#{represented.id}/items" if represented.items.count > 0
     end
 
-    # -- for runs
-    attributes do
-      property :start_date, type: DateTime, desc: 'start date'
-      property :log_to_file, type: Boolean, desc: 'write log to file'
-      property :log_level, type: String, desc: 'log level'
-      property :run_name, type: String, desc: 'identifying run name'
-      property :status_log, type: Array, desc: 'list of status updates'
-    end
-
-    link :job do |opts|
-      # noinspection RubyResolve
-      "#{opts[:base_url]}/jobs/#{represented.job_id}" if represented.job_id
-    end
-
-    link :ingest_model do |opts|
-      # noinspection RubyResolve
-      "#{opts[:base_url]}/ingest_models/#{represented.job.ingest_model_id}" if represented.job_id
-    end
-
-    link :organization do |opts|
-      # noinspection RubyResolve
-      "#{opts[:base_url]}/organizations/#{represented.job.organization_id}" if represented.job_id
-    end
-
-    link :workflow do |opts|
-      # noinspection RubyResolve
-      "#{opts[:base_url]}/workflows/#{represented.job.workflow_id}" if represented.job_id
-    end
-
     # -- Collection
 
     attributes do
-      property :navigate, type: Boolean, desc: 'allow navigation'
-      property :publish, type: Boolean, desc: 'allow publishing via OAI-PMH'
-      property :description, type: String, desc: 'detailed description'
-      property :identifier, desc: 'external identifier' do
-        property :external_system, as: :system, type: String, desc: 'system'
-        property :external_id, as: :id, type: String, desc: 'id'
+      property :navigate, type: Boolean, desc: 'allow navigation', exec_context: :decorator
+      def navigate
+        represented.navigate rescue nil
+      end
+
+      property :publish, type: Boolean, desc: 'allow publishing via OAI-PMH', exec_context: :decorator
+      def publish
+      represented.publish rescue nil
+      end
+
+      property :description, type: String, desc: 'detailed description', exec_context: :decorator
+      def description
+        represented.description rescue nil
+      end
+
+      nested :identifier, desc: 'external identifier' do
+        property :system, type: String, desc: 'system', exec_context: :decorator
+        def system
+          represented.external_system rescue nil
+        end
+
+        property :id, type: String, desc: 'id', exec_context: :decorator
+        def id
+          represented.external_id rescue nil
+        end
       end
     end
 
     # -- IntellectualEntity
 
     attributes do
-      property :ingest_type, type: String, desc: 'type of ingest'
-      property :pid, type: String, desc: 'the PID associated to the IE after ingest'
+      property :ingest_type, type: String, desc: 'type of ingest', exec_context: :decorator
+      def ingest_type
+        represented.ingest_type rescue nil
+      end
+
+      property :pid, type: String, desc: 'the PID associated to the IE after ingest', exec_context: :decorator
+      def pid
+        represented.pid rescue nil
+      end
     end
 
     link :retention_period do |opts|
       # noinspection RubyResolve
-      "#{opts[:base_url]}/retention_periods/#{represented.retention_period_id}" if represented.retention_period_id
+      "#{opts[:base_url]}/retention_periods/#{represented.retention_period_id}" if represented.respond_to? :retention_period_id
     end
 
     # -- Representation
 
     link :representation_info do |opts|
       # noinspection RubyResolve
-      "#{opts[:base_url]}/representation_infos/#{represented.representation_info_id}" if represented.representation_info_id
+      "#{opts[:base_url]}/representation_infos/#{represented.representation_info_id}" if represented.respond_to? :representation_info_id
     end
 
     # -- Division

@@ -1,5 +1,6 @@
 require 'grape-swagger'
 require 'grape-swagger/representable'
+require 'kaminari'
 
 module Libis::Ingester
   class Api < Grape::API
@@ -36,6 +37,8 @@ module Libis::Ingester
     mount Libis::Ingester::API::Users
     mount Libis::Ingester::API::Organizations
     mount Libis::Ingester::API::Jobs
+    mount Libis::Ingester::API::Runs
+    mount Libis::Ingester::API::Items
 
     add_swagger_documentation info: {
         title: 'Teneo Ingester API.',

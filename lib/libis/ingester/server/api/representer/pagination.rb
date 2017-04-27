@@ -39,14 +39,19 @@ module Libis::Ingester::API::Representer
           link(:first) {|opts| first_url opts}
           link(:last) {|opts| last_url opts}
 
-          meta do
-            property :current_page
-            property :total_pages
-            property :next_page
-            property :prev_page
-            property :total_count
-            property :limit_value, as: :per_page
-          end
+          # meta do
+          #   property :current_page, exec_context: :decorator
+          #   property :total_pages, exec_context: :decorator
+          #   property :next_page, exec_context: :decorator
+          #   property :prev_page, exec_context: :decorator
+          #   property :total_count, exec_context: :decorator
+          #   property :limit_value, as: :per_page, exec_context: :decorator
+          # end
+          #
+          # def current_page
+          #   respresented.respond_to?(:current_page) ? represented.current_page : nil
+          # end
+
         end
       end
     end

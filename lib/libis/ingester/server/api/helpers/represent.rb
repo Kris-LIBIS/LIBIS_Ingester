@@ -19,8 +19,9 @@ module Libis::Ingester::API::RepresentHelper
     if params.has_key? :fields || !default_fields.empty?
       opts.merge!(fields_opts(params[:fields], default_fields))
     end
+    # .send(with_pagination ? :for_pagination : :for_collection)
     representer
-        .send(with_pagination ? :for_pagination : :for_collection)
+        .for_pagination
         .prepare(collection)
         .to_hash(opts)
   end
@@ -45,6 +46,16 @@ module Libis::Ingester::API::RepresentHelper
               per: declared(params).per_page
           }
       )
+      h.merge!(
+        meta: {
+            current_page: collection.current_page,
+            total_pages: collection.total_pages,
+            total_count: collection.total_count,
+            per_page: collection.limit_value
+        }
+      )
+      h[:meta][:next_page] = collection.next_page if collection.next_page
+      h[:meta][:prev_page] = collection.prev_page if collection.prev_page
     end
   end
 

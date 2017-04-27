@@ -1,6 +1,7 @@
 require 'libis/ingester/server/api/validator/user_id'
 require 'libis/ingester/server/api/validator/organization_id'
 require 'libis/ingester/server/api/validator/job_id'
+require 'libis/ingester/server/api/validator/run_id'
 require 'libis/ingester/server/api/validator/item_id'
 require 'libis/ingester/server/api/validator/ingest_model_id'
 require 'libis/ingester/server/api/validator/workflow_id'

@@ -19,7 +19,7 @@ module Libis::Ingester::API
       end
       paginate per_page: 10, max_per_page: 50
       params do
-        use :field_selector
+        use :job_fields
       end
       get '' do
         guard do
@@ -51,10 +51,10 @@ module Libis::Ingester::API
           success REPRESENTER
         end
         params do
-          use :field_selector
+          use :job_fields
         end
         get do
-          present_item(representer: REPRESENTER, item: job)
+          present_item(representer: REPRESENTER, item: current_job)
         end
 
         desc 'update job information' do
@@ -65,18 +65,18 @@ module Libis::Ingester::API
         end
         put do
           guard do
-            _job = job
+            _job = current_job
             parse_item(representer: REPRESENTER, item: _job)
             _job.save!
-            present_item(representer: REPRESENTER, item: job)
+            present_item(representer: REPRESENTER, item: current_job)
           end
         end
 
         desc 'delete job'
         delete do
           guard do
-            job.destroy
-            api_success("job (#{declared(params).id}) deleted")
+            current_job.destroy
+            api_success("job (#{declared(params)[:job_id]}) deleted")
           end
         end
 
@@ -86,7 +86,7 @@ module Libis::Ingester::API
         end
         put 'ingest_model' do
           guard do
-            _job = job
+            _job = current_job
             _ingest_model = ingest_model
             # noinspection RubyResolve
             _job.ingest_model = _ingest_model
@@ -101,7 +101,7 @@ module Libis::Ingester::API
         end
         put 'organization' do
           guard do
-            _job = job
+            _job = current_job
             _organization = organization
             # noinspection RubyResolve
             _job.organization = _organization
@@ -116,7 +116,7 @@ module Libis::Ingester::API
         end
         put 'workflow' do
           guard do
-            _job = job
+            _job = current_job
             _workflow = workflow
             # noinspection RubyResolve
             _job.workflow = _workflow
@@ -125,41 +125,42 @@ module Libis::Ingester::API
           end
         end
 
+
         namespace :runs do
 
-          REPRESENTER_1 = Representer::Item
+          REPRESENTER_1 = Representer::Run
 
           desc 'get job runs' do
             success REPRESENTER_1
           end
           params do
-            use :field_selector
+            use :run_fields
           end
           get '' do
             guard do
-              present_collection(representer: REPRESENTER_1, collection: job.runs)
+              present_collection(representer: REPRESENTER_1, collection: current_job.runs)
+            end
+          end
+
+          desc 'submit a new job run' do
+            success REPRESENTER_1
+          end
+          params do
+            use :run_fields
+          end
+          post '' do
+            guard do
+              # submit job
+              # - create run object
+              # - add run to the queue
+              # - return new run object
+              # required input:
+              # - queue (or select automatically?)
+              # - input parameters
             end
           end
 
         end # namespace :runs
-
-        namespace :ingest_models do
-
-          REPRESENTER_2 = Representer::IngestModel
-
-          desc 'get job ingest_models' do
-            success REPRESENTER_2
-          end
-          params do
-            use :field_selector
-          end
-          get '' do
-            guard do
-              present_collection(representer: REPRESENTER_2, collection: job.ingest_models)
-            end
-          end
-
-        end # namespace :ingest_models
 
       end # route_param :job_id
 

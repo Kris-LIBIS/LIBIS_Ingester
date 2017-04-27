@@ -19,7 +19,7 @@ module Libis::Ingester::API
       end
       paginate per_page: 10, max_per_page: 50
       params do
-        use :field_selector
+        use :user_fields
       end
       get '' do
         guard do
@@ -51,10 +51,10 @@ module Libis::Ingester::API
           success REPRESENTER
         end
         params do
-          use :field_selector
+          use :user_fields
         end
         get do
-          present_item(representer: REPRESENTER, item: user)
+          present_item(representer: REPRESENTER, item: current_user)
         end
 
         desc 'update user information' do
@@ -65,10 +65,10 @@ module Libis::Ingester::API
         end
         put do
           guard do
-            _user = user
+            _user = current_user
             parse_item(representer: REPRESENTER, item: _user)
             _user.save!
-            present_item(representer: REPRESENTER, item: user)
+            present_item(representer: REPRESENTER, item: current_user)
           end
         end
 
@@ -76,8 +76,8 @@ module Libis::Ingester::API
         end
         delete do
           guard do
-            user.destroy
-            api_success("user (#{declared(params).id}) deleted")
+            current_user.destroy
+            api_success("user (#{declared(params)[:user_id]}) deleted")
           end
         end
 
@@ -89,11 +89,11 @@ module Libis::Ingester::API
             success REPRESENTER_1
           end
           params do
-            use :field_selector
+            use :organization_fields
           end
           get '' do
             guard do
-              present_collection(representer: REPRESENTER_1, collection: user.organizations)
+              present_collection(representer: REPRESENTER_1, collection: current_user.organizations)
             end
           end
 
@@ -105,7 +105,7 @@ module Libis::Ingester::API
             desc 'add organization to user'
             put do
               guard do
-                _user = user
+                _user = current_user
                 _organization = organization
                 _user.organizations.push(_organization)
                 _organization.save!
@@ -116,7 +116,7 @@ module Libis::Ingester::API
 
             desc 'remove organization from user'
             delete do
-              _user = user
+              _user = current_user
               _organization = organization
               _user.organizations.delete(_organization)
               _organization.save!

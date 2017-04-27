@@ -1,80 +1,91 @@
-require 'libis/ingester/run'
-require 'libis/ingester/server/api/representer/run'
+require 'libis/ingester/job'
 
 module Libis::Ingester::API
   class Runs < Grape::API
     include Grape::Kaminari
 
+    REPRESENTER = Representer::Run
+    DB_CLASS = Libis::Ingester::Run
+
     namespace :runs do
 
+      helpers ParamHelper
+      helpers StatusHelper
+      helpers RepresentHelper
+      helpers ObjectHelper
+
       desc 'get list of runs' do
-        success Representer::Run
+        success REPRESENTER
       end
-      paginate per_page: 2, max_per_page: 10
+      paginate per_page: 10, max_per_page: 50
       params do
-        optional :fields, type: Hash, desc: 'Field selection as comma-separated list in a Hash with item type as key.'
+        use :run_fields
       end
       get '' do
-        runs = paginate(Libis::Ingester::Run.all)
-        Representer::Run.for_collection.prepare(runs).
-            # extend(Representable::Debug).
-            to_hash(pagination_hash(runs)
-            # .merge(fields_opts(declared(params).fields, {jobs: [:name, :description]}))
-            )
+        guard do
+          present_collection(collection: paginate(Kaminari.paginate_array(DB_CLASS.all)), representer: REPRESENTER, with_pagination: true)
+        end
       end
 
-      desc 'create run' do
-        success Representer::Run
-      end
       params do
-        requires :data, type: Representer::Run, desc: 'Run info'
+        requires :run_id, type: String, desc: 'run ID', allow_blank: false, run_id: true
       end
-      post do
-        run = Libis::Ingester::Run.new
-        Representer::Run.prepare(run).from_hash(declared(params))
-        run.save!
-        Representer::Run.prepare(run).to_json(item_hash(run))
-      end
+      route_param :run_id do
 
-      route_param :id do
+        desc 'get run information' do
+          success REPRESENTER
+        end
         params do
-          requires :id, type: String, desc: 'Run ID', allow_blank: false
+          use :run_fields
+        end
+        get do
+          present_item(representer: REPRESENTER, item: current_run)
         end
 
-        namespace do
-
-          desc 'get run information' do
-            success Representer::Run
+        desc 'update run information' do
+          success REPRESENTER
+        end
+        params do
+          requires :data, type: REPRESENTER, desc: 'run info'
+        end
+        put do
+          guard do
+            _run = current_run
+            parse_item(representer: REPRESENTER, item: _run)
+            _run.save!
+            present_item(representer: REPRESENTER, item: current_run)
           end
-          params do
-            optional :fields, type: Hash, desc: 'Field selection as comma-separated list in a Hash with item type as key.'
-          end
-          get do
-            run = Libis::Ingester::Run.find(declared(params).id)
-            Representer::Run.prepare(run).
-                to_hash(item_hash(run)
-                # .merge(fields_opts(declared(params).fields, {jobs: nil}))
-                )
-          end
-
-          desc 'update run information' do
-            success Representer::Run
-          end
-          params do
-            requires :data, type: Representer::Run, desc: 'Run info'
-          end
-          put do
-            run = Libis::Ingester::Run.find(declared(params).id)
-            Representer::Run.new(run).from_hash(declared(params))
-            run.save!
-            Representer::Run.new(run).to_hash(item_hash(run))
-          end
-
         end
 
-      end
+        desc 'delete run'
+        delete do
+          guard do
+            current_run.destroy
+            api_success("run (#{declared(params)[:run_id]}) deleted")
+          end
+        end
 
-    end
+        REPRESENTER_1 = Representer::Item
 
-  end
-end
+        desc 'get run items' do
+          success REPRESENTER_1
+        end
+        paginate per_page: 10, max_per_page: 50
+        params do
+          use :item_fields
+        end
+        get 'items' do
+          present_collection(
+              representer: REPRESENTER_1,
+              collection: paginate(Kaminari.paginate_array(current_run.items)),
+              with_pagination: true
+          )
+        end
+
+      end # route_param :run_id
+
+    end # namespace :runs
+
+  end # Class
+
+end # Module
