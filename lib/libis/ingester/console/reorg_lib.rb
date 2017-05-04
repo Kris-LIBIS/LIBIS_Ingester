@@ -58,7 +58,7 @@ def get_file_operation(file_operation)
   if !@unattended || file_operation.nil?
     puts
     puts 'Which operation do you want to perform on the files?'
-    file_operation = @hl.ask('File operation? ', [:move, :copy, :link]) {|q| q.default = :move}
+    file_operation = @hl.ask('File operation? ', [:move, :copy, :link]) {|q| q.default = file_operation || :move}
   end
   file_operation
 end
