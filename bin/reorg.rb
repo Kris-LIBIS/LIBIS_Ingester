@@ -3,6 +3,12 @@ require_relative '../lib/libis/ingester/console/reorg_lib'
 
 require 'filesize'
 
+FILE_OPERATIONS = {
+    move: 'moved',
+    copy: 'copied',
+    link: 'linked'
+}
+
 ######## Command-line
 config = nil
 x = read_config('')
@@ -10,7 +16,11 @@ base_dir = x[:dir]
 parse_regex = x[:regex]
 path_expression = x[:expr]
 report_file = x[:report]
-move_files = x[:move]
+file_operation = if x.has_key?(:move)
+                   x[:move] ? :move : :copy
+                 else
+                   x[:operation]
+                 end
 dummy_operation = nil
 interactive = false
 overwrite = false
@@ -27,37 +37,41 @@ OptionParser.new do |opts|
     parse_regex = x[:regex]
     path_expression = x[:expr]
     report_file = x[:report]
-    move_files = x[:move]
+    file_operation = if x.has_key?(:move)
+                       x[:move] ? :move : :copy
+                     else
+                       x[:operation]
+                     end
     dummy_operation = nil
     interactive = false
     overwrite = false
   end
 
-  opts.on('-i', '--interactive', 'Ask for action when changed files are found.') do
-    interactive = true
+  opts.on('-i', '--[no-]interactive', 'Ask for action when changed files are found') do |v|
+    interactive = v
   end
 
-  opts.on('-o', '--overwrite', 'Overwrite target if changed.') do
-    overwrite = true
+  opts.on('-o', '--[no-]overwrite', 'Overwrite target if changed') do |v|
+    overwrite = v
   end
 
-  opts.on('--move-files', 'Move files instead of copying') do
-    move_files = true
+  opts.on('--file-operation', [:move, :copy, :link], 'Operation to perform on files found') do |v|
+    file_operation = v
   end
 
-  opts.on('-b', '--base STRING', 'Directory that needs to be reorganized') do |v|
+  opts.on('-b', '--base STRING', String, 'Directory that needs to be reorganized') do |v|
     base_dir = v
   end
 
-  opts.on('-f', '--filter REGEX', 'Regex for file name matching') do |v|
+  opts.on('-f', '--filter REGEX', Regexp, 'Regex for file name matching') do |v|
     parse_regex = v
   end
 
-  opts.on('-e', '--expression STRING', 'Path expression for new file path') do |v|
+  opts.on('-e', '--expression STRING', String, 'Path expression for new file path') do |v|
     path_expression = v
   end
 
-  opts.on('--report FILE', 'Generate report in FILE') do |v|
+  opts.on('--report FILE', String, 'Generate report in FILE') do |v|
     report_file = v
   end
 
@@ -95,7 +109,7 @@ report_file = get_report_file(report_file)
 dummy_operation = get_dummy_operation(dummy_operation)
 
 ######### Move files
-move_files = get_move_files(move_files)
+file_operation = get_file_operation(file_operation)
 
 ######### Start
 puts
@@ -116,7 +130,7 @@ puts
 puts 'This can take a while. Please sit back and relax, grab a cup of coffee, have a quick nap or read a good book ...'
 
 # Save entries
-save_config(base_dir, parse_regex, path_expression, report_file, move_files, config)
+save_config(base_dir, parse_regex, path_expression, report_file, file_operation, config)
 
 # keeps track of folders created
 require 'set'
@@ -153,6 +167,7 @@ Dir.new(base_dir).entries.each do |file_name|
   end
   target_path = File.join(target_dir, target_file)
   remark = nil
+  action = false
   if File.exist?(target_path)
     if compare_entry(entry, target_path)
       remark = 'Duplicate - skipped.'
@@ -161,14 +176,9 @@ Dir.new(base_dir).entries.each do |file_name|
     else
       # puts "source: #{File.mtime(entry)} #{'%11s' % Filesize.new(File.size(entry)).pretty} #{entry}"
       # puts "target: #{File.mtime(target_path)} #{'%11s' % Filesize.new(File.size(target_path)).pretty} #{target_path}"
-      if interactive ? @hl.agree('Overwrite target?') { |q| q.default = overwrite } : overwrite
+      if interactive ? @hl.agree('Overwrite target?') {|q| q.default = overwrite} : overwrite
         remark = 'Duplicate - updated'
-        puts "-> #{move_files ? 'Move' : 'Copy'} '#{file_name}' to '#{target}'" unless @report
-        if move_files
-          FileUtils.move(entry, File.join(target_dir, target_file), force: true)
-        else
-          FileUtils.copy(entry, File.join(target_dir, target_file))
-        end unless dummy_operation
+        action = true
         count[:update] += 1
       else
         remark = 'Duplicate - rejected.'
@@ -176,22 +186,30 @@ Dir.new(base_dir).entries.each do |file_name|
         count[:reject] += 1
       end
     end
-
   else
-    puts "-> #{move_files ? 'Move' : 'Copy'} '#{file_name}' to '#{target}'" unless @report
-    if move_files
-      FileUtils.move(entry, File.join(target_dir, target_file), force: true)
-    else
-      FileUtils.copy(entry, File.join(target_dir, target_file))
-    end unless dummy_operation
+    action = true
     count[:move] += 1
+  end
+  if action
+    puts "-> #{file_operation} '#{file_name}' to '#{target}'" unless @report
+    case file_operation
+      when :move
+        FileUtils.move(entry, File.join(target_dir, target_file), force: true)
+      when :copy
+        FileUtils.copy(entry, File.join(target_dir, target_file))
+      when :link
+        FileUtils.symlink(entry, File.join(target_dir, target_file), force: true)
+      else
+        # Shouldn't happen
+        raise RuntimeError, "Bad file operation: '#{file_operation}'"
+    end unless dummy_operation
   end
   write_report(entry, target_dir, target_file, remark)
 end
 
 $stderr.puts "#{'%8d' % count[:skipped_dir]} dir(s) found and skipped."
 $stderr.puts "#{'%8d' % count[:unmatched_file]} file(s) found that did not match and skipped."
-$stderr.puts "#{'%8d' % count[:move]} file(s) #{move_files ? 'moved' : 'copied'}."
+$stderr.puts "#{'%8d' % count[:move]} file(s) #{FILE_OPERATIONS[file_operation]}."
 $stderr.puts "#{'%8d' % count[:duplicate]} duplicate(s) found and skipped."
 $stderr.puts "#{'%8d' % count[:update]} changed file(s) found and updated."
 $stderr.puts "#{'%8d' % count[:reject]} changed file(s) found and rejected."

@@ -54,13 +54,13 @@ def get_report_file(report_file)
   report_file
 end
 
-def get_move_files(move_files)
-  if !@unattended || move_files.nil?
+def get_file_operation(file_operation)
+  if !@unattended || file_operation.nil?
     puts
-    puts 'Do you want to move the files? If not, a copy operation will be performed and the original files will be left untouched.'
-    move_files = @hl.agree('Move files? ', true) { |q| q.default = !!move_files }
+    puts 'Which operation do you want to perform on the files?'
+    file_operation = @hl.ask('File operation? ', [:move, :copy, :link]) { |q| q.default = :move }
   end
-  !!move_files
+  file_operation
 end
 
 def open_report(report_file)
@@ -144,13 +144,13 @@ def configurations
   Dir.glob(File.join(ENV['HOME'], '.reorg*.data')).map { |x| x.scan(/reorg(.*).data$/).first.first rescue '' }
 end
 
-def save_config(base_dir, parse_regex, path_expression, report_file, move_files, config)
+def save_config(base_dir, parse_regex, path_expression, report_file, file_operation, config)
   File.open(config_file(config), 'w') do |f|
     f.puts "dir: #{base_dir}"
     f.puts "regex: #{parse_regex}"
     f.puts "expr: #{path_expression}"
     f.puts "report: #{report_file}"
-    f.puts "move: #{move_files ? 'true' : 'false'}"
+    f.puts "operation: #{file_operation}"
   end
 end
 
@@ -162,7 +162,6 @@ def read_config(config)
       result[v.first.to_sym] = v.last if v.last
     end
   end rescue nil
-  result[:move] = result[:move] == 'true'
   result
 end
 
