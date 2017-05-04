@@ -10,7 +10,7 @@ def get_config(config)
     puts 'The configuration parameters you set are automatically retrieved and saved under that name.'
     puts 'These configurations exist:'
     puts_config
-    config = @hl.ask('Configuration to use.') { |q| q.default = config }
+    config = @hl.ask('Configuration to use.') {|q| q.default = config}
   end
   config
 end
@@ -29,7 +29,7 @@ def get_parse_regex(parse_regex)
     puts
     puts 'Now enter a regular expression that needs to be applied to each file in the directory.'
     puts 'Create groups for reference later in the directory structure to be created.'
-    parse_regex = @hl.ask('Enter REGEX: ') { |q| q.default = parse_regex }
+    parse_regex = @hl.ask('Enter REGEX: ') {|q| q.default = parse_regex}
   end
   Regexp.new(parse_regex)
 end
@@ -39,7 +39,7 @@ def get_path_expression(path_expression)
     puts
     puts 'Supply the relative or absolute path for each matching file (including file name).'
     puts 'Use $x for referencing the value of the the x-th group in the regex. "file_name" refers to the original file name.'
-    path_expression = @hl.ask('Enter path expression: ') { |q| q.default = path_expression }
+    path_expression = @hl.ask('Enter path expression: ') {|q| q.default = path_expression}
   end
   path_expression
 end
@@ -48,7 +48,7 @@ def get_report_file(report_file)
   if !@unattended || report_file.nil?
     puts
     puts 'Enter a file name for the report. Extension (csv/tsv/xml/yml) specifies the type. Type "-none-" for no report.'
-    report_file = @hl.ask('Report file name: ') { |q| q.default = report_file }
+    report_file = @hl.ask('Report file name: ') {|q| q.default = report_file}
   end
   report_file = nil if !report_file || report_file.empty? || report_file == '-none-'
   report_file
@@ -58,13 +58,14 @@ def get_file_operation(file_operation)
   if !@unattended || file_operation.nil?
     puts
     puts 'Which operation do you want to perform on the files?'
-    file_operation = @hl.ask('File operation? ', [:move, :copy, :link]) { |q| q.default = :move }
+    file_operation = @hl.ask('File operation? ', [:move, :copy, :link]) {|q| q.default = :move}
   end
   file_operation
 end
 
 def open_report(report_file)
   if report_file
+    # noinspection RubyStringKeysInHashInspection
     @report_type = {'.csv' => :csv, '.tsv' => :tsv, '.xml' => :xml, '.yml' => :yml}[File.extname(report_file)]
     unless @report_type
       puts "Unknown file type: #{File.extname(report_file)}"
@@ -141,17 +142,35 @@ def config_file(config)
 end
 
 def configurations
-  Dir.glob(File.join(ENV['HOME'], '.reorg*.data')).map { |x| x.scan(/reorg(.*).data$/).first.first rescue '' }
+  Dir.glob(File.join(ENV['HOME'], '.reorg*.data')).map {|x| x.scan(/reorg(.*).data$/).first.first rescue ''}
 end
 
-def save_config(base_dir, parse_regex, path_expression, report_file, file_operation, config)
+def save_config(options, config)
   File.open(config_file(config), 'w') do |f|
-    f.puts "dir: #{base_dir}"
-    f.puts "regex: #{parse_regex}"
-    f.puts "expr: #{path_expression}"
-    f.puts "report: #{report_file}"
-    f.puts "operation: #{file_operation}"
+    f.puts "dir: #{options[:base_dir]}"
+    f.puts "regex: #{options[:parse_regex]}"
+    f.puts "expr: #{options[:path_expression]}"
+    f.puts "report: #{options[:report_file]}"
+    f.puts "operation: #{options[:file_operation]}"
+    f.puts "interactive: #{options[:interactive]}"
+    f.puts "overwrite: #{options[:overwrite]}"
   end
+end
+
+def parse_config(config, options = {})
+  x = read_config(config)
+  options[:base_dir] = x[:dir]
+  options[:parse_regex] = x[:regex]
+  options[:path_expression] = x[:expr]
+  options[:report_file] = x[:report]
+  options[:file_operation] = if x.has_key?(:move)
+                               x[:move] ? :move : :copy
+                             else
+                               x[:operation]
+                             end
+  options[:interactive] = x[:interactive]
+  options[:overwrite] = x[:overwrite]
+  options
 end
 
 def read_config(config)
@@ -169,7 +188,7 @@ def puts_config
   configurations.each do |c|
     x = read_config(c)
     puts "- #{c}:"
-    x.each { |k, v| puts "   - #{k}: #{v}" }
+    x.each {|k, v| puts "   - #{k}: #{v}"}
   end
 end
 
