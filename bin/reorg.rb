@@ -10,7 +10,7 @@ FILE_OPERATIONS = {
 }
 
 config = nil
-options = parse_config ''
+options = load_config ''
 
 ######## Command-line
 
@@ -21,15 +21,15 @@ OptionParser.new do |opts|
 
   opts.on('-c', '--config [STRING]', 'Configuration name') do |v|
     config = v
-    options = parse_config config, options
+    options = load_config config, options
   end
 
-  opts.on('-i', '--[no-]interactive', 'Ask for action when changed files are found') do |v|
-    options[:interactive] = v
+  opts.on('-i', '--interactive', 'Ask for action when changed files are found') do
+    options[:interactive] = true
   end
 
-  opts.on('-o', '--[no-]overwrite', 'Overwrite target if changed') do |v|
-    options[:overwrite] = v
+  opts.on('-o', '--overwrite', 'Overwrite target if changed') do
+    options[:overwrite] = true
   end
 
   opts.on('--file-operation', [:move, :copy, :link], 'Operation to perform on files found') do |v|
@@ -68,7 +68,10 @@ end.parse!
 
 ######### Configuration
 config_new = get_config(config)
-options = parse_config config_new, options unless config_new == config
+unless config_new == config
+  options = load_config config_new, options
+  config = config_new
+end
 
 ######### Source dir
 options[:base_dir] = get_base_dir(options[:base_dir])
@@ -103,13 +106,14 @@ puts options[:report_file] ? "Creating report file #{options[:report_file]}" : '
 puts (options[:dummy_operation] ? 'Not p' : 'P') + 'erforming physical operations'
 puts '========================================================================================='
 puts
+
+# Save entries
+save_config(options, config)
+
 exit unless @unattended || @hl.agree('Last chance to bail out. Continue?', true)
 
 puts
 puts 'This can take a while. Please sit back and relax, grab a cup of coffee, have a quick nap or read a good book ...'
-
-# Save entries
-save_config(options, config)
 
 # keeps track of folders created
 require 'set'

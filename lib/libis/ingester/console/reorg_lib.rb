@@ -157,7 +157,7 @@ def save_config(options, config)
   end
 end
 
-def parse_config(config, options = {})
+def load_config(config, options = {})
   x = read_config(config)
   options[:base_dir] = x[:dir]
   options[:parse_regex] = x[:regex]
@@ -177,8 +177,8 @@ def read_config(config)
   result = {}
   File.open(config_file(config), 'r') do |f|
     f.readlines.each do |l|
-      v = l.strip.split(': ')
-      result[v.first.to_sym] = v.last if v.last
+      v = l.strip.split(/: /)
+      result[v.first.to_sym] = v.last if v.size > 1
     end
   end rescue nil
   result
