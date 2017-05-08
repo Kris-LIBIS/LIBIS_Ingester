@@ -1,0 +1,21 @@
+<h1>User list</h1>
+<table class="ui fixed striped table">
+  <thead>
+  <tr>
+    <th>ID</th>
+    <th>Name</th>
+    <th>Role</th>
+    <th width="50"></th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr *ngFor="let user of users">
+    <td (click)="onSelect(user.id)">{{user.id}}</td>
+    <td (click)="onSelect(user.id)">{{user.name}}</td>
+    <td (click)="onSelect(user.id)">{{user.role}}</td>
+    <td>
+      <a [routerLink]="['/users', user.id]"><i class="ui edit icon"></i></a>
+    </td>
+  </tr>
+  </tbody>
+</table>
