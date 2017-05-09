@@ -1,7 +1,7 @@
 # Mongoid Configuration for Travis CI
 # ===================================
 
-test:
+development:
   # Configure available database clients. (required)
   clients:
     # Defines the default client. (required)
@@ -132,3 +132,26 @@ test:
     # Ensure all times are UTC in the app side. (default: false)
     #use_utc: false
 
+test:
+  clients:
+    default:
+      database: ingester_test
+      hosts:
+        - localhost:27018
+
+  options:
+    include_type_for_serialization: true
+    raise_not_found_error: false
+    scope_overwrite_exception: true
+
+production:
+  clients:
+    default:
+      database: ingester_prod
+      hosts:
+        - localhost:27019
+
+  options:
+    include_type_for_serialization: true
+    raise_not_found_error: false
+    scope_overwrite_exception: true
