@@ -72,6 +72,21 @@ module Libis::Ingester::API
           end
         end
 
+        desc 'update user information' do
+          success REPRESENTER
+        end
+        params do
+          requires :data, type: REPRESENTER, desc: 'user info'
+        end
+        patch do
+          guard do
+            _user = current_user
+            parse_item(representer: REPRESENTER, item: _user)
+            _user.save!
+            present_item(representer: REPRESENTER, item: current_user)
+          end
+        end
+
         desc 'delete user' do
         end
         delete do
