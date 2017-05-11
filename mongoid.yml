@@ -149,7 +149,7 @@ production:
     default:
       database: ingester_prod
       hosts:
-        - localhost:27019
+        - localhost:27018
 
   options:
     include_type_for_serialization: true

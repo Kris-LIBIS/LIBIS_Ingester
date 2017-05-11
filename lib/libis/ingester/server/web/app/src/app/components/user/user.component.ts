@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { IngesterApiService } from "../../datastore/ingester-api.service";
 import { User } from "../../datastore/models";
+import { showWarningOnce } from "tslint/lib/error";
 
 @Component({
   selector: 'teneo-user',
@@ -19,6 +20,13 @@ export class UserComponent implements OnInit {
 
   onSelect(id: string) {
     this.api.getUser(id).subscribe((user) => this.currentUser = user);
+  }
+
+  deleteUser(id: string) {
+    this.api.deleteUser(id).subscribe((res) => {
+      console.log(res);
+      this.ngOnInit();
+    });
   }
 
 }

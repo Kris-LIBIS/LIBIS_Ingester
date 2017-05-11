@@ -5,7 +5,7 @@ require 'kaminari'
 module Libis::Ingester
   class Api < Grape::API
 
-    version 'v1', using: :header, vendor: 'libis'
+    version 'v1', using: :param, parameter: 'api'
     format :json
     formatter :json, Grape::Formatter::Roar
     prefix :api

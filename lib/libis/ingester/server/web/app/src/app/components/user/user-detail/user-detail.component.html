@@ -1,16 +1,27 @@
 <h1>User info</h1>
-<form class="ui form" #f="ngForm" (submit)="onSubmit(f.value)">
+<form class="ui form" novalidate (ngSubmit)="onSubmit(form)" [formGroup]="form">
   <div class="field">
     <label for="name">Name</label>
-    <input id="name" type="text" name="name" placeholder="Name" [(ngModel)]="user.name">
+    <input id="name" type="text" name="name" placeholder="Name" formControlName="name">
   </div>
   <div class="field">
     <label for="role">Role</label>
-    <input id="role" type="text" name="role" placeholder="Role" [(ngModel)]="user.role">
+    <input id="role" type="text" name="role" placeholder="Role" formControlName="role">
   </div>
   <div class="ui buttons">
-    <button class="ui button">Cancel</button>
+    <button class="ui button" type="button" [routerLink]="['/users']">Cancel</button>
     <div class="or"></div>
-    <button class="ui positive button" type="submit">Save</button>
+    <button class="ui positive button" type="submit" [disabled]="form.invalid">Save</button>
   </div>
 </form>
+<div class="field">
+  <label for="orgs">Organizations</label>
+  <sui-multi-select id="orgs" class="fluid" placeholder="Select organization(s)..."
+                    [(ngModel)]="selectedOrgs"
+                    [options]="getOrgs"
+                    labelfield="name" valuefield="id"
+                    #selectOrgs
+  >
+    <sui-select-option *ngFor="let org of selectOrgs.availableOptions" [value]="org.id"></sui-select-option>
+  </sui-multi-select>
+</div>

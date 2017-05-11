@@ -59,6 +59,10 @@ module Libis
                 represented.id.to_s
               end
 
+              def id=(_value)
+                # do nothing
+              end
+
             end
           end
 

@@ -112,6 +112,27 @@ module Libis::Ingester::API
             end
           end
 
+          desc 'set user organization list' do
+            success REPRESENTER
+          end
+          params do
+            requires :organization_ids, type: Array, desc: 'list of organization IDs', allow_blank: false, organization_ids: true
+          end
+          post '' do
+            guard do
+              _user = current_user
+              _user.organizations.clear
+              _orgs = []
+              params['organization_ids'].each do |org_id|
+                _organization = organization(org_id)
+                _user.organizations.push(_organization)
+                _orgs.push _organization
+              end
+              _user.save!
+              present_item(representer: REPRESENTER, item: current_user)
+            end
+          end
+
           params do
             requires :organization_id, type: String, desc: 'organization ID', allow_blank: false, organization_id: true
           end
