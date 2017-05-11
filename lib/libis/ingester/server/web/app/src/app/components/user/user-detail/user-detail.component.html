@@ -2,11 +2,11 @@
 <form class="ui form" #f="ngForm" (submit)="onSubmit(f.value)">
   <div class="field">
     <label for="name">Name</label>
-    <input id="name" type="text" name="name" placeholder="Name" [ngModel]="user.name">
+    <input id="name" type="text" name="name" placeholder="Name" [(ngModel)]="user.name">
   </div>
   <div class="field">
     <label for="role">Role</label>
-    <input id="role" type="text" name="role" placeholder="Role" [ngModel]="user.role">
+    <input id="role" type="text" name="role" placeholder="Role" [(ngModel)]="user.role">
   </div>
   <div class="ui buttons">
     <button class="ui button">Cancel</button>

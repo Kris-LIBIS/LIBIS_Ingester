@@ -1,4 +1,4 @@
-import { Attribute, JsonApiModel, JsonApiModelConfig } from "ng-jsonapi";
+import { Attribute, JsonApiModel, JsonApiModelConfig } from 'ng-jsonapi';
 
 @JsonApiModelConfig({
   type: 'users'
@@ -16,7 +16,7 @@ export class User extends JsonApiModel {
 })
 export class Organization extends JsonApiModel {
   @Attribute()
-  name:string;
+  name: string;
 
   @Attribute()
   code: string;

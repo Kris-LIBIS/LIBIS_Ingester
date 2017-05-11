@@ -13,7 +13,7 @@ import { Observable } from "rxjs/Observable";
 })
 export class UserDetailComponent implements OnInit {
 
-  private user: User;
+  private user: User = new User(this.api);
 
   constructor(private api: IngesterApiService, private route: ActivatedRoute) { }
 
@@ -23,10 +23,10 @@ export class UserDetailComponent implements OnInit {
   }
 
   onSubmit(data: any) {
-    for (const key in data) {
-      this.user[key] = data[key];
-    }
-    this.api.saveRecord(this.user);
+    console.log(data);
+    console.log(this.user);
+    this.api.saveRecord(data, this.user);
+    return false;
   }
 
 }
