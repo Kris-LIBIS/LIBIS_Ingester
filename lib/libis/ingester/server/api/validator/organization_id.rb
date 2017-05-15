@@ -12,3 +12,17 @@ module Libis::Ingester::API::Validator
     end
   end
 end
+
+module Libis::Ingester::API::Validator
+  class OrganizationIds < Grape::Validations::Base
+    def validate_param!(attr_name, params)
+      params[attr_name].each do |id|
+        unless Libis::Ingester::Organization.find_by(id: id)
+          fail Grape::Exceptions::Validation,
+               params: [@scope.full_name(attr_name)],
+               message: "'#{id}': organization could not be found."
+        end
+      end
+    end
+  end
+end

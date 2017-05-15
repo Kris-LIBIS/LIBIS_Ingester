@@ -9,6 +9,9 @@ export class User extends JsonApiModel {
 
   @Attribute()
   role: string;
+
+  @Attribute()
+  organizations: Array<{id: string, name: string}>
 }
 
 @JsonApiModelConfig({

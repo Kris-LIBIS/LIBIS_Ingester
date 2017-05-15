@@ -1,9 +1,8 @@
 import { Injectable } from '@angular/core';
 import { JsonApiDatastore, JsonApiDatastoreConfig } from "ng-jsonapi";
 import { User, Organization } from './models';
-import { Http, Headers } from "@angular/http";
+import { Http, Headers, RequestOptions } from "@angular/http";
 import { Observable } from "rxjs/Observable";
-import { observableToBeFn } from "rxjs/testing/TestScheduler";
 
 @Injectable()
 @JsonApiDatastoreConfig({
@@ -15,7 +14,7 @@ import { observableToBeFn } from "rxjs/testing/TestScheduler";
 })
 export class IngesterApiService extends JsonApiDatastore {
 
-  constructor(http: Http) {
+  constructor(http: Http, public myhttp: Http) {
     super(http);
     const headers = new Headers();
     headers.append('Accept', 'application/vnd.api+json');
@@ -42,6 +41,14 @@ export class IngesterApiService extends JsonApiDatastore {
   getUserOrgs(url: string): Observable<Organization[]> {
     return this.hasManyLink(Organization, url)
       .map((collection) => collection.data);
+  }
+
+  setUserOrgs(url: string, org_ids: Array<string>): Observable<boolean> {
+    const headers = new Headers();
+    headers.append('Accept', 'application/vnd.api+json');
+    headers.append('Content-Type', 'application/json');
+    return this.myhttp.post(url, JSON.stringify({organization_ids: org_ids}), new RequestOptions({headers: headers}))
+      .map((res: any) => true);
   }
 
   getOrganizations(): Observable<Organization[]> {

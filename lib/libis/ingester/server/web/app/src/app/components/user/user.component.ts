@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { IngesterApiService } from "../../datastore/ingester-api.service";
 import { User } from "../../datastore/models";
-import { showWarningOnce } from "tslint/lib/error";
+import * as _ from 'lodash';
 
 @Component({
   selector: 'teneo-user',
@@ -27,6 +27,10 @@ export class UserComponent implements OnInit {
       console.log(res);
       this.ngOnInit();
     });
+  }
+
+  orglist(orgs): string {
+    return _.map(orgs, (org) => org.name).join(', ');
   }
 
 }

@@ -1,0 +1,11 @@
+td:first-child {
+  padding-left: 1em;
+}
+
+tr:first-child td {
+  padding-top: .6em;
+}
+
+tr:last-child td {
+  padding-bottom: .6em;
+}

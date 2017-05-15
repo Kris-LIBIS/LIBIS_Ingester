@@ -8,20 +8,20 @@
     <label for="role">Role</label>
     <input id="role" type="text" name="role" placeholder="Role" formControlName="role">
   </div>
+  <div class="grouped fields">
+    <label for="orgs">Organizations</label>
+    <table id="orgs" style="border: 1px solid lightgray; width: 100%">
+      <tbody>
+      <tr *ngFor="let org of allOrgs" (click)="toggleSelect(org)">
+        <td width="10"><i class="box icon" [class.checkmark]="isSelected(org)"></i></td>
+        <td>{{org.name}}</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
   <div class="ui buttons">
-    <button class="ui button" type="button" [routerLink]="['/users']">Cancel</button>
+    <button class="ui button" [routerLink]="['/users']">Cancel</button>
     <div class="or"></div>
     <button class="ui positive button" type="submit" [disabled]="form.invalid">Save</button>
   </div>
 </form>
-<div class="field">
-  <label for="orgs">Organizations</label>
-  <sui-multi-select id="orgs" class="fluid" placeholder="Select organization(s)..."
-                    [(ngModel)]="selectedOrgs"
-                    [options]="getOrgs"
-                    labelfield="name" valuefield="id"
-                    #selectOrgs
-  >
-    <sui-select-option *ngFor="let org of selectOrgs.availableOptions" [value]="org.id"></sui-select-option>
-  </sui-multi-select>
-</div>

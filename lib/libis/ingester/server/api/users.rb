@@ -113,7 +113,7 @@ module Libis::Ingester::API
           end
 
           desc 'set user organization list' do
-            success REPRESENTER
+            success Boolean
           end
           params do
             requires :organization_ids, type: Array, desc: 'list of organization IDs', allow_blank: false, organization_ids: true
@@ -129,7 +129,7 @@ module Libis::Ingester::API
                 _orgs.push _organization
               end
               _user.save!
-              present_item(representer: REPRESENTER, item: current_user)
+              true
             end
           end
 
