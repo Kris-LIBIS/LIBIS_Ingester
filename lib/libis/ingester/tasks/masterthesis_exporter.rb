@@ -121,11 +121,10 @@ module Libis
         mail.cc parameter(:mail_cc) unless parameter(:mail_cc).blank?
         mail.subject 'Ingest complete.'
         mail.body <<~STR
-            The ingest '#{item.name}' finished successfully.
+            The ingest run '#{item.name}' finished successfully.
             
             The exported XML files can be found at '#{parameter(:export_dir)}'.
         STR
-        mail.add_file get_export_file(item)
         mail.deliver!
         debug "Report sent to #{parameter(:mail_to)}#{parameter(:mail_cc).blank? ? '' : " and #{parameter(:mail_cc)}"}."
       end
