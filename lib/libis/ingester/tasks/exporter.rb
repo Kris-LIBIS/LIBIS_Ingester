@@ -77,7 +77,7 @@ module Libis
         email_report item
       end
 
-      private
+      protected
 
       # @param [Libis::Ingester::IntellectualEntity] item
       def export_item(item)
