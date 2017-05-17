@@ -15,7 +15,7 @@
     <td>{{orglist(user.organizations)}}</td>
     <td>
       <a [routerLink]="['/users', user.id]"><i title="Edit" class="blue pencil icon"></i></a>
-      <a (click)="deleteUser(user.id)"><i title="Delete" class="red remove icon"></i></a>
+      <a (click)="deleteUser(user)"><i title="Delete" class="red remove icon"></i></a>
     </td>
   </tr>
   </tbody>

@@ -12,6 +12,7 @@
   },
   "private": true,
   "dependencies": {
+    "@angular/animations": "^4.x",
     "@angular/common": "4.x",
     "@angular/compiler": "4.x",
     "@angular/core": "4.x",
@@ -27,6 +28,8 @@
     "ng-jsonapi": "0.0.1",
     "ng-semantic": "^1.1.13",
     "ng2-semantic-ui": "^0.6.4",
+    "primeng": "^4.0.1",
+    "font-awesome": "^4.7.0",
     "reflect-metadata": "^0.1.10",
     "rxjs": "^5.x",
     "zone.js": "0.8.7"

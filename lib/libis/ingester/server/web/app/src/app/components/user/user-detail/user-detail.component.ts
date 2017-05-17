@@ -11,7 +11,13 @@ import {Observable} from "rxjs/Observable";
 import "rxjs/add/observable/of";
 import * as _ from 'lodash';
 
+class LinkedObject {
+  id: string;
+  name: string;
+}
+
 @Component({
+  moduleId: module.id,
   selector: 'teneo-user-detail',
   templateUrl: './user-detail.component.html',
   styleUrls: ['./user-detail.component.css']
@@ -22,9 +28,8 @@ export class UserDetailComponent implements OnInit {
     name: ['', Validators.required],
     role: ['', Validators.required]
   });
-  selectedOrgs: Organization[] = [];
-  allOrgs: Organization[] = [];
-  isOpen: boolean = false;
+  selectedLinks: LinkedObject[] = [];
+  allLinks: LinkedObject[] = [];
 
   private id: string;
 
@@ -35,8 +40,8 @@ export class UserDetailComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.api.getOrganizations()
-      .subscribe((orgs) => orgs.forEach((org) => this.allOrgs.push(org)));
+    this.api.getObjectList(Organization)
+      .subscribe((orgs) => orgs.forEach((org) => this.allLinks.push(org)));
     this.route.params
       .map((params: Params) => params['id'])
       .switchMap((id: string) => {
@@ -44,22 +49,12 @@ export class UserDetailComponent implements OnInit {
         if (id === 'new') {
           return Observable.of(new User(this.api, {}));
         }
-        return this.api.getUser(id);
+        return this.api.getObject(User, id);
       })
-      .do((user) => {
+      .subscribe((user) => {
         this.form.controls['name'].patchValue(user.name);
         this.form.controls['role'].patchValue(user.role);
-      })
-      .switchMap((user) => {
-        if (user.links['organizations']) {
-          return this.api.getUserOrgs(user.links['organizations'].href);
-        }
-        return Observable.of([]);
-      })
-      .subscribe((orgs: Organization[]) => {
-        orgs.forEach((org) => {
-          this.selectedOrgs.push(org);
-        });
+        user.organizations.forEach((org) => this.selectedLinks.push({id: org.id, name: org.name}));
       });
   }
 
@@ -67,7 +62,7 @@ export class UserDetailComponent implements OnInit {
     if (this.id === 'new') {
       return Observable.of(new User(this.api));
     }
-    return this.api.getUser(this.id);
+    return this.api.getObject(User, this.id);
   }
 
   onSubmit(form: FormGroup) {
@@ -76,13 +71,14 @@ export class UserDetailComponent implements OnInit {
       .switchMap((user) => {
         user.name = form.getRawValue().name;
         user.role = form.getRawValue().role;
-        user.organizations = _.map(this.selectedOrgs, (org) => new Object({id: org.id, name: org.name}));
-        return this.api.saveUser(user[AttributeMetadata], user)
+        user.organizations = _.map(this.selectedLinks, (org) => new Object({id: org.id, name: org.name}));
+        return this.api.saveObject(user[AttributeMetadata], user);
       })
       .subscribe(
         (user) => this.router.navigate(['/users']),
         (error) => {
           console.log(error);
+          //noinspection JSIgnoredPromiseFromCall
           this.router.navigate(['/users']);
         },
         () => this.router.navigate((['/users']))
@@ -90,7 +86,7 @@ export class UserDetailComponent implements OnInit {
   }
 
   selectedIndex(org): number {
-    return _.findIndex(this.selectedOrgs, (o) => o.id === org.id);
+    return _.findIndex(this.selectedLinks, (o) => o.id === org.id);
   }
 
   isSelected(org): boolean {
@@ -100,9 +96,9 @@ export class UserDetailComponent implements OnInit {
   toggleSelect(org): void {
     const index = this.selectedIndex(org);
     if (index > -1) {
-      this.selectedOrgs.splice(index, 1);
+      this.selectedLinks.splice(index, 1);
     } else {
-      this.selectedOrgs.push(org);
+      this.selectedLinks.push(org);
     }
   }
 

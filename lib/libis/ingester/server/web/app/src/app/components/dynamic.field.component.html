@@ -1,0 +1,36 @@
+<div class="field" [class.required]="data.control.required" [ngSwitch]="data.control.controlType()">
+  <label [attr.for]="data.key">{{data.label}}</label>
+  <!--suppress HtmlFormInputWithoutLabel -->
+  <input pInputText *ngSwitchCase="'textbox'"
+         [id]="data.key" [formControl]="control"
+         [placeholder]="data.control.placeholder" [type]="data.control.info.textbox.type" [(ngModel)]="data.control.value"
+  >
+  <div *ngSwitchCase="'dropbox'"
+       [id]="data.key"
+  >
+    <p-dropdown *ngIf="!data.control.info.select.multiselect"
+                [formControl]="control"
+                [options]="data.control.info.select.list"
+                [(ngModel)]="data.control.value"
+    ></p-dropdown>
+    <p-multiSelect *ngIf="data.control.info.select.multiselect"
+                [formControl]="control"
+                [options]="data.control.info.select.list"
+                   [(ngModel)]="data.control.value"
+    ></p-multiSelect>
+  </div>
+  <table *ngSwitchCase="'group'"
+         [id]="data.key"
+  >
+    <tbody>
+    <tr *ngFor="let subdata of data.control.info.group.data">
+      <teneo-dyn-field [control]="control.controls[subdata.key]" [data]="subdata"></teneo-dyn-field>
+    </tr>
+  </table>
+  <p-listbox *ngSwitchCase="'checklist'"
+             [id]="data.key"
+             [options]="data.control.info.select.list"
+             [multiple]="data.control.info.select.multiselect"
+             checkbox="true"
+  ></p-listbox>
+</div>

@@ -72,6 +72,21 @@ module Libis::Ingester::API
           end
         end
 
+        desc 'update organization information' do
+          success REPRESENTER
+        end
+        params do
+          requires :data, type: REPRESENTER, desc: 'organization info'
+        end
+        patch do
+          guard do
+            _organization = current_organization
+            parse_item(representer: REPRESENTER, item: _organization)
+            _organization.save!
+            present_item(representer: REPRESENTER, item: current_organization)
+          end
+        end
+
         desc 'delete organization' do
         end
         delete do

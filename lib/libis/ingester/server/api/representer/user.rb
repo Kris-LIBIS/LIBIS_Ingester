@@ -17,8 +17,11 @@ module Libis::Ingester::API::Representer
       end
 
       def orgs=(orgs)
-        # noinspection RubyResolve
-        represented.organization_ids = orgs.map { |org| org.id }
+        represented.organizations.clear
+        orgs.each do |org_id|
+          org = Libis::Ingester::Organization.find(org_id)
+          represented.organizations.add(org)
+        end
       end
     end
 

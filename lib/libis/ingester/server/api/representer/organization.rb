@@ -16,8 +16,25 @@ module Libis::Ingester::API::Representer
       nested :producer do
          property :producer_id, as: :id, type: String, desc: 'producer identifier'
          property :producer_agent, as: :agent, type: String, desc: 'producer agent identifier'
-         property :producer_pwd, as: :password, type: String, desc: 'producer agent password'
+         property :producer_pwd, as: :password, exec_context: :decorator, type: String, desc: 'producer agent password'
+        def producer_pwd
+          '******'
+        end
+        def producer_pwd=(pwd)
+          represented.producer_pwd = pwd unless /^\**$/ =~ pwd
+        end
       end
+
+      property :users, exec_context: :decorator, type: Array, desc: 'organization users'
+      def users
+        represented.users.map { |user| {id: user.id.to_s, name: user.name } }
+      end
+
+      def users=(users)
+        # noinspection RubyResolve
+        represented.user_ids = users.map { |user| user.id }
+      end
+
     end
 
     link :users do |opts|

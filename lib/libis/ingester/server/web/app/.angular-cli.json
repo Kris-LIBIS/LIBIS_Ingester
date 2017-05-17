@@ -20,7 +20,10 @@
       "prefix": "teneo",
       "styles": [
         "styles.css",
-        "assets/semantic-ui/semantic.min.css"
+        "assets/semantic-ui/semantic.min.css",
+        "../node_modules/primeng/resources/primeng.min.css",
+        "../node_modules/primeng/resources/themes/omega/theme.css",
+        "../node_modules/font-awesome/css/font-awesome.min.css"
       ],
       "scripts": [
         "../node_modules/jquery/dist/jquery.min.js",

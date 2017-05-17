@@ -1,4 +1,5 @@
 import { Attribute, JsonApiModel, JsonApiModelConfig } from 'ng-jsonapi';
+import * as _ from 'lodash';
 
 @JsonApiModelConfig({
   type: 'users'
@@ -11,7 +12,7 @@ export class User extends JsonApiModel {
   role: string;
 
   @Attribute()
-  organizations: Array<{id: string, name: string}>
+  organizations: Array<{ id: string, name: string }>
 }
 
 @JsonApiModelConfig({
@@ -25,11 +26,25 @@ export class Organization extends JsonApiModel {
   code: string;
 
   @Attribute()
-  material_flow: any;
+  material_flow: Object;
 
   @Attribute()
   ingest_dir: string;
 
   @Attribute()
+  producer: { id: string, agent: string, password: string }
+
+  producerName() {
+    return this.producer.agent;
+  }
+
+  @Attribute()
   created_at: Date;
+
+  @Attribute()
+  users: Array<any>;
+
+  userList() {
+    return _.map(this.users, (user) => user.name).join(', ');
+  }
 }

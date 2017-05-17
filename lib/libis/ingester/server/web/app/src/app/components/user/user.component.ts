@@ -4,26 +4,22 @@ import { User } from "../../datastore/models";
 import * as _ from 'lodash';
 
 @Component({
+  moduleId: module.id,
   selector: 'teneo-user',
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.css']
 })
 export class UserComponent implements OnInit {
   private users: User[] = [];
-  private currentUser: User;
 
   constructor(private api: IngesterApiService) { }
 
   ngOnInit() {
-    this.api.getUsers().subscribe((users) => this.users = users);
+    this.api.getObjectList(User).subscribe((users) => this.users = users);
   }
 
-  onSelect(id: string) {
-    this.api.getUser(id).subscribe((user) => this.currentUser = user);
-  }
-
-  deleteUser(id: string) {
-    this.api.deleteUser(id).subscribe((res) => {
+  deleteUser(user: User) {
+    this.api.deleteObject(User, user).subscribe((res) => {
       console.log(res);
       this.ngOnInit();
     });

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { JsonApiDatastore, JsonApiDatastoreConfig } from "ng-jsonapi";
+import { JsonApiDatastore, JsonApiDatastoreConfig, JsonApiModel, ModelType } from "ng-jsonapi";
 import { User, Organization } from './models';
 import { Http, Headers, RequestOptions } from "@angular/http";
 import { Observable } from "rxjs/Observable";
@@ -22,41 +22,27 @@ export class IngesterApiService extends JsonApiDatastore {
     this.headers = headers;
   }
 
-  getUsers(): Observable<User[]> {
-    return this.query(User).map((collection) => collection.data);
+  getObjectList<T extends JsonApiModel>(modelType: ModelType<T>): Observable<T[]> {
+    return this.query(modelType).map((collection) => collection.data);
   }
 
-  getUser(id: string): Observable<User> {
-    return this.findRecord(User, id).map((document) => document.data);
+  getObject<T extends JsonApiModel>(modelType: ModelType<T>, id: string): Observable<T> {
+    return this.findRecord(modelType, id).map((document) => document.data);
   }
 
-  saveUser(data: any, user: User): Observable<User> {
-    return this.saveRecord(data, user).map((document) => document.data);
+  saveObject<T extends JsonApiModel>(data: any, obj: T) {
+    return this.saveRecord(data, obj).map((document) => document.data);
   }
 
-  deleteUser(id: string): Observable<Boolean> {
-    return this.deleteRecord(User, id).map((res) => res == null);
+  deleteObject<T extends JsonApiModel>(modelType: ModelType<T>, obj: T): Observable<boolean> {
+    return this.deleteRecord(modelType, obj.id).map((res) => res == null);
   }
 
-  getUserOrgs(url: string): Observable<Organization[]> {
-    return this.hasManyLink(Organization, url)
-      .map((collection) => collection.data);
+  getHasMany<T extends JsonApiModel>(modelType: ModelType<T>, url: string): Observable<T[]> {
+    return this.hasManyLink(modelType, url).map((collection) => collection.data);
   }
 
-  setUserOrgs(url: string, org_ids: Array<string>): Observable<boolean> {
-    const headers = new Headers();
-    headers.append('Accept', 'application/vnd.api+json');
-    headers.append('Content-Type', 'application/json');
-    return this.myhttp.post(url, JSON.stringify({organization_ids: org_ids}), new RequestOptions({headers: headers}))
-      .map((res: any) => true);
+  getBelongsTo<T extends JsonApiModel>(modelType: ModelType<T>, url: string): Observable<T> {
+    return this.belongsToLink(modelType, url).map((document) => document.data);
   }
-
-  getOrganizations(): Observable<Organization[]> {
-    return this.query(Organization).map((collection) => collection.data);
-  }
-
-  getOrganization(id: string): Observable<Organization> {
-    return this.findRecord(Organization, id).map((document) => document.data);
-  }
-
 }

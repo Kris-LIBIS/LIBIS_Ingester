@@ -10,11 +10,11 @@
   </div>
   <div class="grouped fields">
     <label for="orgs">Organizations</label>
-    <table id="orgs" style="border: 1px solid lightgray; width: 100%">
+    <table id="orgs">
       <tbody>
-      <tr *ngFor="let org of allOrgs" (click)="toggleSelect(org)">
-        <td width="10"><i class="box icon" [class.checkmark]="isSelected(org)"></i></td>
-        <td>{{org.name}}</td>
+      <tr *ngFor="let link of allLinks" (click)="toggleSelect(link)">
+        <td width="10"><i class="box icon" [class.checkmark]="isSelected(link)"></i></td>
+        <td>{{link.name}}</td>
       </tr>
       </tbody>
     </table>
