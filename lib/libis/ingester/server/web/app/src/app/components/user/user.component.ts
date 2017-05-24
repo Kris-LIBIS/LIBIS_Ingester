@@ -7,7 +7,7 @@ import * as _ from 'lodash';
   moduleId: module.id,
   selector: 'teneo-user',
   templateUrl: './user.component.html',
-  styleUrls: ['./user.component.css']
+  styleUrls: ['./user.component.scss']
 })
 export class UserComponent implements OnInit {
   private users: User[] = [];

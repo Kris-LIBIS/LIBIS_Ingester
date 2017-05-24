@@ -3,6 +3,7 @@ import { JsonApiDatastore, JsonApiDatastoreConfig, JsonApiModel, ModelType } fro
 import { User, Organization } from './models';
 import { Http, Headers, RequestOptions } from "@angular/http";
 import { Observable } from "rxjs/Observable";
+import "rxjs/add/observable/forkJoin";
 
 @Injectable()
 @JsonApiDatastoreConfig({
@@ -14,8 +15,11 @@ import { Observable } from "rxjs/Observable";
 })
 export class IngesterApiService extends JsonApiDatastore {
 
-  constructor(http: Http, public myhttp: Http) {
+  private myHttp: Http;
+
+  constructor(http: Http) {
     super(http);
+    this.myHttp = http;
     const headers = new Headers();
     headers.append('Accept', 'application/vnd.api+json');
     headers.append('Content-Type', 'application/json');
@@ -44,5 +48,20 @@ export class IngesterApiService extends JsonApiDatastore {
 
   getBelongsTo<T extends JsonApiModel>(modelType: ModelType<T>, url: string): Observable<T> {
     return this.belongsToLink(modelType, url).map((document) => document.data);
+  }
+
+  authenticate(user: string, password: string): Observable<boolean> {
+    let headers = new Headers();
+    headers.set('Accept', 'application/json');
+    headers.set('Content-Type', 'application/json');
+    return this.myHttp
+      .post(this.getBaseUrl() + 'auth', {user: user, password: password}, this.getOptions(headers))
+      .map(
+        (res) => {
+          console.log(res);
+          localStorage.setItem('teneoJWT', res.json().message);
+          return true;
+        })
+      .catch(() => Observable.create(false));
   }
 }

@@ -34,6 +34,7 @@ module Libis::Ingester
 
     end
 
+    mount Libis::Ingester::API::Auth
     mount Libis::Ingester::API::Users
     mount Libis::Ingester::API::Organizations
     mount Libis::Ingester::API::Jobs

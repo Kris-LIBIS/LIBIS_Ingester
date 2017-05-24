@@ -1,36 +1,28 @@
-import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { HttpModule } from '@angular/http';
+import { Http, HttpModule } from '@angular/http';
+import { BrowserModule } from '@angular/platform-browser';
+import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
+
+import { TranslateModule, TranslateLoader } from "@ngx-translate/core";
+import { TranslateHttpLoader } from "@ngx-translate/http-loader";
+
+// AoT requires an exported function for factories
+export function HttpLoaderFactory(http: Http) {
+  return new TranslateHttpLoader(http, '/assets/i18n/', '.json');
+}
 
 import { JsonApiModule } from "ng-jsonapi";
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { UserComponent } from './components/user/user.component';
-import { LoginComponent } from './components/login/login.component';
+import { AuthGuard } from "./layout/guard/auth-guard";
+import { AdminGuard } from "./layout/guard/admin-guard";
 import { IngesterApiService } from "./datastore/ingester-api.service";
-import { UserDetailComponent } from './components/user/user-detail/user-detail.component';
-import { SuiModule } from "ng2-semantic-ui";
-import { OrganizationComponent } from './components/organization/organization.component';
-import { OrganizationDetailComponent } from './components/organization/organization-detail/organization-detail.component';
-import { ListComponent } from "./components/list.component";
-import { DetailComponent } from "./components/detail.component";
-import { DynamicFieldComponent } from "./components/dynamic.field.component";
-import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
-import { ButtonModule, DropdownModule, InputTextModule, ListboxModule, MultiSelectModule } from "primeng/primeng";
 
 @NgModule({
   declarations: [
-    AppComponent,
-    LoginComponent,
-    ListComponent,
-    DetailComponent,
-    DynamicFieldComponent,
-    UserComponent,
-    UserDetailComponent,
-    OrganizationComponent,
-    OrganizationDetailComponent
+    AppComponent
   ],
   imports: [
     BrowserModule,
@@ -39,17 +31,20 @@ import { ButtonModule, DropdownModule, InputTextModule, ListboxModule, MultiSele
     ReactiveFormsModule,
     HttpModule,
     AppRoutingModule,
+    TranslateModule.forRoot({
+      loader: {
+        provide: TranslateLoader,
+        useFactory: HttpLoaderFactory,
+        deps: [Http]
+      }
+    }),
     JsonApiModule,
-    InputTextModule,
-    ButtonModule,
-    DropdownModule,
-    MultiSelectModule,
-    ListboxModule,
-    SuiModule
   ],
   providers: [
+    FormBuilder,
     IngesterApiService,
-    FormBuilder
+    AuthGuard,
+    AdminGuard
   ],
   bootstrap: [AppComponent]
 })

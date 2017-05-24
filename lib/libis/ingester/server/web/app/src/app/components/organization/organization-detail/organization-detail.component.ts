@@ -13,7 +13,7 @@ import { AttributeMetadata } from "ng-jsonapi";
   moduleId: module.id,
   selector: 'teneo-organization-detail',
   templateUrl: './organization-detail.component.html',
-  styleUrls: ['./organization-detail.component.css']
+  styleUrls: ['./organization-detail.component.scss']
 })
 export class OrganizationDetailComponent implements OnInit {
 

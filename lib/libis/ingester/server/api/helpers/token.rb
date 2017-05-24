@@ -14,11 +14,12 @@ module Libis::Ingester::API::TokenHelper
         exp: Time.now.to_i + 4 * 3600,
         iss: ISSUER
     )
-    JWT.encode(data, RSA_PUBLIC, 'RS256')
+    result = JWT.encode(data, RSA_PRIVATE, 'RS256')
+    result
   end
 
   def jwt_decode(token)
-    payload = JWT.decode(token, RSA_PRIVATE, true, {algorithm: 'HS256', iss: ISSUER, verify_iss: true}).first
+    payload = JWT.decode(token, RSA_PUBLIC, true, {algorithm: 'HS256', iss: ISSUER, verify_iss: true}).first
     payload.reject {|k, _| %w'iat exp iss'.include? k}
   rescue JWT::ExpiredSignature
     api_error(401, 'Token expired')

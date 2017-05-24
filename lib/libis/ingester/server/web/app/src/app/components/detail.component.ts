@@ -8,7 +8,7 @@ import { Observable } from "rxjs/Observable";
   moduleId: module.id,
   selector: 'teneo-detail',
   templateUrl: './detail.component.html',
-  styleUrls: ['./detail.component.css']
+  styleUrls: ['./detail.component.scss']
 })
 export class DetailComponent implements OnInit {
   @Input() title: string;
