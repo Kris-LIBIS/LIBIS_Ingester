@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { IngesterApiService } from "../datastore/ingester-api.service";
 import { Router } from "@angular/router";
+import { Message } from "primeng/primeng";
+import { AuthorizationService } from "../services/authorization/authorization.service";
 
 @Component({
   selector: 'teneo-login',
@@ -11,23 +12,27 @@ export class LoginComponent implements OnInit {
 
   private name: string = '';
   private password: string ='';
-  constructor(private api: IngesterApiService, private router: Router) {
+  messages: Message[] = [];
+
+  constructor(private auth: AuthorizationService, private router: Router) {
   }
 
   ngOnInit() {
   }
 
   onSubmit() {
-    localStorage.removeItem('isLoggedin');
-    this.api.authenticate(this.name, this.password)
+    this.messages = [];
+    this.auth.authenticate(this.name, this.password)
       .subscribe(
         (res) => {
-          if (res) {
-            localStorage.setItem('isLoggedin', 'true');
+          if (!res.ok) {
+            this.messages.push({severity: 'error', summary: res.message, detail: res.detail});
           }
           this.router.navigate(['']).then();
         },
-        () => {
+        (err) => {
+          console.log(err);
+          this.messages.push({severity: 'error', summary: err.statusText, detail: err.json().error});
           this.router.navigate(['']).then();
         });
   }

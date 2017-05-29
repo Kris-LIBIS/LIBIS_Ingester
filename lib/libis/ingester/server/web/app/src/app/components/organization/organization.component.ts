@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { Organization, User } from "../../datastore/models";
-import { IngesterApiService } from "../../datastore/ingester-api.service";
+import { Organization, User } from "../../services/datastore/models";
+import { IngesterApiService } from "../../services/datastore/ingester-api.service";
 import { Observable } from "rxjs/Observable";
 import { DataModel, DataModelControl, DataModelItem } from "../data.model";
 import { Subject } from "rxjs/Subject";

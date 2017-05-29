@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import { TranslateService } from "@ngx-translate/core";
+import { AuthorizationService } from "../../services/authorization/authorization.service";
 
 @Component({
   selector: 'teneo-header',
@@ -7,9 +9,22 @@ import { Component, OnInit } from '@angular/core';
 })
 export class HeaderComponent implements OnInit {
 
-  constructor() { }
+  constructor(private translate: TranslateService, private auth: AuthorizationService) { }
 
   ngOnInit() {
+  }
+
+  toggleSidebar() {
+    const dom: any = document.querySelector('body');
+    dom.classList.toggle('push-right');
+  }
+
+  onLoggedout() {
+    this.auth.logout();
+  }
+
+  changeLang(language: string) {
+    this.translate.use(language);
   }
 
 }

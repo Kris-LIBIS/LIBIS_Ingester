@@ -18,7 +18,8 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { AuthGuard } from "./layout/guard/auth-guard";
 import { AdminGuard } from "./layout/guard/admin-guard";
-import { IngesterApiService } from "./datastore/ingester-api.service";
+import { IngesterApiService } from "./services/datastore/ingester-api.service";
+import { AuthorizationService } from "./services/authorization/authorization.service";
 
 @NgModule({
   declarations: [
@@ -43,6 +44,7 @@ import { IngesterApiService } from "./datastore/ingester-api.service";
   providers: [
     FormBuilder,
     IngesterApiService,
+    AuthorizationService,
     AuthGuard,
     AdminGuard
   ],

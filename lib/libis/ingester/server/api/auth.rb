@@ -22,7 +22,7 @@ module Libis::Ingester::API
         guard do
           user = Libis::Ingester::User.authenticate(declared(params).name, declared(params).password)
           unless user
-            api_error(401, 'Authentication failed');
+            api_error(401, 'Wrong user name or password');
           end
           api_success(jwt_encode({user: {id: user.id, name: user.name, role: user.role}}))
         end

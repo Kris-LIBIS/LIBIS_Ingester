@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { IngesterApiService } from "../../datastore/ingester-api.service";
-import { User } from "../../datastore/models";
+import { IngesterApiService } from "../../services/datastore/ingester-api.service";
+import { User } from "../../services/datastore/models";
 import * as _ from 'lodash';
 
 @Component({

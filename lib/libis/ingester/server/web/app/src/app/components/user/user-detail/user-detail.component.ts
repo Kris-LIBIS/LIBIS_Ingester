@@ -1,12 +1,12 @@
 import {Component, OnInit} from '@angular/core';
-import {IngesterApiService} from "../../../datastore/ingester-api.service";
+import {IngesterApiService} from "../../../services/datastore/ingester-api.service";
 import {ActivatedRoute, Params, Router} from "@angular/router";
 import "rxjs/add/operator/switchMap";
 import "rxjs/add/operator/do";
 import "rxjs/add/operator/toPromise";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {AttributeMetadata} from "ng-jsonapi";
-import {Organization, User} from "../../../datastore/models";
+import {Organization, User} from "../../../services/datastore/models";
 import {Observable} from "rxjs/Observable";
 import "rxjs/add/observable/of";
 import * as _ from 'lodash';

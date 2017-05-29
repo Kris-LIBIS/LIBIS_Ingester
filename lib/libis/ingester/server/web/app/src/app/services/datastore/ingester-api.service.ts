@@ -50,7 +50,8 @@ export class IngesterApiService extends JsonApiDatastore {
     return this.belongsToLink(modelType, url).map((document) => document.data);
   }
 
-  authenticate(user: string, password: string): Observable<boolean> {
+  authenticate(user: string, password: string): Observable<{ok: boolean, message?: string, detail?: string}> {
+    localStorage.removeItem('teneoJWT');
     let headers = new Headers();
     headers.set('Accept', 'application/json');
     headers.set('Content-Type', 'application/json');
@@ -58,10 +59,13 @@ export class IngesterApiService extends JsonApiDatastore {
       .post(this.getBaseUrl() + 'auth', {name: user, password: password}, this.getOptions(headers))
       .map(
         (res) => {
-          console.log(res);
+          console.log(`Reply: ${res}`);
+          if (!res.ok) {
+            return {ok: false, message: res.statusText, detail: res.json().error};
+          }
+          localStorage.setItem('isLoggedin', 'true');
           localStorage.setItem('teneoJWT', res.json().message);
-          return true;
-        })
-      .catch(() => Observable.throw(false));
+          return {ok: true, message: res.json().message};
+        });
   }
 }

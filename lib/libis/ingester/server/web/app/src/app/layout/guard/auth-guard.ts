@@ -7,7 +7,8 @@ export class AuthGuard implements CanActivate {
   constructor(private router: Router) { }
 
   canActivate(): boolean {
-    if (localStorage.getItem('isLoggedin')) {
+    let jwt = localStorage.getItem('teneoJWT');
+    if (jwt) {
       return true;
     }
     this.router.navigate(['/login']).then();
