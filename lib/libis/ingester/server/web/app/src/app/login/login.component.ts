@@ -18,18 +18,16 @@ export class LoginComponent implements OnInit {
   }
 
   onSubmit() {
+    localStorage.removeItem('isLoggedin');
     this.api.authenticate(this.name, this.password)
       .subscribe(
         (res) => {
           if (res) {
             localStorage.setItem('isLoggedin', 'true');
-          } else {
-            localStorage.setItem('isLoggedin', 'false');
           }
           this.router.navigate(['']).then();
         },
         () => {
-          localStorage.setItem('isLoggedin', 'false')
           this.router.navigate(['']).then();
         });
   }

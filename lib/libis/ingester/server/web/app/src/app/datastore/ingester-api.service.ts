@@ -55,13 +55,13 @@ export class IngesterApiService extends JsonApiDatastore {
     headers.set('Accept', 'application/json');
     headers.set('Content-Type', 'application/json');
     return this.myHttp
-      .post(this.getBaseUrl() + 'auth', {user: user, password: password}, this.getOptions(headers))
+      .post(this.getBaseUrl() + 'auth', {name: user, password: password}, this.getOptions(headers))
       .map(
         (res) => {
           console.log(res);
           localStorage.setItem('teneoJWT', res.json().message);
           return true;
         })
-      .catch(() => Observable.create(false));
+      .catch(() => Observable.throw(false));
   }
 }
