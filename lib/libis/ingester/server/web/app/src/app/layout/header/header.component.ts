@@ -9,9 +9,12 @@ import { AuthorizationService } from "../../services/authorization/authorization
 })
 export class HeaderComponent implements OnInit {
 
+  userName: string;
+
   constructor(private translate: TranslateService, private auth: AuthorizationService) { }
 
   ngOnInit() {
+    this.userName = this.auth.currentUser();
   }
 
   toggleSidebar() {

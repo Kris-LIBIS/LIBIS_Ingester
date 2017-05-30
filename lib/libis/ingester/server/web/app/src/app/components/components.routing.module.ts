@@ -7,10 +7,11 @@ import { OrganizationComponent } from "../components/organization/organization.c
 const routes: Routes = [
   {
     path: '',
-    component: HomeComponent,
+    component: ComponentsComponent,
     children: [
-      {path: 'dashboard', loadChildren: '../dashboard/dashboard.module#DashboardModule'},
-      {path: 'setup', loadChildren: '../admin/admin.module#AdminModule'}
+      {path: 'dashboard', loadChildren: './dashboard/dashboard.module#DashboardModule'},
+      {path: 'users', component: UserComponent},
+      {path: 'organizations', component: OrganizationComponent}
     ]
   }
 ];

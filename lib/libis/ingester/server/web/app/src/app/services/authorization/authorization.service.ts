@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { Http, RequestOptions } from "@angular/http";
 import { Observable } from "rxjs/Observable";
+import {environment} from "../../../environments/environment";
 
 @Injectable()
 export class AuthorizationService {
 
   private tokenKey = 'teneoJWT';
 
-  constructor(private http: Http, private url: string) { }
+  constructor(private http: Http) { }
 
   authenticate(user: string, password: string): Observable<{ok: boolean, message?: string, detail?: string}> {
     this.logout();
@@ -15,7 +16,7 @@ export class AuthorizationService {
     headers.set('Accept', 'application/json');
     headers.set('Content-Type', 'application/json');
     return this.http
-      .post(this.url, {name: user, password: password}, new RequestOptions(headers))
+      .post(environment.urlAuth, {name: user, password: password}, new RequestOptions(headers))
       .map(
         (res) => {
           console.log(`Reply: ${res}`);
@@ -36,6 +37,10 @@ export class AuthorizationService {
 
   logout() {
     localStorage.removeItem(this.tokenKey);
+  }
+
+  currentUser(): string {
+    return 'Administrator';
   }
 
 }

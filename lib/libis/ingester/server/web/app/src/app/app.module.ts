@@ -1,5 +1,5 @@
-import { NgModule } from '@angular/core';
-import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import {NgModule} from '@angular/core';
+import { FormBuilder} from '@angular/forms';
 import { Http, HttpModule } from '@angular/http';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
@@ -16,8 +16,8 @@ import { JsonApiModule } from "ng-jsonapi";
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { AuthGuard } from "./layout/guard/auth-guard";
-import { AdminGuard } from "./layout/guard/admin-guard";
+import { AuthGuard } from "./services/guard/auth-guard";
+import { AdminGuard } from "./services/guard/admin-guard";
 import { IngesterApiService } from "./services/datastore/ingester-api.service";
 import { AuthorizationService } from "./services/authorization/authorization.service";
 
@@ -28,8 +28,6 @@ import { AuthorizationService } from "./services/authorization/authorization.ser
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
-    FormsModule,
-    ReactiveFormsModule,
     HttpModule,
     AppRoutingModule,
     TranslateModule.forRoot({
@@ -39,7 +37,7 @@ import { AuthorizationService } from "./services/authorization/authorization.ser
         deps: [Http]
       }
     }),
-    JsonApiModule,
+    JsonApiModule
   ],
   providers: [
     FormBuilder,

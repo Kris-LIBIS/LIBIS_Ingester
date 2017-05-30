@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormControl, FormGroup, Validators } from "@angular/forms";
 import "rxjs/add/observable/of";
-import { DataModel, DataModelItem } from "./data.model";
+import { DataModel, DataModelItem } from "../data.model";
 import { Observable } from "rxjs/Observable";
 
 @Component({

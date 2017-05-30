@@ -1,0 +1,31 @@
+<nav class="sidebar" [ngClass]="{sidebarPushRight: isActive}">
+  <ul class="list-group">
+    <a routerLink="/dashboard" [routerLinkActive]="['router-link-active']" class="list-group-item">
+      <i class="fa fa-fw fa-dashboard"></i>&nbsp;{{ 'dashboard' | translate }}
+    </a>
+    <a [routerLink]="['/setup/runs']" [routerLinkActive]="['router-link-active']" class="list-group-item">
+      <i class="fa fa-fw fa-circle-o-notch fa-spin"></i>&nbsp;{{ 'runs' | translate }}
+    </a>
+    <a [routerLink]="['/setup/users']" [routerLinkActive]="['router-link-active']" class="list-group-item">
+      <i class="fa fa-fw fa-user"></i>&nbsp;{{ 'users' | translate }}
+    </a>
+    <a [routerLink]="['/setup/organizations']" [routerLinkActive]="['router-link-active']" class="list-group-item">
+      <i class="fa fa-fw fa-users"></i>&nbsp;{{ 'organizations' | translate }}
+    </a>
+    <a [routerLink]="['/setup/workflows']" [routerLinkActive]="['router-link-active']" class="list-group-item">
+      <i class="fa fa-fw fa-sitemap"></i>&nbsp;{{ 'workflows' | translate }}
+    </a>
+    <a [routerLink]="['/setup/ingest-models']" [routerLinkActive]="['router-link-active']" class="list-group-item">
+      <i class="fa fa-fw fa-linode"></i>&nbsp;{{ 'ingest models' | translate }}
+    </a>
+    <a [routerLink]="['/setup/representations']" [routerLinkActive]="['router-link-active']" class="list-group-item">
+      <i class="fa fa-fw fa-window-restore"></i>&nbsp;{{ 'representations' | translate }}
+    </a>
+    <a [routerLink]="['/setup/access-rights']" [routerLinkActive]="['router-link-active']" class="list-group-item">
+      <i class="fa fa-lock"></i>&nbsp;{{ 'access rights' | translate }}
+    </a>
+    <a [routerLink]="['/setup/retention-periods']" [routerLinkActive]="['router-link-active']" class="list-group-item">
+      <i class="fa fa-trash"></i>&nbsp;{{ 'retention periods' | translate }}
+    </a>
+  </ul>
+</nav>

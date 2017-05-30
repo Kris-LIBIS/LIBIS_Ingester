@@ -1,15 +1,12 @@
 {
-    "dashboard": "tableau de bord",
-    "charts": "hit-parade",
-    "tables": "tableaux",
-    "froms": "Froms",
-    "boostrapElement": "bootstrap élément",
-    "boostrapGrid": "bootstrap grille",
-    "component": "composant",
-    "menu": "menu",
-    "submenu": "Sous-menu",
-    "blankpage": "blanc page",
-    "moretheme": "plus thèmes",
-    "downloadNow": "télécharger",
-    "language": "langue"
+  "dashboard": "tableau de bord",
+  "runs": "Runs",
+  "users": "Users",
+  "organizations": "Organizations",
+  "workflows": "Workflows",
+  "ingest models": "Ingest Models",
+  "representations": "Representations",
+  "access rights": "Access Rights",
+  "retention periods": "Retention Periods",
+  "language": "Langue"
 }

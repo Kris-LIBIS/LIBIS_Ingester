@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 //import { JsonApiModel } from "ng-jsonapi";
 import { Observable } from "rxjs/Observable";
-import { DataModel } from "./data.model";
+import { DataModel } from "../data.model";
 
 @Component({
   moduleId: module.id,

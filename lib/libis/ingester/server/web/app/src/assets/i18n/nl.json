@@ -1,15 +1,12 @@
 {
     "dashboard": "overzicht",
-    "charts": "grafieken",
-    "tables": "tabellen",
-    "froms": "Formulieren",
-    "boostrapElement": "bootstrap element",
-    "boostrapGrid": "bootstrap rooster",
-    "component": "component",
-    "menu": "menu",
-    "submenu": "sub-menu",
-    "blankpage": "blanco pagina",
-    "moretheme": "meer thema's",
-    "downloadNow": "download nu",
-    "language": "taal"
+  "runs": "Runs",
+  "users": "Gebruikers",
+  "organizations": "Organizaties",
+  "workflows": "Workflows",
+  "ingest models": "Ingest Modellen",
+  "representations": "Representaties",
+  "access rights": "Toegangsrechten",
+  "retention periods": "Bewaartermijnen",
+    "language": "Taal"
 }

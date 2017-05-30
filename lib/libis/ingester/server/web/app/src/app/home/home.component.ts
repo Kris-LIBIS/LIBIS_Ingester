@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { Router } from "@angular/router";
+import { HeaderComponent } from "../layout/header/header.component";
 
 @Component({
   selector: 'teneo-home',
@@ -8,7 +9,8 @@ import { Router } from "@angular/router";
 })
 export class HomeComponent implements OnInit {
 
-  constructor(public router: Router) { }
+  constructor(public router: Router) {
+  }
 
   ngOnInit() {
     if (this.router.url === '/') {

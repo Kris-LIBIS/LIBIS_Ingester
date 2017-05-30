@@ -1,14 +1,14 @@
 import { Injectable } from '@angular/core';
 import { CanActivate, Router } from "@angular/router";
+import {AuthorizationService} from "../authorization/authorization.service";
 
 @Injectable()
 export class AuthGuard implements CanActivate {
 
-  constructor(private router: Router) { }
+  constructor(private router: Router, private auth: AuthorizationService) { }
 
   canActivate(): boolean {
-    let jwt = localStorage.getItem('teneoJWT');
-    if (jwt) {
+    if (this.auth.isAuthenticated()) {
       return true;
     }
     this.router.navigate(['/login']).then();
