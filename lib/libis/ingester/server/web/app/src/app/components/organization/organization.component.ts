@@ -20,18 +20,19 @@ export class OrganizationComponent implements OnInit {
     new DataModelItem('Producer', 'producerName'),
     new DataModelItem('Users', 'userList')
   ]);
+
   objects: Observable<Array<Organization>>;
-  selectedOrg = new Subject();
-  orgSelected: boolean = false;
-  allUsers: User[] = [];
+  selectedObject = new Subject();
+  objSelected: boolean = false;
+  allRelated: User[] = [];
 
   constructor(protected api: IngesterApiService) {
   }
 
   ngOnInit() {
     this.objects = this.api.getObjectList(Organization);
-    this.api.getObjectList(User).subscribe((users) => this.allUsers = users);
-    this.selectedOrg.subscribe((org) => this.orgSelected = !!org);
+    this.api.getObjectList(User).subscribe((users) => this.allRelated = users);
+    this.selectedObject.subscribe((org) => this.objSelected = !!org);
   }
 
   deleteObject(object: Organization) {
@@ -42,16 +43,16 @@ export class OrganizationComponent implements OnInit {
   }
 
   editObject(object: Organization) {
-    this.selectedOrg.next(object || new Organization(this.api));
+    this.selectedObject.next(object || new Organization(this.api));
   }
 
   saveObject(org: Organization) {
     console.log(org);
     this.api.saveObject(org[AttributeMetadata], org).subscribe((org) => this.ngOnInit());
-    this.selectedOrg.next(null);
+    this.selectedObject.next(null);
   }
 
   cancelEdit() {
-    this.selectedOrg.next(null);
+    this.selectedObject.next(null);
   }
 }

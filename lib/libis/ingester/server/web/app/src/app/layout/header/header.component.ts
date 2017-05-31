@@ -3,6 +3,7 @@ import { TranslateService } from "@ngx-translate/core";
 import { AuthorizationService } from "../../services/authorization/authorization.service";
 
 @Component({
+  moduleId: module.id,
   selector: 'teneo-header',
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss']

@@ -6,4 +6,4 @@
   (deleteEvent)="deleteObject($event)"
   (editEvent)="editObject($event)"
 ></teneo-list>
-<teneo-organization-detail *ngIf="orgSelected" [organization]="selectedOrg" [allUsers]="allUsers" (cancelEvent)="cancelEdit()" (saveEvent)="saveObject($event)"></teneo-organization-detail>
+<teneo-organization-detail [organization]="selectedObject" [allUsers]="allRelated" (cancelEvent)="cancelEdit()" (saveEvent)="saveObject($event)"></teneo-organization-detail>

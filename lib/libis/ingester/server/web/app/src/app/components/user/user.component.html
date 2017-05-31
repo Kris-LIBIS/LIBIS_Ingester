@@ -1,22 +1,9 @@
-<h1>User list</h1>
-<table class="ui fixed striped table">
-  <thead>
-  <tr>
-    <th>Name</th>
-    <th>Role</th>
-    <th>Organizations</th>
-    <th width="100"><a [routerLink]="['/users', 'new']"><i title="Add" class="green add icon"></i></a></th>
-  </tr>
-  </thead>
-  <tbody>
-  <tr *ngFor="let user of users">
-    <td>{{user.name}}</td>
-    <td>{{user.role}}</td>
-    <td>{{orglist(user.organizations)}}</td>
-    <td>
-      <a [routerLink]="['/users', user.id]"><i title="Edit" class="blue pencil icon"></i></a>
-      <a (click)="deleteUser(user)"><i title="Delete" class="red remove icon"></i></a>
-    </td>
-  </tr>
-  </tbody>
-</table>
+<teneo-list
+  [dataModel]="dataModel"
+  [link]="'/setup//users'"
+  [title]="'User List'"
+  [objectList]="objects"
+  (deleteEvent)="deleteObject($event)"
+  (editEvent)="editObject($event)"
+></teneo-list>
+<teneo-user-detail *ngIf="objSelected" [object]="selectedObject" [allRelated]="allRelated" (cancelEvent)="cancelEdit()" (saveEvent)="saveObject($event)"></teneo-user-detail>

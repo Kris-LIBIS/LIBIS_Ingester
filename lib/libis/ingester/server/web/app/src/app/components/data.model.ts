@@ -20,6 +20,18 @@ export class DataModel {
     });
     return found;
   }
+
+  keys(): string[] {
+    return _.map(this.items, 'key');
+  }
+
+  mainItem(): DataModelItem {
+    let foundKeys: Array<string> = _.intersection(this.keys(), ['name', '_name', 'id', '_id']);
+    if (foundKeys[0] != null) {
+      return this.item(foundKeys[0]);
+    }
+    return this.items[0];
+  }
 }
 
 export class DataModelItem {
@@ -40,7 +52,7 @@ export class DataModelItem {
 
 export class DataModelControl {
   constructor(public value: any,
-              public required: boolean   = false,
+              public required: boolean = false,
               public placeholder: string = '',
               public info?: DataModelControlInfo) {
   }
@@ -79,7 +91,7 @@ export class DataModelControlInfo {
   }
 
   setGroup(): DataModelGroup {
-    if(this.controlType != 'group') {
+    if (this.controlType != 'group') {
       throw new Error("DataModelGroup requires controlType='group'");
     }
     this.group = new DataModelGroup();
@@ -93,8 +105,8 @@ export class DataModelTextBox {
 }
 
 export class ListItem {
-  constructor(public label: string      = '',
-              public value: any        = '',
+  constructor(public label: string = '',
+              public value: any = '',
               public selected: boolean = false) {
   }
 
@@ -106,7 +118,7 @@ export class ListItem {
 
 export class DataModelSelect {
   constructor(public list: Array<ListItem> = [],
-              public multiselect: boolean  = false) {
+              public multiselect: boolean = false) {
   }
 
   addItem(label: string, value: any = null, selected: boolean = false): DataModelSelect {

@@ -6,9 +6,13 @@ import { ListComponent } from "./list/list.component";
 import { DetailComponent } from "./detail/detail.component";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { DynamicFieldComponent } from "./dynform/dynamic.field.component";
-import { DropdownModule, ListboxModule, MultiSelectModule } from "primeng/primeng";
+import { DropdownModule, ListboxModule, MultiSelectModule, PanelModule } from "primeng/primeng";
 import { RouterModule } from "@angular/router";
 import { OrganizationDetailComponent } from "./organization/organization-detail/organization-detail.component";
+import { ComponentsComponent } from './components.component';
+import { UserDetailComponent } from "./user/user-detail/user-detail.component";
+import { CardComponent } from './card/card.component';
+import { ComponentsRoutingModule } from "./components.routing.module";
 
 @NgModule({
   imports: [
@@ -18,15 +22,20 @@ import { OrganizationDetailComponent } from "./organization/organization-detail/
     DropdownModule,
     MultiSelectModule,
     ListboxModule,
-    RouterModule
+    RouterModule,
+    ComponentsRoutingModule,
+    PanelModule
   ],
   declarations: [
     ListComponent,
     DetailComponent,
     DynamicFieldComponent,
     UserComponent,
+    UserDetailComponent,
     OrganizationComponent,
-    OrganizationDetailComponent
+    OrganizationDetailComponent,
+    ComponentsComponent,
+    CardComponent
   ],
   exports: [
     UserComponent,

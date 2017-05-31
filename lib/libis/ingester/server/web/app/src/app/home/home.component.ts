@@ -3,6 +3,7 @@ import { Router } from "@angular/router";
 import { HeaderComponent } from "../layout/header/header.component";
 
 @Component({
+  moduleId: module.id,
   selector: 'teneo-home',
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss']

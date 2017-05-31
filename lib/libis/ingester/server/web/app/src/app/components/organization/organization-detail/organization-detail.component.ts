@@ -1,13 +1,7 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { Organization, User } from "../../../services/datastore/models";
-import { FormGroup } from "@angular/forms";
-import { IngesterApiService } from "../../../services/datastore/ingester-api.service";
-import { Router } from "@angular/router";
 import { Observable } from "rxjs/Observable";
-import * as _ from 'lodash';
 import { DataModel } from "../../data.model";
-import { Subject } from "rxjs/Subject";
-import { AttributeMetadata } from "ng-jsonapi";
 
 @Component({
   moduleId: module.id,
@@ -25,8 +19,7 @@ export class OrganizationDetailComponent implements OnInit {
   private modelData: DataModel;
   private selectedOrg: Organization = null;
 
-  constructor(public api: IngesterApiService,
-              private router: Router) {
+  constructor() {
   }
 
   protected addModelData(org: Organization) {
