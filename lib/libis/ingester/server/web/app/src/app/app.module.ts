@@ -1,5 +1,5 @@
-import {NgModule} from '@angular/core';
-import { FormBuilder} from '@angular/forms';
+import { NgModule } from '@angular/core';
+import { FormBuilder } from '@angular/forms';
 import { Http, HttpModule } from '@angular/http';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
@@ -18,8 +18,11 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { AuthGuard } from "./services/guard/auth-guard";
 import { AdminGuard } from "./services/guard/admin-guard";
-import { IngesterApiService } from "./services/datastore/ingester-api.service";
+import { IngesterApiService } from "./services/ingester-api/ingester-api.service";
 import { AuthorizationService } from "./services/authorization/authorization.service";
+import { combineReducers, StoreModule } from "@ngrx/store";
+import { compose } from "@ngrx/core/compose";
+import { localStorageSync } from "ngrx-store-localstorage";
 
 @NgModule({
   declarations: [
@@ -29,6 +32,17 @@ import { AuthorizationService } from "./services/authorization/authorization.ser
     BrowserModule,
     BrowserAnimationsModule,
     HttpModule,
+    StoreModule.provideStore(
+      compose(
+        localStorageSync({
+          keys: [],
+          rehydrate: true,
+          removeOnUndefined: true,
+          storageKeySerializer: (key) => 'teneo_' + key
+        }),
+        combineReducers
+      )({})
+    ),
     AppRoutingModule,
     TranslateModule.forRoot({
       loader: {

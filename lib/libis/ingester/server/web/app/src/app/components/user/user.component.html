@@ -6,4 +6,4 @@
   (deleteEvent)="deleteObject($event)"
   (editEvent)="editObject($event)"
 ></teneo-list>
-<teneo-user-detail *ngIf="objSelected" [object]="selectedObject" [allRelated]="allRelated" (cancelEvent)="cancelEdit()" (saveEvent)="saveObject($event)"></teneo-user-detail>
+<teneo-user-detail [object]="selectedObject" [allRelated]="allRelated" (cancelEvent)="cancelEdit()" (saveEvent)="saveObject($event)"></teneo-user-detail>

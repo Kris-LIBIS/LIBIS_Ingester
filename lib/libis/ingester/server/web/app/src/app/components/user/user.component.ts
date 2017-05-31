@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { IngesterApiService } from "../../services/datastore/ingester-api.service";
-import { Organization, User } from "../../services/datastore/models";
+import { IngesterApiService } from "../../services/ingester-api/ingester-api.service";
+import { Organization, User } from "../../services/ingester-api/models";
 import * as _ from 'lodash';
 import { DataModel, DataModelItem } from "../data.model";
 import { Observable } from "rxjs/Observable";
@@ -22,8 +22,7 @@ export class UserComponent implements OnInit {
   ]);
 
   objects: Observable<Array<User>>;
-  selectedObject = new Subject();
-  objSelected: boolean = false;
+  selectedObject: User = null;
   allRelated: Organization[] = [];
 
   constructor(protected api: IngesterApiService) { }
@@ -31,7 +30,7 @@ export class UserComponent implements OnInit {
   ngOnInit() {
     this.objects = this.api.getObjectList(User);
     this.api.getObjectList(Organization).subscribe((orgs) => this.allRelated = orgs);
-    this.selectedObject.subscribe((user) => this.objSelected = !!user);
+    this.cancelEdit();
   }
 
   deleteObject(object: User) {
@@ -42,17 +41,17 @@ export class UserComponent implements OnInit {
   }
 
   editObject(object: User) {
-    this.selectedObject.next(object || new User(this.api));
+    this.selectedObject = object;
   }
 
   saveObject(obj: User) {
     console.log(obj);
     this.api.saveObject(obj[AttributeMetadata], obj).subscribe((org) => this.ngOnInit());
-    this.selectedObject.next(null);
+    this.cancelEdit();
   }
 
   cancelEdit() {
-    this.selectedObject.next(null);
+    this.selectedObject = new User(this.api);
   }
 
 }

@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { Organization, User } from "../../../services/datastore/models";
+import { Organization, User } from "../../../services/ingester-api/models";
 import { Observable } from "rxjs/Observable";
 import { DataModel } from "../../data.model";
 
