@@ -7,6 +7,10 @@ import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 import { TranslateModule, TranslateLoader } from "@ngx-translate/core";
 import { TranslateHttpLoader } from "@ngx-translate/http-loader";
 
+import { combineReducers, StoreModule } from "@ngrx/store";
+import { compose } from "@ngrx/core/compose";
+import { localStorageSync } from "ngrx-store-localstorage";
+
 // AoT requires an exported function for factories
 export function HttpLoaderFactory(http: Http) {
   return new TranslateHttpLoader(http, '/assets/i18n/', '.json');
@@ -20,9 +24,8 @@ import { AuthGuard } from "./services/guard/auth-guard";
 import { AdminGuard } from "./services/guard/admin-guard";
 import { IngesterApiService } from "./services/ingester-api/ingester-api.service";
 import { AuthorizationService } from "./services/authorization/authorization.service";
-import { combineReducers, StoreModule } from "@ngrx/store";
-import { compose } from "@ngrx/core/compose";
-import { localStorageSync } from "ngrx-store-localstorage";
+import { userListReducer } from "./services/datastore/reducers/user-list-reducer";
+
 
 @NgModule({
   declarations: [
@@ -41,7 +44,7 @@ import { localStorageSync } from "ngrx-store-localstorage";
           storageKeySerializer: (key) => 'teneo_' + key
         }),
         combineReducers
-      )({})
+      )({userList: userListReducer})
     ),
     AppRoutingModule,
     TranslateModule.forRoot({
