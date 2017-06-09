@@ -2,13 +2,13 @@
 <table class="ui fixed striped table">
   <thead>
   <tr>
-    <th *ngFor="let model of dataModel.items">{{model.label}}</th>
+    <th *ngFor="let modelItem of dataModel.items">{{modelItem.label}}</th>
     <th width="100" (click)="editObject()"><i title="Add" class="green add icon"></i></th>
   </tr>
   </thead>
   <tbody>
-  <tr *ngFor="let obj of objectList | async">
-    <td *ngFor="let model of dataModel.items">{{value(obj, model.key)}}</td>
+  <tr *ngFor="let obj of objects">
+    <td *ngFor="let modelItem of dataModel.items">{{value(obj, modelItem.key)}}</td>
     <td>
       <a (click)="editObject(obj)"><i title="Edit" class="blue pencil icon"></i></a>
       <a (click)="deleteObject(obj)"><i title="Delete" class="red remove icon"></i></a>

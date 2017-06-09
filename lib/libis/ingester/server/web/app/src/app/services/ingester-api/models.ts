@@ -1,10 +1,11 @@
 import { Attribute, JsonApiModel, JsonApiModelConfig } from 'ng-jsonapi';
 import * as _ from 'lodash';
+import { IUser } from "../datastore/users/model";
 
 @JsonApiModelConfig({
   type: 'users'
 })
-export class User extends JsonApiModel {
+export class User extends JsonApiModel implements IUser {
   @Attribute()
   name: string;
 

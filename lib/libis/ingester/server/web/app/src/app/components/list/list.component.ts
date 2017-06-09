@@ -11,8 +11,7 @@ import { DataModel } from "../data.model";
 })
 export class ListComponent implements OnInit {
 
-  @Input() objectList: Observable<Array<any>>;
-  protected objects: Array<any> = [];
+  @Input() objects: Array<any>;
   @Input() title: string;
   @Input() link: string;
   @Input() dataModel: DataModel;
@@ -20,7 +19,6 @@ export class ListComponent implements OnInit {
   @Output() editEvent: EventEmitter<any> = new EventEmitter();
 
   ngOnInit(): void {
-    this.objectList.subscribe((objects) => this.objects = objects);
   }
 
   protected value(obj: any, key: string) {

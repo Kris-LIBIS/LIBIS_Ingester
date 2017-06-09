@@ -1,6 +1,7 @@
 import { User } from "../../ingester-api/models";
 
-export interface UserList {
+export interface IUserList {
   users: User[];
+  loading: boolean;
   selected: User;
 }

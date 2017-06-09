@@ -1,10 +1,8 @@
-<teneo-user-list ></teneo-user-list>
-
 <teneo-list
   [dataModel]="dataModel"
   [link]="'/setup//users'"
   [title]="'User List'"
-  [objectList]="objects"
+  [objectList]="users$ | async"
   (deleteEvent)="deleteObject($event)"
   (editEvent)="editObject($event)"
 ></teneo-list>

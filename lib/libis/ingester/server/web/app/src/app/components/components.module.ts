@@ -13,6 +13,7 @@ import { ComponentsComponent } from './components.component';
 import { UserDetailComponent } from "./user/user-detail/user-detail.component";
 import { CardComponent } from './card/card.component';
 import { ComponentsRoutingModule } from "./components.routing.module";
+import { UserListComponent } from './user/user-list/user-list.component';
 
 @NgModule({
   imports: [
@@ -35,7 +36,8 @@ import { ComponentsRoutingModule } from "./components.routing.module";
     OrganizationComponent,
     OrganizationDetailComponent,
     ComponentsComponent,
-    CardComponent
+    CardComponent,
+    UserListComponent
   ],
   exports: [
     UserComponent,

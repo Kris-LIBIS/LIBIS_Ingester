@@ -25,6 +25,7 @@ import { AdminGuard } from "./services/guard/admin-guard";
 import { IngesterApiService } from "./services/ingester-api/ingester-api.service";
 import { AuthorizationService } from "./services/authorization/authorization.service";
 import { userListReducer } from "./services/datastore/reducers/user-list-reducer";
+import { StoreDevtoolsModule } from "@ngrx/store-devtools";
 
 
 @NgModule({
@@ -54,6 +55,7 @@ import { userListReducer } from "./services/datastore/reducers/user-list-reducer
         deps: [Http]
       }
     }),
+    StoreDevtoolsModule.instrumentOnlyWithExtension(),
     JsonApiModule
   ],
   providers: [
