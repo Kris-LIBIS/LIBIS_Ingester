@@ -5,7 +5,7 @@ import { IUser } from "../datastore/users/model";
 @JsonApiModelConfig({
   type: 'users'
 })
-export class User extends JsonApiModel implements IUser {
+export class User extends JsonApiModel {
   @Attribute()
   name: string;
 

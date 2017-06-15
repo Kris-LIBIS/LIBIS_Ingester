@@ -22,30 +22,7 @@ export class OrganizationDetailComponent implements OnInit {
   constructor() {
   }
 
-  protected addModelData(org: Organization) {
-    if (!!org) {
-      this.modelData.items.forEach((item) => {
-        switch(item.key) {
-        case '_name': {
-            item.control.value = org.name;
-            break;
-          }
-          case '_code': {
-            item.control.value = org.code;
-          }
-        }
-      });
-    }
-  }
-
   ngOnInit() {
-    this.modelData = new DataModel();
-    this.modelData.addItem('Name', '_name').setControl('', true).setInfo('textbox').setTextBox();
-    this.modelData.addItem('Code', '_code').setControl('').setInfo('textbox').setTextBox();
-    this.organization.subscribe((org) => {
-      this.addModelData(org);
-      this.selectedOrg = org;
-    });
   }
 
   onCancel() {
@@ -56,27 +33,27 @@ export class OrganizationDetailComponent implements OnInit {
     console.log('OrgDetailComponent -> onSave');
     console.log(data);
     if (!!this.selectedOrg) {
-      this.selectedOrg.name = data.item('_name').control.value;
-      this.selectedOrg.code = data.item('_code').control.value;
+      // this.selectedOrg.name = data.item('_name').control.value;
+      // this.selectedOrg.code = data.item('_code').control.value;
       this.saveEvent.next(this.selectedOrg);
     }
   }
 
-  //selectedIndex(user): number {
+  // selectedIndex(user): number {
   //  return _.findIndex(this.selectedUsers, (u) => u.id === user.id);
-  //}
+  // }
   //
-  //isSelected(user): boolean {
+  // isSelected(user): boolean {
   //  return this.selectedIndex(user) > -1;
-  //}
+  // }
   //
-  //toggleSelect(user): void {
+  // toggleSelect(user): void {
   //  const index = this.selectedIndex(user);
   //  if (index > -1) {
   //    this.selectedUsers.splice(index, 1);
   //  } else {
   //    this.selectedUsers.push(user);
   //  }
-  //}
+  // }
 
 }

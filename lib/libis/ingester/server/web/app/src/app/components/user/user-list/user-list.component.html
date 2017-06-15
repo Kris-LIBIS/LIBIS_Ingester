@@ -2,8 +2,8 @@
   [dataModel]="dataModel"
   [link]="'/setup//users'"
   [title]="'User List'"
-  [objectList]="users$ | async"
+  [objects]="users$ | async"
   (deleteEvent)="deleteObject($event)"
   (editEvent)="editObject($event)"
 ></teneo-list>
-<teneo-user-detail [object]="selectedObject" [allRelated]="allRelated" (cancelEvent)="cancelEdit()" (saveEvent)="saveObject($event)"></teneo-user-detail>
+<teneo-user-detail [user]="selectedUser | async" [allRelated]="allRelated" (cancelEvent)="cancelEdit()" (saveEvent)="saveObject($event)"></teneo-user-detail>

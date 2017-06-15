@@ -1,7 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-//import { JsonApiModel } from "ng-jsonapi";
-import { Observable } from "rxjs/Observable";
-import { DataModel } from "../data.model";
+import { DataModel } from '../data.model';
 
 @Component({
   moduleId: module.id,
@@ -22,6 +20,9 @@ export class ListComponent implements OnInit {
   }
 
   protected value(obj: any, key: string) {
+    if (!obj) {
+      return '';
+    }
     if (typeof(obj[key]) === 'function') {
       return obj[key]();
     }

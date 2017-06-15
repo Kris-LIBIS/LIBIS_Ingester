@@ -18,7 +18,7 @@ export class OrganizationComponent implements OnInit {
     new DataModelItem('Name', '_name'),
     new DataModelItem('Code', '_code'),
     new DataModelItem('Producer', 'producerName'),
-    new DataModelItem('Users', 'userList')
+    new DataModelItem('Users', 'userList$')
   ]);
 
   objects: Observable<Array<Organization>>;

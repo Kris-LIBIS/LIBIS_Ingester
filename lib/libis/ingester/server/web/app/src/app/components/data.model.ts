@@ -1,4 +1,4 @@
-import { isUndefined } from "util";
+import { isUndefined } from 'util';
 import * as _ from 'lodash';
 
 export class DataModel {
@@ -6,7 +6,7 @@ export class DataModel {
   }
 
   addItem(label: string, key: string): DataModelItem {
-    let item = new DataModelItem(label, key);
+    const item = new DataModelItem(label, key);
     this.items.push(item);
     return item;
   }
@@ -26,7 +26,7 @@ export class DataModel {
   }
 
   mainItem(): DataModelItem {
-    let foundKeys: Array<string> = _.intersection(this.keys(), ['name', '_name', 'id', '_id']);
+    const foundKeys: Array<string> = _.intersection(this.keys(), ['name', '_name', 'id', '_id']);
     if (foundKeys[0] != null) {
       return this.item(foundKeys[0]);
     }
@@ -40,8 +40,8 @@ export class DataModelItem {
               public control?: DataModelControl) {
   }
 
-  setControl(value: any, required: boolean = false, placeholder = this.label): DataModelControl {
-    this.control = new DataModelControl(value, required, placeholder);
+  setControl(required: boolean = false, placeholder = this.label): DataModelControl {
+    this.control = new DataModelControl(required, placeholder);
     return this.control;
   }
 
@@ -51,8 +51,7 @@ export class DataModelItem {
 }
 
 export class DataModelControl {
-  constructor(public value: any,
-              public required: boolean = false,
+  constructor(public required: boolean = false,
               public placeholder: string = '',
               public info?: DataModelControlInfo) {
   }
@@ -75,24 +74,24 @@ export class DataModelControlInfo {
   }
 
   setTextBox(type: string = 'text'): DataModelTextBox {
-    if (this.controlType != 'textbox') {
-      throw new Error("DataModelTextBox requires controlType='textbox");
+    if (this.controlType !== 'textbox') {
+      throw new Error('DataModelTextBox requires controlType=\'textbox');
     }
     this.textbox = new DataModelTextBox(type);
     return this.textbox;
   }
 
   setSelect(multiselect: boolean = false): DataModelSelect {
-    if (this.controlType != 'dropdown' && this.controlType != 'checklist') {
-      throw new Error("DataModelSelect requires controlType='dropdown' or 'checklist'");
+    if (this.controlType !== 'dropdown' && this.controlType !== 'checklist') {
+      throw new Error('DataModelSelect requires controlType=\'dropdown\' or \'checklist\'');
     }
     this.select = new DataModelSelect([], multiselect);
     return this.select;
   }
 
   setGroup(): DataModelGroup {
-    if (this.controlType != 'group') {
-      throw new Error("DataModelGroup requires controlType='group'");
+    if (this.controlType !== 'group') {
+      throw new Error('DataModelGroup requires controlType=\'group\'');
     }
     this.group = new DataModelGroup();
     return this.group;

@@ -1,49 +1,41 @@
-import { IUser } from "./model";
+import { IUser } from './model';
 import * as user from './actions';
-import ud = require('updeep');
+import * as ud from 'updeep';
+import { INITIAL_USER_STATE, IUserState } from './state';
+import { User } from '../../ingester-api/models';
 
-export type UserMap = { [id: string]: IUser };
-
-export interface State {
-  ids: string[];
-  users: UserMap;
-  selectedUserId: string | null;
-  updating: boolean;
-}
-
-export const initialState: State = {
-  ids: [],
-  users: {},
-  selectedUserId: null,
-  updating: false
-};
-
-export function reducer(state = ud.freeze(initialState), action: user.Actions): State {
-  let updateState = ud(ud._, state);
+export function reducer(state = ud.freeze(INITIAL_USER_STATE), action: user.UserActions): IUserState {
+  const updateState = ud(ud._, state);
   switch (action.type) {
-    case user.SELECT: {
-      return updateState({selectedUserId: action.payload.id});
+    case user.USER_SELECT: {
+      return updateState({selectedUser: action.payload});
     }
-    case user.LOAD: {
+    case user.USER_LOAD: {
       return updateState({updating: true});
     }
-    case user.LOAD_SUCCESS: {
-      const users: Array<IUser> = action.payload;
+    case user.USER_LOAD_SUCCESS: {
+      const users: Array<User> = action.payload;
       return updateState({
         ids: users.map((user) => user.id),
-        users: users.reduce((userMap: UserMap, user: IUser) => {
-          return ud({[user.id]: user}, userMap);
+        users: users.reduce((userMap: IUserState, user: IUser) => {
+          userMap[user.id] = {
+            id: user.id,
+            name: user.name,
+            role: user.role,
+            organizations: user.organizations
+          };
+          return userMap;
         }, {}),
         updating: false
       });
     }
-    case user.LOAD_FAIL: {
+    case user.USER_LOAD_FAIL: {
       return updateState({updating: false});
     }
-    case user.ADD: {
+    case user.USER_ADD: {
       return updateState({updating: true});
     }
-    case user.ADD_SUCCESS: {
+    case user.USER_ADD_SUCCESS: {
       const user: IUser = action.payload;
       return updateState({
         ids: (ids) => [].concat(ids, [user.id]),
@@ -51,13 +43,13 @@ export function reducer(state = ud.freeze(initialState), action: user.Actions): 
         updating: false
       });
     }
-    case user.ADD_FAIL: {
+    case user.USER_ADD_FAIL: {
       return updateState({updating: false});
     }
-    case user.UPDATE: {
+    case user.USER_UPDATE: {
       return updateState({updating: true});
     }
-    case user.UPDATE_SUCCESS: {
+    case user.USER_UPDATE_SUCCESS: {
       const user: IUser = action.payload;
       if (!state.users[user.id]) {
         return updateState({updating: false});
@@ -67,21 +59,21 @@ export function reducer(state = ud.freeze(initialState), action: user.Actions): 
         updating: false
       });
     }
-    case user.UPDATE_FAIL: {
+    case user.USER_UPDATE_FAIL: {
       return updateState({updating: false});
     }
-    case user.DELETE: {
+    case user.USER_DELETE: {
       return updateState({updating: true});
     }
-    case user.DELETE_SUCCESS: {
+    case user.USER_DELETE_SUCCESS: {
       const user: IUser = action.payload;
       return updateState({
-        ids: ud.reject(id => id == user.id),
+        ids: ud.reject(id => id === user.id),
         users: ud.omit(user.id, state.users),
         updating: false
       })
     }
-    case user.DELETE_FAIL: {
+    case user.USER_DELETE_FAIL: {
       return updateState({updating: false});
     }
   }

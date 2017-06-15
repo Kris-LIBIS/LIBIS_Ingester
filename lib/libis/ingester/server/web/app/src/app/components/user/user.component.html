@@ -1,11 +1,3 @@
-<teneo-user-list ></teneo-user-list>
-
-<teneo-list
-  [dataModel]="dataModel"
-  [link]="'/setup//users'"
-  [title]="'User List'"
-  [objectList]="objects"
-  (deleteEvent)="deleteObject($event)"
-  (editEvent)="editObject($event)"
-></teneo-list>
-<teneo-user-detail [object]="selectedObject" [allRelated]="allRelated" (cancelEvent)="cancelEdit()" (saveEvent)="saveObject($event)"></teneo-user-detail>
+<teneo-user-list
+  [users$]="objects"
+></teneo-user-list>

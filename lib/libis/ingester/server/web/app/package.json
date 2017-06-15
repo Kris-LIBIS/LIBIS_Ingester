@@ -38,7 +38,7 @@
     "intl": "^1.2.5",
     "jquery": "^3.2.1",
     "moment": "^2.18.1",
-    "ng-jsonapi": "0.x",
+    "ng-jsonapi": "git://github.com/KaDee/ng-jsonapi",
     "ngrx-store-localstorage": "^0.1.8",
     "object-path-immutable": "^0.5.1",
     "primeng": "^4.0.1",

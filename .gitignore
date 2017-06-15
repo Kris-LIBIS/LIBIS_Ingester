@@ -35,3 +35,6 @@ lib/libis/ingester/server/web/app/.idea
 spec/data/mongod.log
 spec/data/mongod.pid
 lib/libis/ingester/server/web/app/yarn.lock
+lib/libis/ingester/server/web/app/package-lock.json
+lib/libis/ingester/server/web/app/yarn-error.log
+

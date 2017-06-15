@@ -1,9 +1,0 @@
-<teneo-list
-  [dataModel]="dataModel"
-  [link]="'/organizations'"
-  [title]="'Organization List'"
-  [objectList]="objects"
-  (deleteEvent)="deleteObject($event)"
-  (editEvent)="editObject($event)"
-></teneo-list>
-<teneo-organization-detail [organization]="selectedObject" [allUsers]="allRelated" (cancelEvent)="cancelEdit()" (saveEvent)="saveObject($event)"></teneo-organization-detail>

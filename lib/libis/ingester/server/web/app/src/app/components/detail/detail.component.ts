@@ -12,6 +12,7 @@ import { Observable } from "rxjs/Observable";
 })
 export class DetailComponent implements OnInit {
   @Input() title: string;
+  @Input() data: any;
   @Input() modelData: DataModel;
   @Output() cancelEvent = new EventEmitter();
   @Output() saveEvent = new EventEmitter();
