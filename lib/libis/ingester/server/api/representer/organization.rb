@@ -9,8 +9,8 @@ module Libis::Ingester::API::Representer
     attributes do
       property :name, type: String, desc: 'organization name'
       property :code, type: String, desc: 'institution code'
-      property :material_flow, type: JSON, desc: 'supported material flows'
-      property :ingest_dir, type: String, desc: 'directory where the SIPs will be uploaded'
+      property :material_flow, as: :material_flow, type: JSON, desc: 'supported material flows'
+      property :ingest_dir, as: :ingest_dir, type: String, desc: 'directory where the SIPs will be uploaded'
       property :c_at, as: :created_at, writeable: false, type: DateTime, desc: 'Date when the organization was created'
 
       nested :producer do
@@ -25,9 +25,9 @@ module Libis::Ingester::API::Representer
         end
       end
 
-      property :users, exec_context: :decorator, type: Array, desc: 'organization users'
+      property :users, as: :user_ids, exec_context: :decorator, type: Array, desc: 'list of IDs of users that belong to this organization'
       def users
-        represented.users.map { |user| {id: user.id.to_s, name: user.name } }
+        represented.users.map { |user| user.id.to_s }
       end
 
       def users=(users)

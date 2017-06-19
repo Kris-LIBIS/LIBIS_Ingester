@@ -10,10 +10,10 @@ module Libis::Ingester::API::Representer
     attributes do
       property :name, type: String, desc: 'user name'
       property :role, type: String, desc: 'user role'
-      property :orgs, as: :organizations, exec_context: :decorator,
-               type: Array, desc: 'user organizations'
+      property :orgs, as: :organization_ids, exec_context: :decorator,
+               type: Array, desc: 'list of IDs of organizations the user belongs to'
       def orgs
-        represented.organizations.map { |org| {id: org.id.to_s, name: org.name } }
+        represented.organizations.map { |org| org.id.to_s }
       end
 
       def orgs=(orgs)
