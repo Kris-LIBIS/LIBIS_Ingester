@@ -1,12 +1,16 @@
 <!--<teneo-detail [title]="''" [modelData]="modelData" (cancelEvent)="onCancel()" (saveEvent)="onSave($event)"></teneo-detail>-->
 <h1>{{title}}</h1>
-<form class="ui form" novalidate (ngSubmit)="submitForm(form)"  >
-  <div class="field required">
+<form class="ui form" novalidate (ngSubmit)="submitForm()">
+  <div class="field required" *ngIf="user">
     <label for="name">Name</label>
-    <input id="name" pInputText placeholder="User name" [(ngModel)]="user.name">
+    <input id="name" pInputText placeholder="User name" [(ngModel)]="user.name" [ngModelOptions]="{standalone: true}">
+  </div>
+  <div class="field required" *ngIf="user">
+    <label for="role">Role</label>
+    <p-listbox id="role" [options]="roles" [(ngModel)]="user.role" [ngModelOptions]="{standalone: true}"></p-listbox>
   </div>
   <div class="ui buttons">
-    <button class="ui positive button" [disabled]="form.invalid">Save</button>
+    <button class="ui positive button" [disabled]="invalid()">Save</button>
     <div class="or"></div>
     <button class="ui button" (click)="onCancel()">Cancel</button>
   </div>

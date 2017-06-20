@@ -1,19 +1,13 @@
-import { emptyUser, IUser } from './model';
-
-export interface IUserMap {
-  [id: string]: IUser;
-}
+import { newUser, IUser } from './model';
 
 export interface IUserState {
-  ids: string[];
-  users: IUserMap;
+  users: IUser[];
   selectedUser: IUser;
   updating: boolean;
 }
 
 export const INITIAL_USER_STATE: IUserState = {
-  ids: [],
-  users: {},
-  selectedUser: emptyUser(),
+  users: [],
+  selectedUser: newUser(),
   updating: false
 };

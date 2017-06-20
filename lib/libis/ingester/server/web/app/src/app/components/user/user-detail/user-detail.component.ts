@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { IUser } from '../../../services/datastore/users/model';
+import { IUser } from "../../../services/datastore/users/model";
+import { SelectItem } from "primeng/primeng";
 
 @Component({
   moduleId: module.id,
@@ -14,10 +15,19 @@ export class UserDetailComponent implements OnInit {
   @Output() cancelEvent = new EventEmitter();
   @Output() saveEvent = new EventEmitter();
 
+  roles: SelectItem[];
+
   constructor() {
+    this.roles = [];
+    this.roles.push({label: 'Submitter', value: 'submitter'});
+    this.roles.push({label: 'Administrator', value: 'admin'})
   }
 
   ngOnInit() {
+  }
+
+  invalid(): boolean {
+    return !this.user.name;
   }
 
   onCancel() {

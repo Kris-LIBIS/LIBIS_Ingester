@@ -7,9 +7,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 
-import { combineReducers, StoreModule } from '@ngrx/store';
-import { compose } from '@ngrx/core/compose';
-import { localStorageSync } from 'ngrx-store-localstorage';
+import { StoreModule } from '@ngrx/store';
 
 // AoT requires an exported function for factories
 export function HttpLoaderFactory(http: Http) {
@@ -26,9 +24,13 @@ import { IngesterApiService } from './services/ingester-api/ingester-api.service
 import { AuthorizationService } from './services/authorization/authorization.service';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 
-import * as user from './services/datastore/users/reducer';
-import { EffectsModule } from "@ngrx/effects";
-import { UserEffects } from "./services/datastore/users/effects";
+import { EffectsModule } from '@ngrx/effects';
+
+import { UserEffects } from './services/datastore/users/effects';
+import { DataTableModule, SharedModule } from 'primeng/primeng';
+import { OrganizationEffects } from './services/datastore/organizations/effects';
+import { appReducer } from './services/datastore/app/reducer';
+import { RouterStoreModule } from "@ngrx/router-store";
 
 
 @NgModule({
@@ -39,14 +41,12 @@ import { UserEffects } from "./services/datastore/users/effects";
     BrowserModule,
     BrowserAnimationsModule,
     HttpModule,
-    StoreModule.provideStore(
-      {user: user.reducer}
-    ),
-    StoreDevtoolsModule.instrumentOnlyWithExtension({
-      maxAge: 5
-    }),
-    EffectsModule.run(UserEffects),
     AppRoutingModule,
+    StoreModule.provideStore(appReducer),
+    RouterStoreModule.connectRouter(),
+    StoreDevtoolsModule.instrumentOnlyWithExtension(),
+    EffectsModule.run(UserEffects),
+    EffectsModule.run(OrganizationEffects),
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
@@ -54,8 +54,9 @@ import { UserEffects } from "./services/datastore/users/effects";
         deps: [Http]
       }
     }),
-    StoreDevtoolsModule.instrumentOnlyWithExtension(),
-    JsonApiModule
+    JsonApiModule,
+    DataTableModule,
+    SharedModule
   ],
   providers: [
     FormBuilder,

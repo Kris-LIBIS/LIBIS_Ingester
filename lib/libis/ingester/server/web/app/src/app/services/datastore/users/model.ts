@@ -1,11 +1,13 @@
+import { IOrganization } from "../organizations/model";
+
 export interface IUser {
   id: string;
   name: string;
-  role: string;
-  organizations: Array<{ id: string, name: string }>;
+  role?: string;
+  organizations?: IOrganization[];
 }
 
-export function emptyUser(): IUser {
+export function newUser(): IUser {
   return {
     id: null,
     name: '',

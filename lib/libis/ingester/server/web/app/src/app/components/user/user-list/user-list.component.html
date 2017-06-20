@@ -1,9 +1,45 @@
-<teneo-list
-  [dataModel]="dataModel"
-  [link]="'/setup//users'"
-  [title]="'User List'"
-  [objects]="users$ | async"
-  (deleteEvent)="deleteObject($event)"
-  (editEvent)="editObject($event)"
-></teneo-list>
-<teneo-user-detail [user]="selectedUser | async" [allRelated]="allRelated" (cancelEvent)="cancelEdit()" (saveEvent)="saveObject($event)"></teneo-user-detail>
+<p-dataTable [value]="users">
+  <p-column field="name" header="Name" styleClass="column"></p-column>
+  <p-column field="role" header="Role" styleClass="column"></p-column>
+  <p-column field="organizations" header="Organizations" styleClass="column">
+    <ng-template let-col let-user="rowData" pTemplate="body">
+      <span>{{orgList(user)}}</span>
+    </ng-template>
+  </p-column>
+  <p-column styleClass="column column-button">
+    <ng-template pTemplate="header">
+      <div (click)="addUser()"><i title="Add" class="green add icon"></i></div>
+    </ng-template>
+    <ng-template let-col let-user="rowData" pTemplate="body">
+      <span>
+        <a (click)="editUserEvent.next(user)"><i title="Edit" class="blue pencil icon"></i></a>
+        <a (click)="deleteUserEvent.next(user)"><i title="Delete" class="red remove icon"></i></a>
+      </span>
+    </ng-template>
+  </p-column>
+</p-dataTable>
+
+<!--<table class="ui fixed striped table">-->
+  <!--<thead>-->
+  <!--<tr>-->
+    <!--<th>Name</th>-->
+    <!--<th>Role</th>-->
+    <!--<th>Organizations</th>-->
+    <!--<th width="100" (click)="addUser()"><i title="Add" class="green add icon"></i></th>-->
+  <!--</tr>-->
+  <!--</thead>-->
+  <!--<tbody>-->
+  <!--<tr *ngFor="let user of users">-->
+    <!--<td>{{user.name}}</td>-->
+    <!--<td>{{user.role}}</td>-->
+    <!--<td>-->
+      <!--<p-multiSelect [options]="orgOptions()" [(ngModel)]="user.organizations"></p-multiSelect>-->
+    <!--</td>-->
+    <!--<td>-->
+      <!--<a (click)="editUserEvent.next(user)"><i title="Edit" class="blue pencil icon"></i></a>-->
+      <!--<a (click)="deleteUserEvent.next(user)"><i title="Delete" class="red remove icon"></i></a>-->
+    <!--</td>-->
+  <!--</tr>-->
+  <!--</tbody>-->
+<!--</table>-->
+

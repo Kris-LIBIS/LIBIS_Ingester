@@ -6,7 +6,10 @@ import { ListComponent } from "./list/list.component";
 import { DetailComponent } from "./detail/detail.component";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { DynamicFieldComponent } from "./dynform/dynamic.field.component";
-import { DropdownModule, ListboxModule, MultiSelectModule, PanelModule } from "primeng/primeng";
+import {
+  DataTableModule, DropdownModule, ListboxModule, MultiSelectModule, PanelModule,
+  SharedModule
+} from "primeng/primeng";
 import { RouterModule } from "@angular/router";
 import { OrganizationDetailComponent } from "./organization/organization-detail/organization-detail.component";
 import { ComponentsComponent } from './components.component';
@@ -25,7 +28,9 @@ import { UserListComponent } from './user/user-list/user-list.component';
     ListboxModule,
     RouterModule,
     ComponentsRoutingModule,
-    PanelModule
+    PanelModule,
+    DataTableModule,
+    SharedModule
   ],
   declarations: [
     ListComponent,

@@ -1,12 +1,13 @@
 import { Component, OnInit } from '@angular/core';
-import { Organization, User } from '../../services/ingester-api/models';
-import { DataModel, DataModelItem } from '../data.model';
+import * as _ from 'lodash';
 import { Observable } from 'rxjs/Observable';
 import { Store } from '@ngrx/store';
-import { IAppState } from '../../services/datastore/state/app-state';
-import { UserLoadAction } from '../../services/datastore/users/actions';
-import { IUserMap, IUserState } from '../../services/datastore/users/state';
+import { IAppState } from '../../services/datastore/app/state';
+import { UserDeleteAction, UserLoadAction, UserSelectAction } from '../../services/datastore/users/actions';
+import { IUserState } from '../../services/datastore/users/state';
 import { IUser } from '../../services/datastore/users/model';
+import { IOrganization } from "../../services/datastore/organizations/model";
+import { OrganizationLoadAction } from "../../services/datastore/organizations/actions";
 
 @Component({
   moduleId: module.id,
@@ -16,53 +17,26 @@ import { IUser } from '../../services/datastore/users/model';
 })
 export class UserComponent implements OnInit {
 
-  dataModel: DataModel = new DataModel([
-    new DataModelItem('Name', '_name'),
-    new DataModelItem('Role', '_role'),
-    new DataModelItem('Organizations', 'organizations')
-  ]);
+  users: Observable<IUser[]>;
+  selectedUser: Observable<IUser>;
+  organizations: Observable<IOrganization[]>;
 
-  objects: Observable<IUser[]>;
-  selectedObject: User = null;
-  allRelated: Organization[] = [];
-
-  constructor(protected store: Store<IAppState>) { }
+  constructor(protected _store: Store<IAppState>) { }
 
   ngOnInit() {
-    this.store.dispatch(new UserLoadAction());
-    this.objects = this.store.select('user').map((userState: IUserState) => userState.ids.reduce((users: any[], id: string) => {
-      const user = userState.users[id];
-      users.push({
-          id: user.id,
-          name: user.name,
-          role: user.role,
-          organizations: user.organizations.map((org) => org.name).join(',')
-        });
-      return users;
-    }, []));
-    // this.api.getObjectList(Organization).subscribe((orgs) => this.allRelated = orgs);
-    this.cancelEdit();
+    this._store.dispatch(new UserLoadAction());
+    this._store.dispatch(new OrganizationLoadAction());
+    this.users = this._store.select('user').map((userState: IUserState) => userState.users);
+    this.selectedUser = this._store.select('user').map((userState: IUserState) => userState.selectedUser);
+    this.organizations = this._store.select('organization').map((org: IOrganization) => _.pick(org, ['id', 'name']))
   }
 
-  deleteObject(object: User) {
-    // this.api.deleteObject(User, object).subscribe((res) => {
-    //   console.log(res);
-    //   this.ngOnInit();
-    // });
+  editUser(user: IUser) {
+    this._store.dispatch(new UserSelectAction(user));
   }
 
-  editObject(object: User) {
-    this.selectedObject = object;
-  }
-
-  saveObject(obj: User) {
-    console.log(obj);
-    // this.api.saveObject(obj[AttributeMetadata], obj).subscribe((org) => this.ngOnInit());
-    this.cancelEdit();
-  }
-
-  cancelEdit() {
-    // this.selectedObject = new User(this.api);
+  deleteUser(user: IUser) {
+    this._store.dispatch(new UserDeleteAction(user));
   }
 
 }

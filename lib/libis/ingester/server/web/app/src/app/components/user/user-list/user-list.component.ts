@@ -1,13 +1,8 @@
-import { Component, EventEmitter, Input, OnInit } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
-import { Organization, User } from '../../../services/ingester-api/models';
-import { DataModel, DataModelItem } from '../../data.model';
-import { IUser } from '../../../services/datastore/users/model';
-import { Subject } from 'rxjs/Subject';
-import { Store } from "@ngrx/store";
-import { IAppState } from "../../../services/datastore/state/app-state";
-import { IUserState } from "../../../services/datastore/users/state";
-import { UserSelectAction } from "../../../services/datastore/users/actions";
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import * as _ from 'lodash';
+import { IUser, newUser } from '../../../services/datastore/users/model';
+import { SelectItem } from "primeng/primeng";
+import { IOrganization } from "../../../services/datastore/organizations/model";
 
 @Component({
   selector: 'teneo-user-list',
@@ -16,25 +11,31 @@ import { UserSelectAction } from "../../../services/datastore/users/actions";
 })
 export class UserListComponent implements OnInit {
 
-  @Input() users$: Observable<IUser[]>;
-  selectedUser: Observable<IUser>;
+  @Input() users: IUser[];
+  @Input() organizations: IOrganization[];
+  @Output() editUserEvent: EventEmitter<IUser> = new EventEmitter();
+  @Output() deleteUserEvent: EventEmitter<IUser> = new EventEmitter();
 
-  dataModel: DataModel = new DataModel([
-    new DataModelItem('Name', 'name'),
-    new DataModelItem('Role', 'role'),
-    new DataModelItem('Organizations', 'organizations')
-  ]);
-
-  allRelated: Organization[] = [];
-
-
-  constructor(private _store: Store<IAppState>) { }
+  constructor() {
+  }
 
   ngOnInit() {
-    this.selectedUser = this._store.select('user').map((userState: IUserState) => userState.selectedUser);
+    // this.orgOptions = [];
+    // this.organizations.forEach((org) => this.orgOptions.push({label: org.name, value:_.pick(org,['id', 'name'])}));
   }
 
-  editObject(user: IUser) {
-      this._store.dispatch(new UserSelectAction(user));
+  orgList(user: IUser): string {
+    return user.organizations.map((org) => org.name).join(',');
   }
+
+  orgOptions() : SelectItem[] {
+    const options: SelectItem[] = [];
+    this.organizations.forEach((org) => options.push({label: org.name, value:_.pick(org,['id', 'name'])}));
+    return options;
+  }
+
+  addUser() {
+    this.editUserEvent.next(newUser());
+  }
+
 }

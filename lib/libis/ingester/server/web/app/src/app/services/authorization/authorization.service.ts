@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Http, RequestOptions } from "@angular/http";
+import { Http, Headers } from "@angular/http";
 import { Observable } from "rxjs/Observable";
 import {environment} from "../../../environments/environment";
 
@@ -16,7 +16,7 @@ export class AuthorizationService {
     headers.set('Accept', 'application/json');
     headers.set('Content-Type', 'application/json');
     return this.http
-      .post(environment.urlAuth, {name: user, password: password}, new RequestOptions(headers))
+      .post(environment.urlAuth, {name: user, password: password}, {headers: headers})
       .map(
         (res) => {
           console.log(`Reply: ${res}`);

@@ -65,6 +65,8 @@
     "karma-jasmine-html-reporter": "^0.2.2",
     "node-sass": "^4.5.3",
     "protractor": "~5.1.0",
+    "raw-loader": "^0.5.1",
+    "sass-loader": "^6.0.6",
     "ts-node": "~3.0.2",
     "tslint": "~5.1.0",
     "typescript": "2.x"
