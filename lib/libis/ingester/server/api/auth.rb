@@ -24,10 +24,18 @@ module Libis::Ingester::API
           unless user
             api_error(401, 'Wrong user name or password');
           end
-          api_success(jwt_encode({user: {id: user.id, name: user.name, role: user.role}}))
+          api_success(jwt_encode({user: {id: user.id.to_s, name: user.name, role: user.role}}))
         end
       end
 
+      desc 'renew token' do
+      end
+      params do
+        requires :token, type: String, desc: 'active JWT'
+      end
+      patch '' do
+        api_success(jwt_refresh(declared(params).token))
+      end
     end # namespace :auth
 
   end # Class

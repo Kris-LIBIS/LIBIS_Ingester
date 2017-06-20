@@ -3,9 +3,6 @@ require 'jwt'
 module Libis::Ingester::API::TokenHelper
   extend Grape::API::Helpers
 
-  RSA_PRIVATE = OpenSSL::PKey::RSA.generate 2048
-  RSA_PUBLIC = RSA_PRIVATE.public_key
-
   ISSUER='Teneo App'.freeze
 
   def jwt_encode(payload)
@@ -19,12 +16,13 @@ module Libis::Ingester::API::TokenHelper
   end
 
   def jwt_decode(token)
-    payload = JWT.decode(token, RSA_PUBLIC, true, {algorithm: 'HS256', iss: ISSUER, verify_iss: true}).first
+    payload = JWT.decode(token, RSA_PUBLIC, true,
+                         {algorithm: 'RS256', iss: ISSUER, verify_iss: true, verify_iat: true}).first
     payload.reject {|k, _| %w'iat exp iss'.include? k}
-  rescue JWT::ExpiredSignature
-    api_error(401, 'Token expired')
-  rescue JWT::InvalidIssuerError
-    api_error(401, 'Invalid JWT token')
+  rescue JWT::DecodeError => e
+    api_error(401, e.message)
+  rescue Exception => e
+    api_error(401, e.message)
   end
 
   def jwt_refresh(token)
