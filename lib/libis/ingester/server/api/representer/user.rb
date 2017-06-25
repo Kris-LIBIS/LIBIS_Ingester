@@ -20,7 +20,7 @@ module Libis::Ingester::API::Representer
         represented.organizations.clear
         orgs.each do |org_id|
           org = Libis::Ingester::Organization.find(org_id)
-          represented.organizations.add(org)
+          represented.organizations << org
         end
       end
     end
