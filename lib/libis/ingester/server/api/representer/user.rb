@@ -21,7 +21,7 @@ module Libis::Ingester::API::Representer
         orgs.each do |org_id|
           org = Libis::Ingester::Organization.find(org_id)
           represented.organizations << org
-        end
+        end if orgs
       end
     end
 

@@ -20,10 +20,16 @@ module Libis::Ingester::API
       paginate per_page: 10, max_per_page: 50
       params do
         use :organization_fields
+        optional :nopaging, type: Boolean, default: false, desc: 'do not paginate'
       end
       get '' do
         guard do
-          present_collection(collection: paginate(DB_CLASS), representer: REPRESENTER, with_pagination: true)
+          if params[:nopaging]
+            # noinspection RubyStringKeysInHashInspection
+            present_collection(collection: DB_CLASS.all, representer: REPRESENTER, default_fields: {'organizations' => 'id,name,code'})
+          else
+            present_collection(collection: paginate(DB_CLASS), representer: REPRESENTER, with_pagination: true)
+          end
         end
       end
 

@@ -31,8 +31,11 @@ module Libis::Ingester::API::Representer
       end
 
       def users=(users)
-        # noinspection RubyResolve
-        represented.user_ids = users.map { |user| user.id }
+        represented.users.clear
+        users.each do |user_id|
+          user = Libis::Ingester::User.find(user_id)
+          represented.users << user
+        end if users
       end
 
     end

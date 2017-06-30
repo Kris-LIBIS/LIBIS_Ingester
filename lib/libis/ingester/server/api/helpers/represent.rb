@@ -16,7 +16,7 @@ module Libis::Ingester::API::RepresentHelper
 
   def present_collection(representer:, collection:, with_pagination: false, options: {}, default_fields: {})
     opts = with_pagination ? pagination_hash(collection, options) : option_hash(options)
-    if params.has_key? :fields || !default_fields.empty?
+    if params.has_key?(:fields) || !default_fields.empty?
       opts.merge!(fields_opts(params[:fields], default_fields))
     end
     # .send(with_pagination ? :for_pagination : :for_collection)
