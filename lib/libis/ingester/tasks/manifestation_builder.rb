@@ -118,13 +118,13 @@ module Libis
         if file_or_div.is_a?(Libis::Ingester::FileItem)
           register_file(file_or_div)
         else
-          file_or_div.get_items.each { |file| process_files(file) }
+          file_or_div.get_items.each {|file| process_files(file)}
         end
       end
 
       def generate_thumbnail(items, representation, convert_hash)
         source_id = representation.parent.properties['thumbnail_source']
-        source_item = items.find('options.use_as_thumbnail' => true)
+        source_item = items.find_by('options.use_as_thumbnail' => true)
         source_item ||= source_id ? FileItem.find(source_id) : items.first
         convert(source_item, representation, convert_hash)
       end
@@ -155,7 +155,7 @@ module Libis
             convert_file(source, nil, source_format, source_format, options)[0]
           end if options
           Libis::Format::Converter::ImageConverter.new.assemble_and_convert(sources, new_file, target_format)
-          sources.each { |f| FileUtils.rm_f f } if options
+          sources.each {|f| FileUtils.rm_f f} if options
           options = convert_hash[:options][1] rescue nil
           convert_file(new_file, new_file, target_format, target_format, options) if options
         end
@@ -163,8 +163,8 @@ module Libis
 
       def assemble_pdf(items, representation, convert_hash)
         file_name = "#{convert_hash[:generated_file] ?
-            eval(convert_hash[:generated_file]) :
-            "#{representation.parent.name}_#{convert_hash[:name]}"
+                           eval(convert_hash[:generated_file]) :
+                           "#{representation.parent.name}_#{convert_hash[:name]}"
         }.pdf"
         assemble(items, representation, [:PDF], file_name, convert_hash[:id]) do |sources, new_file|
           Libis::Format::PdfMerge.run(sources, new_file)
@@ -191,7 +191,7 @@ module Libis
           match_file(file, formats)
         end
 
-        sources = source_files.map { |file| file.fullpath }
+        sources = source_files.map {|file| file.fullpath}
 
         return if sources.empty?
 
@@ -229,7 +229,7 @@ module Libis
               div.save!
               div
             end
-            item.get_items.each { |child| convert(child, div, convert_hash) }
+            item.get_items.each {|child| convert(child, div, convert_hash)}
 
           when Libis::Ingester::FileItem
 
@@ -243,7 +243,7 @@ module Libis
             unless convert_hash[:source_formats].blank?
               raise Libis::WorkflowError, 'File item %s format (%s) is not supported.' % [item, mimetype] unless type_id
               group = Libis::Format::TypeDatabase.type_group(type_id)
-              check_list = [type_id, group].compact.map { |v| [v.to_s, v.to_sym] }.flatten
+              check_list = [type_id, group].compact.map {|v| [v.to_s, v.to_sym]}.flatten
               return if (convert_hash[:source_formats] & check_list).empty?
             end
 
@@ -293,7 +293,7 @@ module Libis
         mimetype = file.properties['mimetype']
         type_id = Libis::Format::TypeDatabase.mime_types(mimetype).first
         group = Libis::Format::TypeDatabase.type_group(type_id.to_s)
-        check_list = [type_id, group].compact.map { |v| [v.to_s, v.to_sym] }.flatten
+        check_list = [type_id, group].compact.map {|v| [v.to_s, v.to_sym]}.flatten
         return false if (formats & check_list).empty?
         true
       end
@@ -338,7 +338,7 @@ module Libis
         else
           target_file = temp_files.pop
         end
-        temp_files.each { |tmp_file| FileUtils.rm_f tmp_file }
+        temp_files.each {|tmp_file| FileUtils.rm_f tmp_file}
         [target_file, converter]
       end
 
