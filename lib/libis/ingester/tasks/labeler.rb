@@ -27,6 +27,7 @@ module Libis
         end
         if thumbnail?(lookup)
           item.options['use_as_thumbnail'] = true
+          item.save!
           debug 'Item %s marked as thumbnail', item, item.name
         end
       end
