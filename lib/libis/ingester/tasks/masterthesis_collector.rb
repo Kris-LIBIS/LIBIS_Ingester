@@ -31,6 +31,11 @@ module Libis
       parameter selection_regex: nil,
                 description: 'RegEx for selection only part of the directories'
 
+      parameter dc_institution: 'K.U.Leuven',
+                description: 'Institution name to be used in the DC metadata'
+      parameter dc_location: 'Leuven',
+                description: 'Location name to be used in the DC metadata'
+
       parameter item_types: [Libis::Ingester::Run], frozen: true
 
       protected
@@ -42,10 +47,10 @@ module Libis
         storage = DomainStorage.where(domain: 'Masterthesis').find_or_create_by(name: 'Loaded')
         loaded = storage.data
         @file_service ||= parameter(:local_storage).blank? ?
-            Libis::Ingester::FtpsService.new(
-                parameter(:ftp_host), parameter(:ftp_port), parameter(:ftp_user), parameter(:ftp_password)
-            ) :
-            Libis::Ingester::FileService.new(parameter(:local_storage))
+                              Libis::Ingester::FtpsService.new(
+                                  parameter(:ftp_host), parameter(:ftp_port), parameter(:ftp_user), parameter(:ftp_password)
+                              ) :
+                              Libis::Ingester::FileService.new(parameter(:local_storage))
         dirs = @file_service.ls parameter(:ftp_subdir)
         dirs.each do |dir|
           next if @file_service.is_file?(dir)
@@ -81,7 +86,7 @@ module Libis
 
         # Get the XML file
         xml_file_name = 'e_thesis.xml'
-        xml_file = files.find { |file| File.basename(file) == xml_file_name }
+        xml_file = files.find {|file| File.basename(file) == xml_file_name}
         unless xml_file
           error 'XML file missing in %s', dir_name
           @file_service.put_file(File.join(parameter(:ftp_errdir), "#{dir_name}.error"), ['XML file missing in %s' % dir_name])
@@ -104,7 +109,7 @@ module Libis
         pub = !(xml_doc.embargo('isPubliek').blank?)
         instelling_id = xml_doc['//instellingId'] || '50000050'
         # noinspection RubyNestedTernaryOperatorsInspection
-        ar_extension =  embargo == 0 ? (pub ? 'PUBLIC' : 'IP-RESTRICTED') : 'PROTECTED'
+        ar_extension = embargo == 0 ? (pub ? 'PUBLIC' : 'IP-RESTRICTED') : 'PROTECTED'
         ar_name = "AR_MT_#{instelling_id}_#{ar_extension}"
         unless Libis::Ingester::AccessRight.find_by(name: ar_name)
           raise Libis::WorkflowError, "AccessRight #{ar_name} not found."
@@ -134,7 +139,7 @@ module Libis
 
         # add files to IE
         files_from_xml.each do |fname|
-          file = files.find { |f| File.basename(f) == fname }
+          file = files.find {|f| File.basename(f) == fname}
           file_item = Libis::Ingester::FileItem.new
           file_item.filename = file
           ie_item << file_item
@@ -195,7 +200,7 @@ module Libis
         files_from_xml = hoofdtekst + bijlagen
 
         files_from_xml.each do |fname|
-          unless files.any? { |file| File.basename(file) == fname }
+          unless files.any? {|file| File.basename(file) == fname}
             check = check_error errors, 'The file \'%s\' listed in the XML for %s is not found on FTP server', fname, dir_name
             next
           end
@@ -211,7 +216,7 @@ module Libis
 
         # check if all file entries have a unique name
         unless files_from_xml.size == files_from_xml.uniq.size
-          files_from_xml.select { |fname| files_from_xml.count(fname) > 1 }.uniq.each do |fname|
+          files_from_xml.select {|fname| files_from_xml.count(fname) > 1}.uniq.each do |fname|
             check = check_error errors, 'The file \'%s\' is referenced more than once in the XML file for %s', fname, dir_name
           end
         end
@@ -227,9 +232,12 @@ module Libis
         xml = ::Libis::Tools::Metadata::DublinCoreRecord.new
         xml.identifier = "#{id}"
         xml.title = proef.at('titel1').at('tekst').text.strip
-        add_node(xml, :creator) { "#{proef.at('stdnaam').text.strip}, #{proef.at('stdvoornaam').text.strip} (author)" }
-        add_node(xml, :description) { "Dissertation note: Diss Master (#{proef.at('opleidingnaam').text.strip})" }
-        add_node(xml, :publisher) { "Leuven: K.U.Leuven. #{proef.at('faculteitnaam').text.strip}, #{pub_date}" }
+        add_node(xml, :creator) {"#{proef.at('stdnaam').text.strip}, #{proef.at('stdvoornaam').text.strip} (author)"}
+        add_node(xml, :description) {"Dissertation note: Diss Master (#{proef.at('opleidingnaam').text.strip})"}
+        add_node(xml, :publisher) {
+          "#{parameter(:dc_location)}: #{parameter(:dc_institution)}. " +
+              "#{proef.at('faculteitnaam').text.strip}, #{pub_date}"
+        }
         proef.xpath('promotoren/promotor').each do |promotor|
           add_node(xml, 'contributor!') {
             "#{promotor.at('naam').text.strip}, #{promotor.at('voornaam').text.strip} (thesis advisor)"
@@ -241,7 +249,9 @@ module Libis
           }
         end
         xml.source = "#{id}"
-        add_node(xml, :rights) { "K.U.Leuven. #{proef.at('faculteitnaam').text.strip} (degree grantor)" }
+        add_node(xml, :rights) {
+          "#{parameter(:dc_institution)}. #{proef.at('faculteitnaam').text.strip} (degree grantor)"
+        }
         xml.date = "#{pub_date}"
         xml.type! 'BK'
         xml.type! 'Dissertation'
