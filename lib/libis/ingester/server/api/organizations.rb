@@ -26,7 +26,7 @@ module Libis::Ingester::API
         guard do
           if params[:nopaging]
             # noinspection RubyStringKeysInHashInspection
-            present_collection(collection: DB_CLASS.all, representer: REPRESENTER, default_fields: {'organizations' => 'id,name,code'})
+            present_collection(collection: DB_CLASS.all, representer: REPRESENTER, default_fields: {'organizations' => 'id,name,code,users,jobs'})
           else
             present_collection(collection: paginate(DB_CLASS), representer: REPRESENTER, with_pagination: true)
           end

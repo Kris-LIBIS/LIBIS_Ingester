@@ -25,6 +25,17 @@ module Libis::Ingester::API::Representer
 
       property :input, type: Hash, desc: 'default parameter input values'
 
+      property :runs, exec_context: :decorator, type: Array,
+               desc: 'IDs of runs that belong to this job'
+      def runs
+        represented.runs.map {|run| run.id.to_s rescue ''}
+      end
+
+      property :ingest_model, exec_context: :decorator, type: String,
+               desc: 'ID of the ingest model that is associated to this job'
+      def ingest_model
+        represented.ingest_model.id.to_s rescue ''
+      end
     end
 
     # noinspection RubyResolve

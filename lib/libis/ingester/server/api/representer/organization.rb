@@ -25,7 +25,8 @@ module Libis::Ingester::API::Representer
         end
       end
 
-      property :users, as: :user_ids, exec_context: :decorator, type: Array, desc: 'list of IDs of users that belong to this organization'
+      property :users, exec_context: :decorator, type: Array,
+               desc: 'list of IDs of users that belong to this organization'
       def users
         represented.users.map { |user| user.id.to_s }
       end
@@ -33,9 +34,15 @@ module Libis::Ingester::API::Representer
       def users=(users)
         represented.users.clear
         users.each do |user_id|
-          user = Libis::Ingester::User.find(user_id)
+          user = Libis::Ingester::User.find_by(id: user_id)
           represented.users << user
         end if users
+      end
+
+      property :jobs, writeable: false, exec_context: :decorator, type: Array,
+               desc: 'list of IDs of Jobs defined for this organization'
+      def jobs
+        represented.jobs.map { |job| job.id.to_s rescue ''}
       end
 
     end

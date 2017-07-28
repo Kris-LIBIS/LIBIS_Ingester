@@ -10,16 +10,25 @@ module Libis::Ingester::API::Representer
     attributes do
       property :name, type: String, desc: 'user name'
       property :role, type: String, desc: 'user role'
-      property :orgs, as: :organization_ids, exec_context: :decorator,
-               type: Array, desc: 'list of IDs of organizations the user belongs to'
-      def orgs
-        represented.organizations.map { |org| org.id.to_s }
+
+      property :password, exec_context: :decorator, type: String, desc: 'user password'
+      def password
+        '******'
+      end
+      def password=(pwd)
+        represented.password = pwd unless /^\**$/ =~ pwd
       end
 
-      def orgs=(orgs)
+      property :organizations, exec_context: :decorator, type: Array,
+               desc: 'list of IDs of organizations the user belongs to'
+      def organizations
+        represented.organizations.map { |org| org.id.to_s  rescue ''}
+      end
+
+      def organizations=(orgs)
         represented.organizations.clear
         orgs.each do |org_id|
-          org = Libis::Ingester::Organization.find(org_id)
+          org = Libis::Ingester::Organization.find_by(id: org_id)
           represented.organizations << org
         end if orgs
       end

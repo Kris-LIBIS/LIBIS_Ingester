@@ -25,11 +25,11 @@ module Libis::Ingester
     helpers do
 
       def user(id = nil)
-        Libis::Ingester::User.find(id || params[:usr_id])
+        Libis::Ingester::User.find_by(id: id || params[:usr_id])
       end
 
       def organization(id = nil)
-        Libis::Ingester::Organization.find(id || params[:org_id])
+        Libis::Ingester::Organization.find_by(id: id || params[:org_id])
       end
 
     end

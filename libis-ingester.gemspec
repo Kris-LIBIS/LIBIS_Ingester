@@ -43,7 +43,6 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'roo'
   spec.add_runtime_dependency 'roo-xls'
   spec.add_runtime_dependency 'mail'
-  spec.add_runtime_dependency 'jwt'
 
   # server requirements
   spec.add_runtime_dependency 'puma'
@@ -60,6 +59,7 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'grape-swagger-representable'
   spec.add_runtime_dependency 'virtus'
   spec.add_runtime_dependency 'uri-query_params'
+  spec.add_runtime_dependency 'rack-jwt'
 
   spec.add_development_dependency 'bundler', '~> 1.7'
   spec.add_development_dependency 'rake', '~> 10.0'

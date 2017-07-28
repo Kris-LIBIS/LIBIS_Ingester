@@ -21,6 +21,12 @@ module Libis::Ingester::API::Representer
       property :status_log, type: Array, desc: 'list of status updates'
 
       property :ingest_dir, writable: false, type: String, desc: 'ingest dir'
+
+      property :items, writeable: false, exec_context: :decorator, type: Array,
+               desc: 'IDs of items that belong to this run'
+      def items
+        represented.items.map { |item| item.id.to_s  rescue ''}
+      end
     end
 
     link :job do |opts|

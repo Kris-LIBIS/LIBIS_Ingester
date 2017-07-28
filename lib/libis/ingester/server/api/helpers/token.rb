@@ -30,4 +30,17 @@ module Libis::Ingester::API::TokenHelper
     jwt_encode(payload)
   end
 
+  def jwt_usertoken(user)
+    jwt_encode({user: {id: user.id.to_s, name: user.name, role: user.role}})
+  end
+
+  def jwt_tokenuser(token)
+    payload = jwt_decode(token)
+    user = Libis::Ingester::User.find_by(id: payload.id)
+  end
+
+  def current_user()
+
+  end
+
 end
