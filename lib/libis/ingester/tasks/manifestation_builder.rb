@@ -125,7 +125,7 @@ module Libis
       def generate_thumbnail(items, representation, convert_hash)
         source_id = representation.parent.properties['thumbnail_source']
         source_item = items.find_by('options.use_as_thumbnail' => true)
-        source_item ||= source_id ? FileItem.find(source_id) : items.first
+        source_item ||= source_id ? FileItem.find_by(id: source_id) : items.first
         convert(source_item, representation, convert_hash)
       end
 

@@ -157,7 +157,7 @@ end
 def payload_detail(payload_args)
   payload_args.map do |arg|
     next arg.to_s unless arg.is_a?(String)
-    run = Libis::Ingester::Run.find(arg)
+    run = Libis::Ingester::Run.find_by(id: arg)
     next run.name if run
     arg
   end.join(', ')
