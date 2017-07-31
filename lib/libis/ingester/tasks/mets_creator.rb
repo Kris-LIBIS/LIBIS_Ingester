@@ -118,6 +118,12 @@ module Libis
 
         ie_ingest_dir = File.join @ingest_dir, item.properties['ingest_sub_dir']
 
+        sip_dc = Libis::Tools::Metadata::DublinCoreRecord.new do |xml|
+          xml[:dc].title = "#{item.get_run.name} - #{item.namepath}"
+        end
+
+        sip_dc.save(File.join(ie_ingest_dir, 'content', 'dc.xml'))
+
         item.representations.each {|rep| add_rep(mets, rep, ie_ingest_dir)}
 
         mets_filename = File.join(ie_ingest_dir, 'content', "#{item.name}.xml")
