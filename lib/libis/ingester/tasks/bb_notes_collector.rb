@@ -31,6 +31,9 @@ module Libis
           warning messages. If files are referenced that have previously been referenced (even by other HTML files) are
           reported with warning messages and ignored.
 
+        The value of the parameters 'collection_navigate' and 'collection_publish' set the respective properties of
+        the newly created collections.
+
         Finally, for each HTML file a new IE is created and the HTML and all referenced files are added to it.
 
         This collector may throw a lot of warning messages as many things go wrong in the Lotus Notes exports. It has
@@ -46,6 +49,10 @@ module Libis
                 description: 'Subdirectory to start processing. Should be equal to or subdirectory of root_dir.'
       parameter csv_file: 'export.csv',
                 description: 'CSV file with export list.'
+      parameter collection_navigate: false,
+                description: 'Allow navigation through the collections.'
+      parameter collection_publish: false,
+                description: 'Publish the collections.'
 
       parameter item_types: [Libis::Ingester::Run], frozen: true
 
@@ -80,6 +87,8 @@ module Libis
               child = Libis::Ingester::Collection.new
               child.filename = dir_path
               child.parent = root
+              child.navigate = parameter(:collection_navigate)
+              child.publish = parameter(:collection_publish)
               debug 'Created Collection item `%s`', root, child.name
               child.save!
             end
