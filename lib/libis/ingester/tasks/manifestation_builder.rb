@@ -251,7 +251,6 @@ module Libis
               check_list = [type_id, group].compact.map {|v| [v.to_s, v.to_sym]}.flatten
               if (convert_hash[:source_formats] & check_list).empty?
                 debug 'File item format (%s) does not match conversion criteria (%s)', check_list.to_s, convert_hash[:source_formats].to_s
-
                 return
               end
             end
