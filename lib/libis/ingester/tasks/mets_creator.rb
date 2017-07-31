@@ -4,6 +4,7 @@ require 'fileutils'
 require 'libis/ingester'
 require 'libis/tools/metadata/marc21_record'
 require 'libis/tools/metadata/mappers/kuleuven'
+require 'libis/tools/checksum'
 
 module Libis
   module Ingester
@@ -174,7 +175,7 @@ module Libis
         target_path = File.join(stream_dir, file.target)
         if parameter(:copy_files)
           if File.exists?(target_path)
-            unless Checksum.hexdigest(target_path, :MD5) == item.properties['checksum_md5']
+            unless Libis::Tools::Checksum.hexdigest(target_path, :MD5) == item.properties['checksum_md5']
               raise Libis::WorkflowError, 'Target file (%s) already exists with different content.' % [target_path]
             end
             debug "File copy of #{item.fullpath} skipped."
@@ -184,7 +185,7 @@ module Libis
           end
         else
           if File.exists?(target_path)
-            unless Checksum.hexdigest(target_path, :MD5) == item.properties['checksum_md5']
+            unless Libis::Tools::Checksum.hexdigest(target_path, :MD5) == item.properties['checksum_md5']
               raise Libis::WorkflowError, 'Target link (%s) already exists with different content.' % [target_path]
             end
             debug "File linking of #{item.fullpath} skipped."
