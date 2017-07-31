@@ -17,6 +17,10 @@ module Libis
         self.properties['name'] = File.basename(f)
       end
 
+      def pid
+        this.properties[:collection_id] ? "col#{this.properties[:collection_id]}" : nil
+      end
+
       def collections
         self.items.select { |item| item.is_a? ::Libis::Ingester::Collection }
       end
