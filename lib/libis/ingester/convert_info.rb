@@ -14,6 +14,7 @@ module Libis
       field :target_format
       field :options, type: Array
       field :from_manifestation
+      field :copy_file, type: Boolean
 
       embedded_in :manifestation, class_name: Libis::Ingester::Manifestation.to_s
 
