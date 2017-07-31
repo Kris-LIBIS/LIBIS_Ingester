@@ -241,7 +241,10 @@ module Libis
             type_id = Libis::Format::TypeDatabase.mime_types(mimetype).first
 
             unless convert_hash[:source_formats].blank?
-              raise Libis::WorkflowError, 'File item %s format (%s) is not supported.' % [item, mimetype] unless type_id
+              unless type_id
+                warn 'Ignoring file item with unsupported file format (%s) in format conversion.' % [item, mimetype]
+                return
+              end
               group = Libis::Format::TypeDatabase.type_group(type_id)
               check_list = [type_id, group].compact.map {|v| [v.to_s, v.to_sym]}.flatten
               return if (convert_hash[:source_formats] & check_list).empty?
