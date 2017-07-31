@@ -64,6 +64,8 @@ module Libis
         # Perform each conversion
         manifestation.convert_infos.each do |convert_info|
 
+          debug 'Processing convert_info [%s]', convert_info.to_hash.to_s
+
           # Get the source files
           # - either from the given representation
           # - or the originals
@@ -242,12 +244,16 @@ module Libis
 
             unless convert_hash[:source_formats].blank?
               unless type_id
-                warn 'Ignoring file item with unsupported file format (%s) in format conversion.' % [item, mimetype]
+                warn 'Ignoring file item (%s) with unsupported file format (%s) in format conversion.' % [item, mimetype]
                 return
               end
               group = Libis::Format::TypeDatabase.type_group(type_id)
               check_list = [type_id, group].compact.map {|v| [v.to_s, v.to_sym]}.flatten
-              return if (convert_hash[:source_formats] & check_list).empty?
+              if (convert_hash[:source_formats] & check_list).empty?
+                debug 'File item format (%s) does not match conversion criteria (%s)', check_list.to_s, convert_hash[:source_formats].to_s
+
+                return
+              end
             end
 
             if convert_hash[:target_format].blank?
