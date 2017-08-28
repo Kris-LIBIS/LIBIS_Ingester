@@ -118,11 +118,11 @@ module Libis
 
         ie_ingest_dir = File.join @ingest_dir, item.properties['ingest_sub_dir']
 
-        FileUtils.makedirs(ie_ingest_dir)
-
         sip_dc = Libis::Tools::Metadata::DublinCoreRecord.new do |xml|
           xml[:dc].title = "#{item.get_run.name} - #{item.namepath}"
         end
+
+        FileUtils.makedirs(File.join(ie_ingest_dir, 'content'))
 
         sip_dc.save(File.join(ie_ingest_dir, 'content', 'dc.xml'))
 
