@@ -338,8 +338,8 @@ module Libis
           begin
             src_file, converter = convert_one_file(src_file, tgt_file, src_format, tgt_format, opts)
           rescue Exception => e
-            raise Libis::WorkflowError, "File conversion of '%s' from '%s' to '%s' failed: %s",
-                  [src_file, src_format, tgt_format, e.message]
+            raise Libis::WorkflowError, "File conversion of '%s' from '%s' to '%s' failed: %s" %
+                [src_file, src_format, tgt_format, e.message]
           end
           src_format = tgt_format
           converterlist << converter
