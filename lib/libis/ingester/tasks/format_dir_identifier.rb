@@ -3,14 +3,16 @@
 require 'libis/ingester'
 require 'libis-format'
 
+require 'awesome_print'
+
 module Libis
   module Ingester
 
-    class FormatIdentifier < ::Libis::Ingester::Task
+    class FormatDirIdentifier < ::Libis::Ingester::Task
 
       taskgroup :preprocessor
 
-      description 'Tries to determine the format of the files found.'
+      description 'Tries to determine the format of all files in a directories.'
 
       help <<-STR.align_left
         This task will perform the format identification on each FileItem object in the ingest run. It relies completely
@@ -18,14 +20,22 @@ module Libis
         MIME type 'application/octet-stream' will be set and a warning message is logged.
       STR
 
+      parameter folder: nil,
+                description: 'Directory with files that need to be idententified'
+      parameter deep_scan: true,
+                description: 'Also identify files recursively in subfolders?'
+
+
       parameter item_types: [Libis::Ingester::Run], frozen: true
-      parameter recursive: true
+      parameter recursive: false
 
       protected
 
       def process(item)
-        file_list = collect_filepaths(item)
-        format_list = Libis::Format::Identifier.get(file_list)
+        unless File.directory?(parameter(:folder))
+          raise Libis::WorkflowAbort, "Value of 'folder' parameter in FormatDirIngester should be a directory name."
+        end
+        format_list = Libis::Format::Identifier.get(parameter(:folder),recursive: parameter(:deep_scan))
         format_list[:messages].each do |msg|
           case msg[0]
             when :debug
@@ -41,14 +51,13 @@ module Libis
           end
         end
         apply_formats(item, format_list[:formats])
-      rescue => e
-        raise Libis::WorkflowAbort, "Error during Format identification: #{e.message} @ #{e.backtrace.first}"
       end
 
       def apply_formats(item, format_list)
 
         if item.is_a? Libis::Ingester::FileItem
           filepath = File.absolute_path(item.fullpath)
+          # ap "Filepath:", filepath
           format = format_list[filepath]
           if format.empty?
             warn "Could not determine MIME type. Using default 'application/octet-stream'.", item
@@ -56,7 +65,7 @@ module Libis
             debug "MIME type '#{format[:mimetype]}' detected.", item
           end
           item.properties['mimetype'] = format[:mimetype] || 'application/octet-stream'
-          item.properties['puid'] = format[:puid] || 'fmt/unknown'
+          item.properties['puid'] = format[:puid]
           item.properties['format_identification'] = format
         else
           item.each do |subitem|
@@ -64,13 +73,6 @@ module Libis
           end
         end
 
-      end
-
-      def collect_filepaths(item)
-        return File.absolute_path(item.fullpath) if item.is_a? Libis::Ingester::FileItem
-        item.map do |subitem|
-          collect_filepaths(subitem)
-        end.flatten.compact
       end
 
     end
