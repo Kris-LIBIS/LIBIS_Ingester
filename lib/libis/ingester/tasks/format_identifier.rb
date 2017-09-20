@@ -48,8 +48,7 @@ module Libis
       def apply_formats(item, format_list)
 
         if item.is_a? Libis::Ingester::FileItem
-          filepath = File.absolute_path(item.fullpath)
-          format = format_list[filepath]
+          format = format_list[item.fullpath]
           if format.empty?
             warn "Could not determine MIME type. Using default 'application/octet-stream'.", item
           else

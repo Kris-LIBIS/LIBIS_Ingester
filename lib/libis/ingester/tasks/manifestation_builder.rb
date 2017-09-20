@@ -152,9 +152,9 @@ module Libis
           options = convert_hash[:options] if convert_hash[:options] && convert_hash[:options].is_a?(Hash)
           options = convert_hash[:options].first if convert_hash[:options] && convert_hash[:options].is_a?(Array)
           sources = sources.map do |source|
-            format = Libis::Format::Identifier.get(source) rescue {}
-            source_format = Libis::Format::TypeDatabase.mime_types(format[:mimetype]).first
-            convert_file(source, nil, source_format, source_format, options)[0]
+            source_file = source.fullpath
+            source_format = Libis::Format::TypeDatabase.mime_types(source.properties[:mimetype]).first
+            convert_file(source_file, nil, source_format, source_format, options)[0]
           end if options
           Libis::Format::Converter::ImageConverter.new.assemble_and_convert(sources, new_file, target_format)
           sources.each {|f| FileUtils.rm_f f} if options
@@ -169,7 +169,8 @@ module Libis
                            "#{representation.parent.name}_#{convert_hash[:name]}"
         }.pdf"
         assemble(items, representation, [:PDF], file_name, convert_hash[:id]) do |sources, new_file|
-          Libis::Format::PdfMerge.run(sources, new_file)
+          source_files = sources.map {|file| file.fullpath}
+          Libis::Format::PdfMerge.run(source_files, new_file)
           unless convert_hash[:options].blank?
             convert_file(new_file, new_file, :PDF, :PDF, convert_hash[:options])
           end
@@ -193,9 +194,7 @@ module Libis
           match_file(file, formats)
         end
 
-        sources = source_files.map {|file| file.fullpath}
-
-        return if sources.empty?
+        return if source_files.empty?
 
         new_file = File.join(
             representation.get_run.work_dir,
@@ -205,8 +204,8 @@ module Libis
 
         FileUtils.mkpath(File.dirname(new_file))
 
-        debug 'Building %s for %s from %d source files', new_file, representation.name, sources.count
-        yield sources, new_file
+        debug 'Building %s for %s from %d source files', new_file, representation.name, source_files.count
+        yield source_files, new_file
 
         FileUtils.chmod('a+rw', new_file)
 
@@ -378,17 +377,27 @@ module Libis
       end
 
       def format_identifier(item)
-        format = (Libis::Format::Identifier.get(item.fullpath) || {}) rescue {}
-
-        mimetype = format[:mimetype]
-
-        unless mimetype
-          warn "Could not determine MIME type. Using default 'application/octet-stream'."
-          mimetype = 'application/octet-stream'
+        result = Libis::Format::Identifier.get(item.fullpath, tool: :fido) || {}
+        result[:messages].each do |msg|
+          case msg[0]
+            when :debug
+              debug msg[1], item
+            when :info
+              info msg[1], item
+            when :error
+              error msg[1], item
+            when :fatal
+              fatal_error msg[1], item
+            else
+              info "#{msg[0]}: #{msg[1]}", item
+          end
         end
 
-        item.properties['mimetype'] = mimetype
+        format = result[:formats][item.fullpath]
+
+        item.properties['mimetype'] = format[:mimetype]
         item.properties['puid'] = format[:puid]
+        item.properties['format_identification'] = format
       end
 
       def tempname(source_file, target_format)
