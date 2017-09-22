@@ -74,6 +74,12 @@ module Libis
         dir_name = File.basename(dir)
         debug 'Processing dir %s', dir_name
 
+        # Check if we already created an IE for this directory
+        if (item = work_item.items.find_by(name: dir_name))
+          debug "Skipping dir %s as it is already processed: IE exists in run '%s'", dir_name, item.properties[:title]
+          return
+        end
+
         # Copy all files to local work dir
         work_dir = File.join(@work_dir, dir_name)
         FileUtils.mkpath(work_dir)
@@ -112,9 +118,10 @@ module Libis
         ar_extension = embargo == 0 ? (pub ? 'PUBLIC' : 'IP-RESTRICTED') : 'PROTECTED'
         ar_name = "AR_MT_#{instelling_id}_#{ar_extension}"
         unless Libis::Ingester::AccessRight.find_by(name: ar_name)
-          raise Libis::WorkflowError, "AccessRight #{ar_name} not found."
+          error "AccessRight #{ar_name} not found.", workitem
+          set_status(workitem, :FAILED)
+          return
         end
-
 
         # Create IE for thesis
         ie_item = Libis::Ingester::IntellectualEntity.new
@@ -134,7 +141,7 @@ module Libis
 
         # Save item
         workitem << ie_item
-        ie_item.save!
+
         debug 'Added IE %s \'%s\'', dir_name, ie_item.properties[:title]
 
         # add files to IE
