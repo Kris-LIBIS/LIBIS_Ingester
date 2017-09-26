@@ -75,7 +75,7 @@ module Libis
         debug 'Processing dir %s', dir_name
 
         # Check if we already created an IE for this directory
-        if (item = work_item.items.find_by(name: dir_name))
+        if (item = workitem.items.find_by(name: dir_name))
           debug 'Skipping dir %s as it is already processed: IE exists in run', dir_name
           return
         end
