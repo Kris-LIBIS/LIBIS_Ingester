@@ -62,7 +62,7 @@ module Libis
         unless @collection_service
           rosetta = Libis::Services::Rosetta::Service.new(
               Libis::Ingester::Config.base_url, Libis::Ingester::Config.pds_url,
-              log: Libis::Ingester::Config.logger, log_level: :debug
+              logger: Libis::Ingester::Config.logger, log_level: :debug, log: false
           )
 
           producer_info = item.get_run.producer
@@ -80,6 +80,7 @@ module Libis
         else
           collection_id = create_collection_id(parent_id, collection_list, item.label, item.navigate, item.publish, item)
           debug "Created collection '#{item.label}' with id #{collection_id} in Rosetta.", item
+          item.properties['new'] = true
         end
         item.properties['collection_id'] = collection_id
       end
