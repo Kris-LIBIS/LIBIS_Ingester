@@ -18,13 +18,16 @@ module Libis
         MIME type 'application/octet-stream' will be set and a warning message is logged.
       STR
 
+      parameter format_options: {}, type: 'hash',
+                description: 'Set of options to pass on to the format identifier tool'
+
       parameter item_types: [Libis::Ingester::FileItem], frozen: true
       parameter recursive: true
 
       protected
 
       def process(item)
-        result = Libis::Format::Identifier.get(item.fullpath, formats: parameter(:formats))
+        result = Libis::Format::Identifier.get(item.fullpath, parameter(:format_options).key_strings_to_symbols)
         format = result[:formats][item.fullpath]
         mimetype = format[:mimetype]
 

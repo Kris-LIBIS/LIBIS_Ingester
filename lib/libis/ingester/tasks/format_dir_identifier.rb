@@ -4,8 +4,6 @@ require 'libis/ingester'
 require 'libis-format'
 require 'libis/tools/extend/hash'
 
-require 'awesome_print'
-
 module Libis
   module Ingester
 
@@ -38,8 +36,6 @@ module Libis
           raise Libis::WorkflowAbort, "Value of 'folder' parameter in FormatDirIngester should be a directory name."
         end
         options = {recursive: parameter(:deep_scan)}.merge(parameter(:format_options)).key_strings_to_symbols
-        ap 'Options:'
-        ap options
         format_list = Libis::Format::Identifier.get(parameter(:folder), options)
         format_list[:messages].each do |msg|
           case msg[0]
@@ -57,7 +53,6 @@ module Libis
               info "#{msg[0]}: #{msg[1]}", item
           end
         end
-        ap format_list[:formats]
         apply_formats(item, format_list[:formats])
       end
 
@@ -65,9 +60,7 @@ module Libis
 
         if item.is_a? Libis::Ingester::FileItem
           filepath = File.absolute_path(item.fullpath)
-          ap "Filepath: #{filepath}"
           format = format_list[filepath]
-          ap format
           if format.empty?
             warn "Could not determine MIME type. Using default 'application/octet-stream'.", item
           else
