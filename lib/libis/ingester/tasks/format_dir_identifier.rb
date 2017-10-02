@@ -24,7 +24,7 @@ module Libis
                 description: 'Directory with files that need to be idententified'
       parameter deep_scan: true,
                 description: 'Also identify files recursively in subfolders?'
-      parameter format_options: {},
+      parameter format_options: {}, type: 'hash',
                 description: 'Set of options to pass on to the format identifier tool'
 
       parameter item_types: [Libis::Ingester::Run], frozen: true
