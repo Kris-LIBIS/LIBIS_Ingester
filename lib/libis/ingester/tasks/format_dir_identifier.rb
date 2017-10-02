@@ -24,7 +24,8 @@ module Libis
                 description: 'Directory with files that need to be idententified'
       parameter deep_scan: true,
                 description: 'Also identify files recursively in subfolders?'
-
+      parameter format_options: {},
+                description: 'Set of options to pass on to the format identifier tool'
 
       parameter item_types: [Libis::Ingester::Run], frozen: true
       parameter recursive: false
@@ -35,13 +36,18 @@ module Libis
         unless File.directory?(parameter(:folder))
           raise Libis::WorkflowAbort, "Value of 'folder' parameter in FormatDirIngester should be a directory name."
         end
-        format_list = Libis::Format::Identifier.get(parameter(:folder),recursive: parameter(:deep_scan))
+        options = {recursive: parameter(:deep_scan)}.merge(parameter(:format_options))
+        ap 'Options:'
+        ap options
+        format_list = Libis::Format::Identifier.get(parameter(:folder), options)
         format_list[:messages].each do |msg|
           case msg[0]
             when :debug
               debug msg[1], item
             when :info
               info msg[1], item
+            when :warn
+              warn msg[1], item
             when :error
               error msg[1], item
             when :fatal
@@ -57,8 +63,9 @@ module Libis
 
         if item.is_a? Libis::Ingester::FileItem
           filepath = File.absolute_path(item.fullpath)
-          # ap "Filepath:", filepath
+          ap "Filepath: #{filepath}"
           format = format_list[filepath]
+          ap format
           if format.empty?
             warn "Could not determine MIME type. Using default 'application/octet-stream'.", item
           else
