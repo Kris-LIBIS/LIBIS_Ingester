@@ -2,6 +2,7 @@
 
 require 'libis/ingester'
 require 'libis-format'
+require 'libis/tools/extend/hash'
 
 require 'awesome_print'
 
@@ -36,7 +37,7 @@ module Libis
         unless File.directory?(parameter(:folder))
           raise Libis::WorkflowAbort, "Value of 'folder' parameter in FormatDirIngester should be a directory name."
         end
-        options = {recursive: parameter(:deep_scan)}.merge(parameter(:format_options))
+        options = {recursive: parameter(:deep_scan)}.merge(parameter(:format_options)).key_strings_to_symbols
         ap 'Options:'
         ap options
         format_list = Libis::Format::Identifier.get(parameter(:folder), options)
@@ -56,6 +57,7 @@ module Libis
               info "#{msg[0]}: #{msg[1]}", item
           end
         end
+        ap format_list[:formats]
         apply_formats(item, format_list[:formats])
       end
 
