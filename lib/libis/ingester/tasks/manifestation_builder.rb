@@ -384,6 +384,8 @@ module Libis
               debug msg[1], item
             when :info
               info msg[1], item
+            when :warn
+              warn msg[1], item
             when :error
               error msg[1], item
             when :fatal
