@@ -31,7 +31,9 @@ module Libis
       STR
 
       parameter group_regex: nil,
-                description: 'Regular expression for matching against the file names; nothing happens if nil.'
+                description: 'Regular expression for matching; nothing happens if nil.'
+      parameter group_source: 'item.filename',
+                description: 'The ruby expression of the value we should use for the matching.'
       parameter collection_label: nil,
                 description: 'A Ruby expression for the collection path to put the target in.'
       parameter group_label: nil,
@@ -54,7 +56,7 @@ module Libis
 
       def process(item)
         grouping = parameter(:group_regex)
-        if grouping && item.filename =~ Regexp.new(grouping)
+        if grouping && eval(parameter(:group_source)) =~ Regexp.new(grouping)
           collections = eval(parameter(:collection_label)).to_s.split('/') rescue []
           target_parent = item.parent
           collections.each do |collection|
