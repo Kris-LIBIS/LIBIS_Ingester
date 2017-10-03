@@ -35,7 +35,10 @@ module Libis
         unless File.directory?(parameter(:folder))
           raise Libis::WorkflowAbort, "Value of 'folder' parameter in FormatDirIngester should be a directory name."
         end
-        options = {recursive: parameter(:deep_scan)}.merge(parameter(:format_options)).key_strings_to_symbols
+        options = {
+            recursive: parameter(:deep_scan),
+            base_dir: parameter(:folder)
+        }.merge(parameter(:format_options).key_strings_to_symbols)
         format_list = Libis::Format::Identifier.get(parameter(:folder), options)
         format_list[:messages].each do |msg|
           case msg[0]
@@ -59,8 +62,9 @@ module Libis
       def apply_formats(item, format_list)
 
         if item.is_a? Libis::Ingester::FileItem
-          filepath = File.absolute_path(item.fullpath)
-          format = format_list[filepath]
+          format = format_list[File.absolute_path(item.fullpath)] ||
+              format_list[item.namepath] ||
+              format_list[item.filename]
           if format.empty?
             warn "Could not determine MIME type. Using default 'application/octet-stream'.", item
           else
