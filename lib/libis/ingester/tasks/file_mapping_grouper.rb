@@ -4,7 +4,7 @@ require_relative 'base/mapping'
 module Libis
   module Ingester
 
-    class FileMappiongGrouper < Libis::Ingester::Task
+    class FileMappingGrouper < Libis::Ingester::Task
       include Libis::Ingester::Base::Mapping
 
       taskgroup :preingester
