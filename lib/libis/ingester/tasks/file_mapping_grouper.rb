@@ -24,7 +24,7 @@ module Libis
       parameter file_label_field: nil,
                 description: 'The name of the column in the mapping table that contains the label of the file. ' +
                     'Optional. If omitted, the file label will not be set and defaults to the file name.'
-      parameter group_field: 'IE',
+      parameter group_field: nil,
                 description: 'The name of the column in the mapping table that contains the name of the IE. ' +
                     'Optional. If omitted, there files will not be grouped into IEs.'
       parameter collection_field: nil,
