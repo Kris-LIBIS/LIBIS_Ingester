@@ -62,8 +62,10 @@ module Libis
           case parameter(:mapping_format)
             when 'csv'
               options[:col_sep] = ','
+              options[:extension] = 'csv'
             when 'tsv'
               options[:col_sep] = "\t"
+              options[:extension] = 'csv'
             else
               # do nothing
           end
