@@ -41,9 +41,9 @@ module Libis
       def apply_options(opts)
         super(opts)
         required = Set.new(parameter(:required_fields))
-        required << parameter(:group_field)
+        required << parameter(:group_field) if parameter(:group_field)
         required << parameter(:file_label_field) if parameter(:file_label_field)
-        required << parameter(:collection_field) if parameter(:file_label_field)
+        required << parameter(:collection_field) if parameter(:collection_field)
         set = Set.new(parameter(:mapping_headers))
         set += required
         required = [parameter(:mapping_key)] + required.to_a
