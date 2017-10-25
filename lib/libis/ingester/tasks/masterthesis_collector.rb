@@ -40,6 +40,8 @@ module Libis
 
       protected
 
+      KUL_ID = '50000050'
+
       # Process the input directory on the FTP server for new material
       # @param [Libis::Ingester::Run] item
       def process(item)
@@ -75,7 +77,7 @@ module Libis
         debug 'Processing dir %s', dir_name
 
         # Check if we already created an IE for this directory
-        if (item = workitem.items.find_by(name: dir_name))
+        if workitem.items.find_by(name: dir_name)
           debug 'Skipping dir %s as it is already processed: IE exists in run', dir_name
           return
         end
@@ -113,7 +115,7 @@ module Libis
         # Check AccessRight
         embargo = xml_doc['//embargo'].to_i
         pub = !(xml_doc.embargo('isPubliek').blank?)
-        instelling_id = xml_doc['//instellingId'] || '50000050'
+        instelling_id = xml_doc['//instellingId'] || KUL_ID
         # noinspection RubyNestedTernaryOperatorsInspection
         ar_extension = embargo == 0 ? (pub ? 'PUBLIC' : 'IP-RESTRICTED') : 'PROTECTED'
         ar_name = "AR_MT_#{instelling_id}_#{ar_extension}"
@@ -136,7 +138,7 @@ module Libis
         # Build Dublin Core record from the rest of the XML
         ie_item.metadata_record_attributes = {
             format: 'DC',
-            data: create_metadata(proef, dir_name).to_xml
+            data: create_metadata(proef, dir_name, instelling_id).to_xml
         }
 
         # Save item
@@ -234,17 +236,18 @@ module Libis
       # noinspection RubyResolve
       # @param [Nokogiri::XML::Node] proef source xml data
       # @param [String] id identifier
-      def create_metadata(proef, id)
+      def create_metadata(proef, id, instelling_id)
+        kul_master = (instelling_id == KUL_ID)
         pub_date = DateTime.now.year
         xml = ::Libis::Tools::Metadata::DublinCoreRecord.new
         xml.identifier = "#{id}"
         xml.title = proef.at('titel1').at('tekst').text.strip
         add_node(xml, :creator) {"#{proef.at('stdnaam').text.strip}, #{proef.at('stdvoornaam').text.strip} (author)"}
-        add_node(xml, :description) {"Dissertation note: Diss Master (#{proef.at('opleidingnaam').text.strip})"}
+        add_node(xml, :description) {"Dissertation note: Diss #{kul_master ? 'Master ': ''}(#{proef.at('opleidingnaam').text.strip})"}
         add_node(xml, :publisher) {
           "#{parameter(:dc_location)}: #{parameter(:dc_institution)}. " +
               "#{proef.at('faculteitnaam').text.strip}, #{pub_date}"
-        }
+        } if kul_master
         proef.xpath('promotoren/promotor').each do |promotor|
           add_node(xml, 'contributor!') {
             "#{promotor.at('naam').text.strip}, #{promotor.at('voornaam').text.strip} (thesis advisor)"
@@ -258,12 +261,8 @@ module Libis
         xml.source = "#{id}"
         add_node(xml, :rights) {
           "#{parameter(:dc_institution)}. #{proef.at('faculteitnaam').text.strip} (degree grantor)"
-        }
+        } if kul_master
         xml.date = "#{pub_date}"
-        xml.type! 'BK'
-        xml.type! 'Dissertation'
-        xml.type! 'Academic collection'
-        xml.type! 'ETD_KUL'
         xml
       end
 
