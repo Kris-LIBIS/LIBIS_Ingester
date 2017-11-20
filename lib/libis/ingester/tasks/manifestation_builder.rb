@@ -170,7 +170,7 @@ module Libis
         }.pdf"
         assemble(items, representation, [:PDF], file_name, convert_hash[:id]) do |sources, new_file|
           source_files = sources.map {|file| file.fullpath}
-          Libis::Format::PdfMerge.run(source_files, new_file)
+          Libis::Format::Tool::PdfMerge.run(source_files, new_file)
           unless convert_hash[:options].blank?
             convert_file(new_file, new_file, :PDF, :PDF, convert_hash[:options])
           end
