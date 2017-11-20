@@ -1,5 +1,6 @@
 require 'libis-ingester'
 require 'libis-tools'
+require 'libis-format'
 require 'libis/tools/extend/hash'
 
 require 'sidekiq'
@@ -49,7 +50,7 @@ module Libis
 
         if @config.format_config
           Libis::Format::TypeDatabase.instance.load_types(@config.format_config.type_database) if @config.format_config.type_database
-          Libis::Format::Fido.add_format(@config.format_config.fido_formats) if @config.format_config.fido_formats
+          Libis::Format::Tools::Fido.add_format(@config.format_config.fido_formats) if @config.format_config.fido_formats
         end
 
         self

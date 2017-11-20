@@ -3,6 +3,7 @@
 require 'date'
 
 lib = File.expand_path('../lib', __FILE__)
+# noinspection RubyResolve
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 require 'libis/ingester/version'
@@ -29,7 +30,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ['lib']
 
   spec.add_runtime_dependency 'libis-tools', '~> 0.9'
-  spec.add_runtime_dependency 'libis-format', '~> 0.9.38'
+  spec.add_runtime_dependency 'libis-format', '~> 0.9.44'
   spec.add_runtime_dependency 'libis-services', '~> 0.0'
   spec.add_runtime_dependency 'libis-workflow-mongoid', '~> 2.0.beta'
   spec.add_runtime_dependency 'mongoid-enum', '~> 0.3'
