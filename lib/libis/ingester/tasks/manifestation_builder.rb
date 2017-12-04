@@ -40,7 +40,12 @@ module Libis
           end
           set_status(rep, :STARTED)
           build_manifestation(rep, manifestation)
-          set_status(rep, :DONE)
+          if rep.items.size == 0
+            error "Representation is empty.", rep
+            set_status(rep, :FAILED)
+          else
+            set_status(rep, :DONE)
+          end
           item.status_progress(self.namepath)
         end
 
