@@ -43,6 +43,7 @@ module Libis
           if rep.items.size == 0
             error "Representation is empty.", rep
             set_status(rep, :FAILED)
+            raise Libis::WorkflowError, 'Could not find content for representation %s.' % rep.name
           else
             set_status(rep, :DONE)
           end
