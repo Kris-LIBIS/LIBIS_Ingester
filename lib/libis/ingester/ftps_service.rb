@@ -124,6 +124,7 @@ module Libis
       def connect
         ftp_service.open_timeout = 10.0
         ftp_service.ftps_mode = DoubleBagFTPS::EXPLICIT
+        ftp_service.ssl_context = DoubleBagFTPS.create_ssl_context(verify_mode: OpenSSL::SSL::VERIFY_NONE)
         ftp_service.connect(host, port)
         ftp_service.login user, password
         ftp_service.passive = true
