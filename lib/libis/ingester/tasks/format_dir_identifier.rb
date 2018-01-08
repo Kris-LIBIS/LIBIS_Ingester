@@ -3,6 +3,7 @@
 require 'libis/ingester'
 require 'libis-format'
 require 'libis/tools/extend/hash'
+require 'yard/core_ext/file'
 
 module Libis
   module Ingester

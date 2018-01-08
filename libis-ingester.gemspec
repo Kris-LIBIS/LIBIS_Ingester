@@ -44,6 +44,7 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'roo'
   spec.add_runtime_dependency 'roo-xls'
   spec.add_runtime_dependency 'mail'
+  spec.add_runtime_dependency 'yard'
 
   # server requirements
   spec.add_runtime_dependency 'puma'
