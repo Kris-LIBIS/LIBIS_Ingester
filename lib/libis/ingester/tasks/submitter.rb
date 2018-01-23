@@ -34,13 +34,14 @@ module Libis
           return
         end
         debug "Found ingestable item. Subdir: #{item.properties['ingest_sub_dir']}", item
-        # noinspection RubyResolve
-        rosetta = Libis::Services::Rosetta::Service.new(Libis::Ingester::Config.base_url, Libis::Ingester::Config.pds_url)
-        producer_info = item.get_run.producer
-        rosetta.login(producer_info[:agent], producer_info[:password], producer_info[:institution])
+        unless @deposit_service
+          @deposit_service = Libis::Services::Rosetta::DepositHandler.new(Libis::Ingester::Config.base_url)
+          producer_info = item.get_run.producer
+          @deposit_service.authenticate(producer_info[:agent], producer_info[:password], producer_info[:institution])
+        end
 
         begin
-          deposit_result = rosetta.deposit_service.submit(
+          deposit_result = @deposit_service.submit(
               item.get_run.material_flow,
               File.join(item.get_run.ingest_sub_dir, item.properties['ingest_sub_dir']),
               producer_info[:id],

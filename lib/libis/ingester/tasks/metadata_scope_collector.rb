@@ -11,19 +11,24 @@ module Libis
     class MetadataScopeCollector < ::Libis::Ingester::MetadataSearchCollector
 
       parameter converter: 'Scope'
+      parameter term_type: 'REPCODE',
+                desrciption: 'Type of term value that will be passed',
+                constraint: %w(REPCODE ID)
 
       protected
 
       def search(term)
-        scope = ::Libis::Services::Scope::Search.new
-        scope.connect(
-            ::Libis::Ingester::Config['scope_user'],
-            ::Libis::Ingester::Config['scope_passwd']
-        )
+        unless @scope
+          @scope = ::Libis::Services::Scope::Search.new
+          @scope.connect(
+              ::Libis::Ingester::Config['scope_user'],
+              ::Libis::Ingester::Config['scope_passwd']
+          )
+        end
 
-        scope.query(term)
+        @scope.query(term, type: parameter(:type))
 
-        scope.next_record { |doc| return ::Libis::Tools::Metadata::DublinCoreRecord.new(doc.to_xml) }
+        @scope.next_record { |doc| return ::Libis::Tools::Metadata::DublinCoreRecord.new(doc.to_xml) }
 
       rescue Exception => e
         raise ::Libis::WorkflowError, "Scope request failed: #{e.message}"

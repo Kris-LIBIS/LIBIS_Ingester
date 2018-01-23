@@ -33,11 +33,12 @@ module Libis
 
       def check_item(item)
         # noinspection RubyResolve
-        rosetta = Libis::Services::Rosetta::Service.new(Libis::Ingester::Config.base_url, Libis::Ingester::Config.pds_url)
-        producer_info = item.get_run.producer
-        rosetta.login(producer_info[:agent], producer_info[:password], producer_info[:institution])
-        sip_handler = rosetta.sip_service
-        sip_info = sip_handler.get_info(item.properties['ingest_sip'])
+        unless @sip_handler
+          @sip_handler = Libis::Services::Rosetta::SipHandler.new(Libis::Ingester::Config.base_url)
+          producer_info = item.get_run.producer
+          @sip_handler.authenticate(producer_info[:agent], producer_info[:password], producer_info[:institution])
+        end
+        sip_info = @sip_handler.get_info(item.properties['ingest_sip'])
         item.properties['ingest_status'] = sip_info.to_hash
         item_status = case sip_info.status
                         when 'FINISHED'
@@ -50,7 +51,7 @@ module Libis
                           :FAILED
                       end
         info "SIP: #{item.properties['ingest_sip']} - Module: #{sip_info.module} Stage: #{sip_info.stage} Status: #{sip_info.status}", item
-        assign_ie_numbers(item, sip_handler.get_ies(item.properties['ingest_sip'])) if item_status == :DONE
+        assign_ie_numbers(item, @sip_handler.get_ies(item.properties['ingest_sip'])) if item_status == :DONE
         set_status(item, item_status)
       end
 
