@@ -26,9 +26,13 @@ module Libis
           )
         end
 
-        @scope.query(term, type: parameter(:type))
+        debug "Querying scope with term '#{term}' and type '#{parameter(:term_type)}'"
+        @scope.query(term, type: parameter(:term_type))
 
-        @scope.next_record { |doc| return ::Libis::Tools::Metadata::DublinCoreRecord.new(doc.to_xml) }
+        @scope.next_record do |doc|
+          debug "Found record with title '#{doc.value('//dc:title')}"
+          return ::Libis::Tools::Metadata::DublinCoreRecord.new(doc.to_xml)
+        end
 
       rescue Exception => e
         raise ::Libis::WorkflowError, "Scope request failed: #{e.message}"
