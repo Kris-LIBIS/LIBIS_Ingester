@@ -37,7 +37,7 @@ def db_menu(title, items, options = {}, &block)
       page = [page, max_page].min
       options[:hidden] = hidden.dup
       options[:hidden]['previous'] = Proc.new { :previous } if page > min_page
-      options[:hidden]['next'] = Proc.new { page += 1; :next } if page < max_page
+      options[:hidden]['next'] = Proc.new { :next } if page < max_page
       options[:hidden]['goto'] = Proc.new { :goto }
       result = selection_menu("#{title} (#{page * paging + 1}-#{(page + 1) * paging})",
                               paged_items.offset(page * paging), options, &block)
@@ -47,7 +47,7 @@ def db_menu(title, items, options = {}, &block)
         when :next
           page += 1 if page < max_page
         when :goto
-          page == @hl.ask('Enter page number', Integer) { |q| q.in = Range.new(min_page, max_page) }
+          page = @hl.ask('Enter page number', Integer) { |q| q.in = Range.new(min_page, max_page) }
         else
           return result
       end
