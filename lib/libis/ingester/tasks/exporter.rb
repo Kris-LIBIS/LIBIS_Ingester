@@ -200,6 +200,8 @@ module Libis
         mail.add_file get_export_file(item)
         mail.deliver!
         debug "Report sent to #{parameter(:mail_to)}#{parameter(:mail_cc).blank? ? '' : " and #{parameter(:mail_cc)}"}."
+      rescue Net::TimeoutError => e
+        warn "Ingest report could not be sent by email. The report can be found here: #{get_export_file(item)}"
       end
 
     end
