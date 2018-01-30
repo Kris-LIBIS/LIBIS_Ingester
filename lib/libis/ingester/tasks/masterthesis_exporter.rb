@@ -127,6 +127,8 @@ module Libis
         STR
         mail.deliver!
         debug "Report sent to #{parameter(:mail_to)}#{parameter(:mail_cc).blank? ? '' : " and #{parameter(:mail_cc)}"}."
+      rescue Net::TimeoutError => e
+        warn "Ingest report could not be sent by email. The exported XML files can be found at '#{parameter(:export_dir)}'."
       end
 
     end
