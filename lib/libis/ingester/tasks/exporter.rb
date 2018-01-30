@@ -144,6 +144,7 @@ module Libis
       end
 
       def write_export(export_file, key_value, pid, extra = {})
+        # noinspection RubyStringKeysInHashInspection
         data = {
             'KEY' => key_value,
             'PID' => pid,
