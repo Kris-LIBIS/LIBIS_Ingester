@@ -34,9 +34,9 @@ module Libis
           return
         end
         debug "Found ingestable item. Subdir: #{item.properties['ingest_sub_dir']}", item
+        producer_info = item.get_run.producer
         unless @deposit_service
           @deposit_service = Libis::Services::Rosetta::DepositHandler.new(Libis::Ingester::Config.base_url)
-          producer_info = item.get_run.producer
           @deposit_service.authenticate(producer_info[:agent], producer_info[:password], producer_info[:institution])
         end
 
