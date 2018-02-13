@@ -40,7 +40,6 @@ module Libis
           @deposit_service.authenticate(producer_info[:agent], producer_info[:password], producer_info[:institution])
         end
 
-        begin
           deposit_result = @deposit_service.submit(
               item.get_run.material_flow,
               File.join(item.get_run.ingest_sub_dir, item.properties['ingest_sub_dir']),
@@ -52,11 +51,12 @@ module Libis
           item.properties['ingest_dip'] = deposit_result[:deposit_activity_id]
           item.properties['ingest_date'] = deposit_result[:creation_date]
           item.save!
-        rescue Libis::Services::ServiceError => e
-          raise Libis::WorkflowError, "SIP deposit failed: #{e.message}"
-        end
 
         info "Deposit ##{item.properties['ingest_dip']} done. SIP: #{item.properties['ingest_sip']}", item
+      rescue Libis::Services::ServiceError => e
+        raise Libis::WorkflowError, "SIP deposit failed: #{e.message}"
+      rescue Exception => e
+        raise Libis::WorkflowError, "SIP deposit failed: #{e.message} @ #{e.backtrace.first}"
       end
 
     end
