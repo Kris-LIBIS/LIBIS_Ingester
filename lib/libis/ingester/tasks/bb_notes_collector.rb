@@ -1,6 +1,8 @@
 require 'libis-ingester'
+require 'libis/tools/metadata/dublin_core_record'
 require_relative 'base/csv_mapping'
 
+require 'date'
 require 'set'
 require 'nokogiri'
 
@@ -24,8 +26,7 @@ module Libis
 
         For each HTML file, a collection tree is created for the relative path from the 'root_dir' and the HTML file is
         parsed for information:
-        - the first /div/table/tr/td/div/span/strong element's content is considered to be the title. If not found, the
-          file name is used as title and a warning is logged.
+        - the base file name is used as title.
         - all file ('//a/@href') and image ('//img/@src') links are searched and checked for existance. 'mailto' and 
           'http' links and a number of well-know artifacts files are skipped. Other missing links are reported with
           warning messages. If files are referenced that have previously been referenced (even by other HTML files) are
@@ -45,9 +46,7 @@ module Libis
 
       parameter root_dir: '/',
                 description: 'Root directory of the Lotus Notes export.'
-      parameter location: '.',
-                description: 'Subdirectory to start processing. Should be equal to or subdirectory of root_dir.'
-      parameter csv_file: 'export.csv',
+      parameter csv_file: 'VeldenExportCSV.csv',
                 description: 'CSV file with export list.'
       parameter collection_navigate: false,
                 description: 'Allow navigation through the collections.'
@@ -61,26 +60,38 @@ module Libis
       # Process the input directory on the FTP server for new material
       # @param [Libis::Ingester::Run] item
       def process(item)
-        csv = Libis::Tools::Csv.open(parameter(:csv_file), mode: 'rb:windows-1252:UTF-8', required: %w'Pad')
-        matchdata = /^#{parameter(:root_dir)}\/?(.*)/.match(parameter(:location))
-        raise Libis::WorkflowAbort,
-              'Processing directory `%s` is not a subdirectory of the root directory `%s`.' % [
-                  parameter(:location),
-                  parameter(:root_dir)
-              ] unless (matchdata)
-        processing_path = matchdata[1]
+        unless File.exists?(parameter(:csv_file))
+          csv_path = File.join(parameter(:root_dir), parameter(:csv_file))
+          if File.exists?(csv_path)
+            parameter(:csv_file, csv_path)
+          else
+            raise Libis::WorkflowAbort,
+                  "CSV file '#{parameter(:csv_file)}' cannot not be found. It should be absolute or relative to 'root_dir'.",
+          end
+        end
+        # csv = Libis::Tools::Csv.open(parameter(:csv_file), mode: 'rb:windows-1252:UTF-8', required: %w'Pad')
+        csv = Libis::Tools::Csv.open(parameter(:csv_file), mode: 'rb:windows-1252:UTF-8', colsep: ';',
+                                     required: %w'Pad TitelTX DocumentsvormTX DocumentdatumDT DossiersTX AuteurTX')
+        unless parameter(:root_dir) =~ /\/documenten\/?$/
+          parameter(:root_dir, File.join(parameter(:root_dir), 'documenten'))
+        end
         ie_count = 0
         csv.each_with_index do |row, line|
-          rel_path = row['Pad'].gsub(/^c:\\export\\/, '').gsub(/\\/, '/')
-          next unless rel_path =~ /^#{processing_path}\/?/
+          rel_path = row['Pad'].gsub(/^c:\\export\\documenten\\/, '').gsub(/\\/, '/')
+          title = row['TitelTX']
+          doctype = row['DocumentsvormTX']
+          docdate = row['DocumentdatumDT']
+          docdate = (DateTime.strptime(docdate, "%d_%m_%Y %H_%M_%S") rescue Date.strptime(docdate, "%d_%m_%Y") rescue nil)
+          docdossier = row['DossiersTX']
+          docauthor = row['AuteurTX']
           next unless check_duplicate_html rel_path, line + 2
           next unless check_file_exist rel_path
-          ie_info = process_ie rel_path
+          ie_info = process_ie rel_path, title
           next unless ie_info
           # Create/find directory collection for path
           root = item
           root_dir = parameter(:root_dir)
-          ie_info[:path].split('/').each { |dir|
+          ie_info[:path].split('/').each {|dir|
             child = root.items.find_by('properties.name' => dir)
             dir_path = File.join(root_dir, dir)
             unless child
@@ -102,6 +113,24 @@ module Libis
           ie.parent = root
           debug 'Created IE for `%s`', root, ie.name
           ie.save!
+
+          # create DC metadata
+          dc = Libis::Tools::Metadata::DublinCoreRecord.new
+          dc.title = ie_info[:title]
+          dc.type = doctype unless doctype.blank?
+          dc.subject = docdossier unless docdossier.blank?
+          # noinspection RubyResolve
+          dc.created = docdate if docdate
+          # noinspection RubyResolve
+          dc.creator = docauthor unless docauthor.blank?
+
+          # Add the metaddata to the IE
+          metadata = Libis::Ingester::MetadataRecord.new
+          metadata.format = 'DC'
+          metadata.data = dc.to_xml
+          ie.metadata_record = metadata
+          ie.save!
+
           # Add HTML file to the IE
           file = Libis::Ingester::FileItem.new
           file.filename = full_path(File.join(ie_info[:path], ie_info[:filename])).to_s
@@ -126,31 +155,25 @@ module Libis
       # Process a single HTML file to retrieve the information needed to create an IE for it
       # @param [String] rel_path path to the HTML file relative to the :location parameter
       # @return [Hash] IE information structure: path, name, title, links and images
-      def process_ie(rel_path)
+      def process_ie(rel_path, title)
         rel_dir, fname = File.split(rel_path)
+        title ||= File.basename(fname, '.*')
         f = File.open(full_path(rel_path), 'r:UTF-8')
         # noinspection RubyResolve
-        html = Nokogiri::HTML(f) { |config| config.strict.nonet.noblanks }
+        html = Nokogiri::HTML(f) {|config| config.strict.nonet.noblanks}
         f.close
-        # Title element
-        titles = html.css('div table tr td div span strong').map(&:content)
-        # Check if title was found
-        if titles.empty?
-          titles = [File.basename(fname, '.*')]
-          warn 'No title element found in HTML file `%s`. Using file name as title.', rel_path
-        end
         # File links
-        links = html.xpath('//a/@href').map(&:value).map { |link| link2path(link) }.reject { |link| ignore_link(link) }
+        links = html.xpath('//a/@href').map(&:value).map {|link| link2path(link)}.reject {|link| ignore_link(link)}
         # Check if files referenced do exist
-        links.reject! { |link|
+        links.reject! {|link|
           next false if full_path(File.join(rel_dir, link)).exist?
           warn 'File \'%s\' referenced in HTML file `%s` was not found. Reference will be ignored.', link, rel_path
           true
         }
         # Image links
-        images = html.xpath('//img/@src').map(&:value).map { |link| link2path(link) }.reject { |i| ignore_file(i) }
+        images = html.xpath('//img/@src').map(&:value).map {|link| link2path(link)}.reject {|i| ignore_file(i)}
         # Check if images referenced do exist
-        images.reject! { |link|
+        images.reject! {|link|
           next false if full_path(File.join(rel_dir, link)).exist?
           warn 'Image \'%s\' referenced in HTML file `%s` was not found. Reference will be ignored.', link, rel_path
           true
@@ -164,7 +187,7 @@ module Libis
         {
             path: rel_dir,
             filename: fname,
-            title: titles.first.gsub(/[\r\n]/, ''),
+            title: title.strip,
             links: link_set,
         }
       end
