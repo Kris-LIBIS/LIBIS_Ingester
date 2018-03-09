@@ -40,6 +40,7 @@ module Libis
         item.properties['mimetype'] = mimetype || 'application/octet-stream'
         item.properties['puid'] = format[:puid] || 'fmt/unknown'
         item.properties['format_identification'] = format
+        item.save!
       rescue => e
         raise Libis::WorkflowAbort, "Error during Format identification: #{e.message} @ #{e.backtrace.first}"
       end

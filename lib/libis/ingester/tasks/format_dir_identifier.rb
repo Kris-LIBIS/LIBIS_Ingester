@@ -76,6 +76,7 @@ module Libis
           item.properties['mimetype'] = format[:mimetype] || 'application/octet-stream'
           item.properties['puid'] = format[:puid]
           item.properties['format_identification'] = format
+          item.save!
         else
           item.each do |subitem|
             apply_formats(subitem, format_list)
