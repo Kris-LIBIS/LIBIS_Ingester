@@ -66,7 +66,7 @@ module Libis
             parameter(:csv_file, csv_path)
           else
             raise Libis::WorkflowAbort,
-                  "CSV file '#{parameter(:csv_file)}' cannot not be found. It should be absolute or relative to 'root_dir'.",
+                  "CSV file '#{parameter(:csv_file)}' cannot not be found. It should be absolute or relative to 'root_dir'."
           end
         end
         # csv = Libis::Tools::Csv.open(parameter(:csv_file), mode: 'rb:windows-1252:UTF-8', required: %w'Pad')
@@ -91,7 +91,7 @@ module Libis
           # Create/find directory collection for path
           root = item
           root_dir = parameter(:root_dir)
-          ie_info[:path].split('/').each {|dir|
+          ie_info[:path].split('/').each do |dir|
             child = root.items.find_by('properties.name' => dir)
             dir_path = File.join(root_dir, dir)
             unless child
@@ -105,7 +105,7 @@ module Libis
             end
             root = child
             root_dir = dir_path
-          }
+          end
           # Add IE object
           ie = Libis::Ingester::IntellectualEntity.new
           ie.name = ie_info[:filename]
