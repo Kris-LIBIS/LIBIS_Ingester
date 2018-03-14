@@ -4,7 +4,7 @@ require_relative 'metadata_scope_collector'
 module Libis
   module Ingester
 
-    class MetadataAlmaMapper < MetadataScopeCollector
+    class MetadataScopeMapper < MetadataScopeCollector
       include Base::Mapping
 
       parameter search_field: 'ScopeID',
