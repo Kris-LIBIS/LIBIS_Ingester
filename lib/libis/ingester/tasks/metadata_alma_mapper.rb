@@ -4,7 +4,7 @@ require_relative 'metadata_alma_collector'
 module Libis
   module Ingester
 
-    class MetadataAlmaMapper < MetadataAlmaCollector
+    class MetadataAlmaMapper < ::Libis::Ingester::MetadataAlmaCollector
       include Base::Mapping
 
       parameter search_field: 'MMS',

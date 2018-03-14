@@ -55,12 +55,12 @@ module Libis
       def get_search_term(item)
         if parameter(:match_regex)
           debug "match_regex '#{parameter :match_regex}' found. Evaluating '#{parameter :match_term}'"
-          match_term = eval parameter(:match_term)
+          match_term = Kernel::eval parameter(:match_term)
           debug "Match term is now '#{match_term}'"
           return nil unless match_term =~ Regexp.new(parameter(:match_regex))
           debug "Match term matches match regex"
         end
-        parameter(:term).blank? ? item.name : eval(parameter(:term))
+        parameter(:term).blank? ? item.name : Kernel::eval(parameter(:term))
       end
 
       def search(_)
