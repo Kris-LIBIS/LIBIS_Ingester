@@ -41,10 +41,11 @@ module Libis
 
       def process(item)
         create_collection(item)
-        stop_processing_subitems unless item.items.no_timeout.any? { |i| i.is_a?(Libis::Ingester::Collection) }
+        stop_processing_subitems unless item.items.no_timeout.any? {|i| i.is_a?(Libis::Ingester::Collection)}
       end
 
       private
+
       attr_accessor :rosetta
 
       # noinspection RubyResolve
@@ -71,7 +72,16 @@ module Libis
           )
           producer_info = item.get_run.producer
           # @collection_service.authenticate(producer_info[:agent], producer_info[:password], producer_info[:institution])
-          handle = rosetta.login(producer_info[:agent], producer_info[:password], producer_info[:institution])
+          institution = producer_info[:institution]
+          institution = case institution
+                        when 'KUL'
+                          'ROSETTA_KULEUVEN'
+                        when 'INS00'
+                          'ROSETTA'
+                        else
+                          "ROSETTA_#{institution}"
+                        end
+          handle = rosetta.login(producer_info[:agent], producer_info[:password], institution)
           raise Libis::WorkflowAbort, 'Could not log in into Rosetta.' if handle.nil?
           @collection_service = rosetta.collection_service
         end
