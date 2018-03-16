@@ -67,7 +67,7 @@ module Libis
           # )
           rosetta = Libis::Services::Rosetta::Service.new(
               Libis::Ingester::Config.base_url, Libis::Ingester::Config.pds_url,
-              logger: Libis::Ingester::Config.logger, log_level: :debug, log: false
+              logger: Libis::Ingester::Config.logger, log_level: :debug, log: true
           )
           producer_info = item.get_run.producer
           # @collection_service.authenticate(producer_info[:agent], producer_info[:password], producer_info[:institution])
@@ -88,6 +88,10 @@ module Libis
           item.properties['new'] = true
         end
         item.properties['collection_id'] = collection_id
+      rescue Libis::Services::ServiceError => e
+        raise Libis::WorkflowError, "Remote call to create collection failed: #{e.message}"
+      rescue Exception => e
+        raise Libis::WorkflowError, "Create collection failed: #{e.message} @ #{e.backtrace.first}"
       end
 
       def create_collection_path(list)
