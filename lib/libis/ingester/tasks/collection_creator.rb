@@ -2,6 +2,7 @@
 require 'pathname'
 
 require 'libis/ingester'
+require 'libis/services/rosetta'
 require 'libis/services/rosetta/collection_handler'
 
 module Libis
@@ -44,6 +45,7 @@ module Libis
       end
 
       private
+      attr_accessor :rosetta
 
       # noinspection RubyResolve
       def create_collection(item, collection_list = nil)
@@ -59,12 +61,19 @@ module Libis
         end
 
         unless @collection_service
-          @collection_service = Libis::Services::Rosetta::CollectionHandler.new(
-              Libis::Ingester::Config.base_url,
+          # @collection_service = Libis::Services::Rosetta::CollectionHandler.new(
+          #     Libis::Ingester::Config.base_url,
+          #     logger: Libis::Ingester::Config.logger, log_level: :debug, log: false
+          # )
+          rosetta = Libis::Services::Rosetta::Service.new(
+              Libis::Ingester::Config.base_url, Libis::Ingester::Config.pds_url,
               logger: Libis::Ingester::Config.logger, log_level: :debug, log: false
           )
           producer_info = item.get_run.producer
-          @collection_service.authenticate(producer_info[:agent], producer_info[:password], producer_info[:institution])
+          # @collection_service.authenticate(producer_info[:agent], producer_info[:password], producer_info[:institution])
+          handle = rosetta.login(producer_info[:agent], producer_info[:password], producer_info[:institution])
+          raise Libis::WorkflowAbort, 'Could not log in into Rosetta.' if handle.nil?
+          @collection_service = rosetta.collection_service
         end
 
         parent_id = item.parent.properties['collection_id'] if item.parent
