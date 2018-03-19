@@ -1,12 +1,13 @@
-# encoding: utf-8
-
 require 'libis/ingester'
 require 'libis-format'
+
+require_relative 'base/format'
 
 module Libis
   module Ingester
 
     class FormatFileIdentifier < ::Libis::Ingester::Task
+      include ::Libis::Ingester::Base::Format
 
       taskgroup :preprocessor
 
@@ -16,6 +17,9 @@ module Libis
         This task will perform the format identification on each FileItem object in the ingest run. It relies completely
         on the format identification algorithms in Libis::Format::Identifier. If a format could not be determined, the
         MIME type 'application/octet-stream' will be set and a warning message is logged.
+
+        Note: consider using the FormatDirIdentifier if possible, since the latter will outperform this task easily with
+        a factor of ten on large file sets. Please read the documentation on FileDirIdentifier on when to use which task.
       STR
 
       parameter format_options: {}, type: 'hash',
@@ -29,18 +33,8 @@ module Libis
       def process(item)
         result = Libis::Format::Identifier.get(item.fullpath, parameter(:format_options).key_strings_to_symbols)
         format = result[:formats][item.fullpath]
-        mimetype = format[:mimetype]
+        assign_format(item, format)
 
-        if mimetype
-          debug "MIME type '#{mimetype}' detected.", item
-        else
-          warn "Could not determine MIME type. Using default 'application/octet-stream'.", item
-        end
-
-        item.properties['mimetype'] = mimetype || 'application/octet-stream'
-        item.properties['puid'] = format[:puid] || 'fmt/unknown'
-        item.properties['format_identification'] = format
-        item.save!
       rescue => e
         raise Libis::WorkflowAbort, "Error during Format identification: #{e.message} @ #{e.backtrace.first}"
       end

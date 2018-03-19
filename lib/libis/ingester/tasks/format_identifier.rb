@@ -1,13 +1,14 @@
-# encoding: utf-8
-
 require 'libis/ingester'
 require 'libis-format'
 require 'libis/tools/extend/hash'
+
+require_relative 'base/format'
 
 module Libis
   module Ingester
 
     class FormatIdentifier < ::Libis::Ingester::Task
+      include ::Libis::Ingester::Base::Format
 
       taskgroup :preprocessor
 
@@ -32,16 +33,16 @@ module Libis
         format_list = Libis::Format::Identifier.get(file_list, parameter(:format_options).key_strings_to_symbols)
         format_list[:messages].each do |msg|
           case msg[0]
-            when :debug
-              debug msg[1], item
-            when :info
-              info msg[1], item
-            when :error
-              error msg[1], item
-            when :fatal
-              fatal_error msg[1], item
-            else
-              info "#{msg[0]}: #{msg[1]}", item
+          when :debug
+            debug msg[1], item
+          when :info
+            info msg[1], item
+          when :error
+            error msg[1], item
+          when :fatal
+            fatal_error msg[1], item
+          else
+            info "#{msg[0]}: #{msg[1]}", item
           end
         end
         apply_formats(item, format_list[:formats])
@@ -53,14 +54,7 @@ module Libis
 
         if item.is_a? Libis::Ingester::FileItem
           format = format_list[item.fullpath]
-          if format.empty?
-            warn "Could not determine MIME type. Using default 'application/octet-stream'.", item
-          else
-            debug "MIME type '#{format[:mimetype]}' detected.", item
-          end
-          item.properties['mimetype'] = format[:mimetype] || 'application/octet-stream'
-          item.properties['puid'] = format[:puid] || 'fmt/unknown'
-          item.properties['format_identification'] = format
+          assign_format(item, format)
         else
           item.each do |subitem|
             apply_formats(subitem, format_list)
