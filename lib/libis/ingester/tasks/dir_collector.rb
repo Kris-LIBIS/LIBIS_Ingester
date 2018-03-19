@@ -95,8 +95,19 @@ module Libis
           file.strip!
           next if file =~ /^\.{1,2}$/
           path = File.join(dir, file)
-          next if reg && File.file?(path) && !((file =~ reg) || (path =~ reg))
-          next if ignore and (file =~ ignore || path =~ ignore)
+          if reg && File.file?(path) && !((file =~ reg) || (path =~ reg))
+            next if ignore and (file =~ ignore || path =~ ignore)
+            warn "Found file '#{File.basename(path)}' in folder '#{File.dirname(path)}' that did not match the selection regex.", item
+            next
+          end
+          unless File.exists?(path)
+            warn"File '#{path}' not found."
+            next
+          end
+          unless File.readable?(path)
+            warn "Skipping file '#{path}' since it cannot be read."
+            next
+          end
           add(item, path)
         end
       end
