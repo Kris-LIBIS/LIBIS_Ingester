@@ -35,7 +35,7 @@ module Libis
         if item.properties['format_ext_mismatch']
           message = 'Found document with wrong extension: %s (%s - %s - %s)' %
               [item.filepath, item.properties['puid'], item.properties['format_name'], item.properties['format_version']]
-          parameter(:fail_ext_mismatch) ? raise Libis::WorkflowError, message : warn message
+          parameter(:fail_ext_mismatch) ? raise(Libis::WorkflowError, message) : warn message
         end
       end
 
