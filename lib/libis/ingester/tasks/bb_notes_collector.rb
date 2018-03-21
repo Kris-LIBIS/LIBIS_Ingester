@@ -70,7 +70,7 @@ module Libis
           end
         end
         # csv = Libis::Tools::Csv.open(parameter(:csv_file), mode: 'rb:windows-1252:UTF-8', required: %w'Pad')
-        csv = Libis::Tools::Csv.open(parameter(:csv_file), mode: 'rb:windows-1252:UTF-8', col_sep: ';',
+        csv = Libis::Tools::Csv.open(parameter(:csv_file), col_sep: ';',
                                      required: %w'Pad TitelTX DocumentsvormTX DocumentdatumDT DossiersTX AuteurTX')
         unless parameter(:root_dir) =~ /\/documenten\/?$/
           parameter(:root_dir, File.join(parameter(:root_dir), 'documenten'))
