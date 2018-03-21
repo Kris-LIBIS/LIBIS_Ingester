@@ -1,6 +1,5 @@
-# encoding: utf-8
-
 require 'libis/ingester'
+require 'libis/format/type_database'
 
 module Libis
   module Ingester
@@ -16,8 +15,11 @@ module Libis
         and files whose extension does not match the detected file format.
       STR
 
-      parameter fail_ext_mismatch: false, type: 'boolean',
-                description: 'Fail the task when an extension mismatch is found if this parameter is set to true. Ony warn otherwise.'
+      parameter ext_mismatch: 'FAIL', type: 'string', constraint: %w'FAIL WARN FIX',
+                description: 'Action to take when an extension mismatch is found. Valid values are:\n' +
+                    '- FAIL: report this as an error and stop processing this object\n' +
+                    '- WARN: report this as an error and continue (may cause issues later in Rosetta)\n' +
+                    '- FIX: change the file extension and continue'
 
       parameter item_types: [Libis::Ingester::FileItem], frozen: true
       parameter recursive: true
@@ -35,8 +37,24 @@ module Libis
         if item.properties['format_ext_mismatch']
           message = 'Found document with wrong extension: %s (%s - %s - %s)' %
               [item.filepath, item.properties['puid'], item.properties['format_name'], item.properties['format_version']]
-          if parameter(:fail_ext_mismatch) then
+          case parameter(:ext_mismatch)
+          when 'FAIL'
             raise Libis::WorkflowError, message
+          when 'WARN'
+            warn message
+          when 'FIX'
+            if (format_type = item.properties[:format_type])
+              ext = Libis::Format::TypeDatabase.get(format_type, :EXTENSION)
+              old_name = item.properties['filename']
+              new_name = File.join(File.dirname(old_name), "#{File.basename(old_name, '.*')}.#{ext}")
+              File.rename(old_name, new_name)
+              item.properties['filename'] = new_name
+              item.save!
+            else
+              message = 'Could not fix extenstion of file %s as no extension for the format (%s - %s - %s) is known in the type database' %
+                  [item.filepath, item.properties['puid'], item.properties['format_name'], item.properties['format_version']]
+              raise Libis::WorkflowError, message
+            end
           else
             warn message
           end
