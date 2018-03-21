@@ -18,7 +18,7 @@ module Libis
       end
 
       def pid
-        this.properties[:collection_id] ? "col#{this.properties[:collection_id]}" : nil
+        self.properties[:collection_id] ? "col#{this.properties[:collection_id]}" : nil
       end
 
       def collections
