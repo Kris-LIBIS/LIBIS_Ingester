@@ -31,6 +31,8 @@ module Libis
                 description: 'Allow the user to navigate in the collections.'
       parameter publish: true,
                 description: 'Publish the collections.'
+      parameter root_collection: nil,
+                desciption: 'Root collection to append the collection tree given by the parameter \'collection\' to.'
 
       parameter subitems: true, frozen: true
       parameter recursive: true, frozen: true
@@ -58,6 +60,7 @@ module Libis
             collection.label
           end
           collection_list += parameter(:collection).split('/').reverse if parameter(:collection)
+          collection_list += parameter(:root_collection).split('/').reverse if parameter(:root_collection)
           collection_list = collection_list.reverse
         end
 
@@ -73,6 +76,7 @@ module Libis
           producer_info = item.get_run.producer
           # @collection_service.authenticate(producer_info[:agent], producer_info[:password], producer_info[:institution])
           institution = producer_info[:institution]
+          # Temp fix: adapt institution code to code used in PDS. Need to remove when basic auth is fixed (case #00527632)
           institution = case institution
                         when 'KUL'
                           'ROSETTA_KULEUVEN'
@@ -126,7 +130,7 @@ module Libis
       def create_collection_id(parent_id, collection_list, collection_name, navigate = nil, publish = nil, item = nil)
 
         # noinspection RubyResolve
-        if item && item.metadata_record
+        if item&.metadata_record
           dc_record = Libis::Tools::Metadata::DublinCoreRecord.new item.metadata_record.data
         else
           dc_record = Libis::Tools::Metadata::DublinCoreRecord.new
@@ -143,6 +147,7 @@ module Libis
         collection_data[:parent_id] = parent_id if parent_id
         collection_data[:navigate] = navigate.nil? ? parameter(:navigate) : navigate
         collection_data[:publish] = publish.nil? ? parameter(:publish) : publish
+        # noinspection RubyResolve
         if item
           collection_data[:external_system] = item.external_system
           collection_data[:external_id] = item.external_id
@@ -165,9 +170,13 @@ module Libis
 
         if item
           collection.description = item.description
+          # noinspection RubyResolve
           collection.navigate = item.navigate
+          # noinspection RubyResolve
           collection.publish = item.publish
+          # noinspection RubyResolve
           collection.external_system = item.external_system
+          # noinspection RubyResolve
           collection.external_id = item.external_id
           # noinspection RubyResolve
           if item.metadata_record
