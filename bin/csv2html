@@ -1,0 +1,77 @@
+#!/usr/bin/env ruby
+require 'csv'
+require 'cgi'
+
+$stdout.puts <<STR
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+table {
+    font-family: arial, sans-serif;
+    font-size: 12px;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+td, th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 5px;
+}
+
+tr:nth-child(even) {
+    background-color: #dddddd;
+}
+
+.debug {
+    color: gray;
+}
+
+.warn {
+    color: #b35900;
+}
+
+.error {
+    color: red;
+}
+
+.fatal {
+    color: white;
+    background-color: red;
+}
+
+</style>
+</head>
+<body>
+  <table>
+STR
+first_line = true
+ARGF.each_line do |line|
+  CSV.parse(line, col_sep: ';', quote_char: '"') do |row|
+    el = 'tr'
+    case row[0]
+    when 'DEBUG'
+      el += ' class="debug"'
+    when 'WARN'
+      el += ' class="warn"'
+    when 'ERROR'
+      el += ' class="error"'
+    when 'FATAL'
+      el += ' class="fatal"'
+    end
+    $stdout.puts "    <#{el}>"
+    el = first_line ? 'th' : 'td'
+    row.each do |col|
+      $stdout.puts "      <#{el}>#{CGI.escapeHTML(col)}</#{el}>"
+    end
+    $stdout.puts '    </tr>'
+    first_line = false
+  end
+end
+
+$stdout.puts <<STR
+  </table>
+</body>
+</html>
+STR
