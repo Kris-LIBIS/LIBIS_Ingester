@@ -16,6 +16,9 @@ module Libis
       parameter collection: nil,
                 description: 'Collection to add the documents to.'
 
+      parameter root_collection: nil,
+                description: 'Root collection to add the collections to.'
+
       parameter copy_files: false,
                 description: 'Copy file info ingest dir instead of creating a symbolic link'
 
@@ -83,6 +86,7 @@ module Libis
           collection.label
         end
         collection_list << parameter(:collection) if parameter(:collection)
+        collection_list << parameter(:root_collection) if parameter(:root_collection)
 
         dc_record.isPartOf = collection_list.reverse.join('/') unless collection_list.empty?
 
