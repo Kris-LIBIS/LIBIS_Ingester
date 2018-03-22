@@ -35,21 +35,30 @@ module Libis
         raise Libis::WorkflowError, "Found Microsoft Word Document Template that is password protected: #{item.filepath}" if item.properties['puid'] == 'fmt/755'
 
         if item.properties['format_ext_mismatch']
-          message = 'Found document with wrong extension: %s (%s - %s - %s)' %
-              [item.filepath, item.properties['puid'], item.properties['format_name'], item.properties['format_version']]
+          format_type = item.properties[:format_type]
+          extensions = format_type ? Libis::Format::TypeDatabase.type_extentions(format_type) : []
+          message = 'Found document with wrong extension `%s`; format is %s%s, puid: %s, valid extensions: %s' %
+              [
+                  File.extname(item.filepath),
+                  item.properties['format_name'],
+                  item.properties['format_version'].blank? ? '' : " (#{item.properties['format_version']})",
+                  item.properties['puid'],
+                  extensions.map {|x| ".#{x}"}.join(' ')
+              ]
           case parameter(:ext_mismatch)
           when 'FAIL'
             raise Libis::WorkflowError, message
           when 'WARN'
             warn message
           when 'FIX'
-            if (format_type = item.properties[:format_type])
-              ext = Libis::Format::TypeDatabase.get(format_type, :EXTENSION)
+            warn message
+            if (ext = extensions.first)
               old_name = item.properties['filename']
               new_name = File.join(File.dirname(old_name), "#{File.basename(old_name, '.*')}.#{ext}")
               File.rename(old_name, new_name)
               item.properties['filename'] = new_name
               item.save!
+              warn "Changed file name to '#{File.basename(new_name)}'."
             else
               message = 'Could not fix extenstion of file %s as no extension for the format (%s - %s - %s) is known in the type database' %
                   [item.filepath, item.properties['puid'], item.properties['format_name'], item.properties['format_version']]
