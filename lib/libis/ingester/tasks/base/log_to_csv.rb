@@ -5,7 +5,7 @@ module Libis
       module Log2Csv
 
         def log2csv(log_file, csv_file = nil, options = {})
-          log_in = log_file.is_a? IO ? log_file : File.open(log_file, 'r')
+          log_in = IO === log_file ? log_file : File.open(log_file, 'r')
           csv_out = csv_file ? File.open(csv_file, 'w') : StringIO.new
           log2csv_io(log_in, csv_out, options)
           log_in.close
