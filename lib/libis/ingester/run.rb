@@ -89,14 +89,15 @@ module Libis
         dir = File.dirname(self.log_filename)
         name = File.basename(self.log_filename, '.*')
         csv_file = File.join(dir, "#{name}.csv")
+        html_file = File.join(dir, "#{name}.html")
         status('Run') != :DONE ?
-            send_error_log(self.log_filename, csv_file) :
-            send_success_log(self.log_filename, csv_file)
+            send_error_log(self.log_filename, csv_file, html_file) :
+            send_success_log(self.log_filename, csv_file, html_file)
       end
 
       protected
 
-      def send_error_log(log_file, csv_file)
+      def send_error_log(log_file, csv_file, html_file)
         return unless self.error_to
         log2csv(log_file, csv_file, skip_date: true, filter: 'WEF', trace: true)
         mail = Mail.new
@@ -105,19 +106,24 @@ module Libis
         mail.subject 'Ingest failed.'
         mail.body "Unfortunately the ingest '#{self.name}' failed. Please find the ingest log in attachment."
         mail.body "Below is a summary of the error messages."
+        status_log = csv2html_io(status2csv_io(self)).string
         mail.html_part do
           content_type 'text/html; charset=UTF-8'
-          body csv2html_io(status2csv_io(self)).string
+          body status_log
         end
         log2csv(self.log_filename, csv_file, skip_date: false, filter: 'DIWEF', trace: true)
         mail.add_file csv_file
+        csv2html(csv_file, html_file)
+        mail.add_file html_file
         mail.deliver!
         debug "Error report sent to #{parameter(:error_to)}."
       rescue Timeout::Error => e
-        warn "Error log file could not be sent by email. The error log file can be found here: #{csv_file}"
+        warn "Error log file could not be sent by email."
+        FileUtils.remove csv_file, force: true
+        FileUtils.remove html_file, force: true
       end
 
-      def send_success_log(log_file, csv_file)
+      def send_success_log(log_file, csv_file, html_file)
         return unless self.success_to
         log2csv(log_file, csv_file, skip_date: false, filter: 'IWEF')
         mail = Mail.new
@@ -125,15 +131,20 @@ module Libis
         mail.to self.success_to
         mail.subject 'Ingest complete.'
         mail.body "The ingest '#{self.name}' finished successfully. Please find the ingest log in attachment."
+        status_log = csv2html_io(status2csv_io(self)).string
         mail.html_part do
           content_type 'text/html; charset=UTF-8'
-          body csv2html_io(status2csv(self)).string
+          body status_log
         end
         mail.add_file csv_file
+        csv2html(csv_file, html_file)
+        mail.add_file html_file
         mail.deliver!
         debug "Error report sent to #{parameter(:error_to)}."
       rescue Timeout::Error => e
         warn "Error report could not be sent by email. The report can be found here: #{csv_file}"
+        FileUtils.remove csv_file, force: true
+        FileUtils.remove html_file, force: true
       end
 
       def remove_work_dir

@@ -68,8 +68,8 @@ module Libis
           STR
 
           first_line = true
-          csv_in.each_line do |line|
-            row = CSV.parse_line(line, col_sep: ';', quote_char: '"')
+          csv = CSV.new(csv_in, col_sep: ';', quote_char: '"')
+          csv.each do |row|
             el = 'tr'
             case row[0]
             when 'DEBUG'
