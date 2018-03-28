@@ -11,7 +11,12 @@ module Libis
       field :schedule
       field :material_flow
 
+      field :error_to, type: String
+      field :success_to, type: String
+
+      # noinspection RailsParamDefResolve
       belongs_to :organization, class_name: Libis::Ingester::Organization.to_s, inverse_of: :jobs
+      # noinspection RailsParamDefResolve
       belongs_to :ingest_model, class_name: Libis::Ingester::IngestModel.to_s, inverse_of: :jobs
 
       index({organization_id: 1, name: 1}, {name: 'by_organization'})
@@ -44,6 +49,13 @@ module Libis
       def create_run_object
         self.run_object = 'Libis::Ingester::Run'
         super
+      end
+
+      def execute(opts = {})
+        opts['run_config'] ||= {}
+        opts['run_config']['error_to'] = self.error_to if self.error_to
+        opts['run_config']['success_to'] = self.success_to if self.success_to
+        super opts
       end
 
     end

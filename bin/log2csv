@@ -1,18 +1,19 @@
 #!/usr/bin/env ruby
 
 require 'optparse'
+require 'libis/ingester/tasks/base/log_to_csv'
 
-options={}
+options = {}
 OptionParser.new do |opts|
   opts.banner = "Usage: log2csv [options]"
   opts.on('-o', '--only [status]',
-      "Filter log messages, where <status> is a string. Each character in string enables the status:\n" +
-      "\t'D' : Debug messages (detailed information)\n" +
-      "\t'I' : Info messages (general information regarding progress)\n" +
-      "\t'W' : Warning  messages (issues that the program could recover from)\n" +
-      "\t'E' : Error  messages (issues that caused the application to stop abort and skip a task))\n" +
-      "\t'F' : Fatal  messages (issues that caused the application to stop immediately)\n" +
-      "\te.g.: '--only wef' will keep only the Warning, Error and Fatal messages") do |v|
+          "Filter log messages, where <status> is a string. Each character in string enables the status:\n" +
+              "\t'D' : Debug messages (detailed information)\n" +
+              "\t'I' : Info messages (general information regarding progress)\n" +
+              "\t'W' : Warning  messages (issues that the program could recover from)\n" +
+              "\t'E' : Error  messages (issues that caused the application to stop abort and skip a task))\n" +
+              "\t'F' : Fatal  messages (issues that caused the application to stop immediately)\n" +
+              "\te.g.: '--only wef' will keep only the Warning, Error and Fatal messages") do |v|
     options[:filter] = v
   end
   opts.on('-n', '--no-date', 'do not include date and time info') do |v|
@@ -20,19 +21,10 @@ OptionParser.new do |opts|
   end
 end.parse!
 
-puts(options[:skip_date] ? 'Status;Task;Item;Message' : 'Status;Date;Time;Task;Item;Message')
+include Libis::Ingester::Base::Log2Csv
 
-line_regex=/^(.), \[([\d-]+)T([\d:\.]+) #([\d\.]+)\]\s+(\S+)\s+-- (.*?) - (.*?) : (.*)/
-
-ARGF.each_line do |line|
-  next unless line =~ /^[#{options[:filter].upcase}]/ if options[:filter]
-  if line =~ line_regex
-    begin
-      $stdout.puts(options[:skip_date] ? "#{$5};#{$6};\"#{$7}\";\"#{$8}\"" : "#{$5};#{$2};#{$3};#{$6};\"#{$7}\";\"#{$8}\"")
-    rescue Errno::EPIPE
-      exit(74)
-    end
-  else
-    $stderr.puts "cannot parse line: #{line}"
-  end
+begin
+  log2csv_io(ARGF, $stdout, options)
+rescue Errno::EPIPE
+  exit(74)
 end
