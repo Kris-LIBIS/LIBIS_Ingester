@@ -86,7 +86,7 @@ module Libis
 
       def run(action)
         super(action)
-        dir = dirname(self.log_filename)
+        dir = File.dirname(self.log_filename)
         name = File.basename(self.log_filename, '.*')
         csv_file = File.join(dir, "#{name}.csv")
         status('Run') != :DONE ?
