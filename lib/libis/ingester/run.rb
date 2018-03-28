@@ -107,7 +107,7 @@ module Libis
         mail.body "Below is a summary of the error messages."
         mail.html_part do
           content_type 'text/html; charset=UTF-8'
-          body csv2html_io(status2csv_io(item)).string
+          body csv2html_io(status2csv_io(self)).string
         end
         log2csv(self.log_filename, csv_file, skip_date: false, filter: 'DIWEF', trace: true)
         mail.add_file csv_file
