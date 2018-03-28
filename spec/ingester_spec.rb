@@ -1,7 +1,10 @@
 # encoding: utf-8
 require 'rspec'
 require 'stringio'
+require 'awesome_print'
+
 require_relative 'spec_helper'
+
 
 $:.unshift File.join(File.dirname(__FILE__), '..', 'lib')
 require 'libis/ingester'
@@ -41,6 +44,9 @@ describe 'Ingester' do
       expect(run.tasks[0].parameter(:param6)).to eq 'set in input'
       expect(run.tasks[0].parameter(:param7)).to eq 'set in input'
       expect(run.tasks[0].parameter(:param8)).to eq 'set in task config'
+      ap run.tasks[0].parameter(:paramxx)
+      expect(run.tasks[0].parameter(:paramxx)).to eq Hash[:key1,'value1', :key2, 'value2']
+
     end
 
     it 'set parameters at run-time' do

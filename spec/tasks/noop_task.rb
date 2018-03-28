@@ -10,6 +10,7 @@ class NoopTask < Libis::Ingester::Task
   parameter param6: 'set in task definition'
   parameter param7: 'set in task definition'
   parameter param8: 'set in task definition'
+  parameter paramxx: {}
 
   def process(_)
     self.class.parameter_defs.keys.each do |name|
