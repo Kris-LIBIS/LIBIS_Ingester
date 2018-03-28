@@ -100,6 +100,7 @@ module Libis
       def send_error_log(log_file, csv_file, html_file)
         return unless self.error_to
         log2csv(log_file, csv_file, skip_date: true, filter: 'WEF', trace: true)
+        csv2html(csv_file, html_file)
         mail = Mail.new
         mail.from 'teneo.libis@gmail.com'
         mail.to self.error_to
@@ -111,10 +112,8 @@ module Libis
           content_type 'text/html; charset=UTF-8'
           body status_log
         end
-        log2csv(self.log_filename, csv_file, skip_date: false, filter: 'DIWEF', trace: true)
         mail.add_file csv_file
-        csv2html(csv_file, html_file)
-        mail.add_file html_file
+        # mail.add_file html_file
         mail.deliver!
         debug "Error report sent to #{parameter(:error_to)}."
       rescue Timeout::Error => e
@@ -126,6 +125,7 @@ module Libis
       def send_success_log(log_file, csv_file, html_file)
         return unless self.success_to
         log2csv(log_file, csv_file, skip_date: false, filter: 'IWEF')
+        csv2html(csv_file, html_file)
         mail = Mail.new
         mail.from 'teneo.libis@gmail.com'
         mail.to self.success_to
@@ -137,8 +137,7 @@ module Libis
           body status_log
         end
         mail.add_file csv_file
-        csv2html(csv_file, html_file)
-        mail.add_file html_file
+        # mail.add_file html_file
         mail.deliver!
         debug "Error report sent to #{parameter(:error_to)}."
       rescue Timeout::Error => e
