@@ -101,7 +101,7 @@ module Libis
         log2csv(log_file, csv_file, skip_date: true, filter: 'WEF', trace: true)
         mail = Mail.new
         mail.from 'teneo.libis@gmail.com'
-        mail.to parameter(:error_to)
+        mail.to self.error_to
         mail.subject 'Ingest failed.'
         mail.body "Unfortunately the ingest '#{self.name}' failed. Please find the ingest log in attachment."
         mail.body "Below is a summary of the error messages."
@@ -122,7 +122,7 @@ module Libis
         log2csv(log_file, csv_file, skip_date: false, filter: 'IWEF')
         mail = Mail.new
         mail.from 'teneo.libis@gmail.com'
-        mail.to parameter(:success_to)
+        mail.to self.success_to
         mail.subject 'Ingest complete.'
         mail.body "The ingest '#{self.name}' finished successfully. Please find the ingest log in attachment."
         mail.html_part do
