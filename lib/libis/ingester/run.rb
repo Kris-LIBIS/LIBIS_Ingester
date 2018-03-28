@@ -115,9 +115,9 @@ module Libis
         mail.add_file csv_file
         mail.add_file html_file
         mail.deliver!
-        debug "Error report sent to #{self.error_to}."
-      rescue Timeout::Error => e
-        warn "Error log file could not be sent by email."
+        puts "Ingest log sent to #{self.error_to}."
+      rescue Exception
+        puts "Ingest log file could not be sent by email."
         FileUtils.remove csv_file, force: true
         FileUtils.remove html_file, force: true
       end
@@ -137,11 +137,11 @@ module Libis
           body status_log
         end
         mail.add_file csv_file
-        # mail.add_file html_file
+        mail.add_file html_file
         mail.deliver!
-        debug "Error report sent to #{parameter(:error_to)}."
-      rescue Timeout::Error => e
-        warn "Error report could not be sent by email. The report can be found here: #{csv_file}"
+        puts "Ingest log sent to #{self.error_to}."
+      rescue Exception
+        puts "Ingest log could not be sent by email."
         FileUtils.remove csv_file, force: true
         FileUtils.remove html_file, force: true
       end
