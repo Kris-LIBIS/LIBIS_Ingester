@@ -1,3 +1,5 @@
+require 'csv'
+
 module Libis
   module Ingester
     module Base
@@ -25,7 +27,7 @@ module Libis
               write_buffer_to_csv(buffer, csv_out, options)
               code = buffer[0]
               buffer.clear
-              next unless options[:filter].upcase.include?(code)
+              next unless options[:filter].upcase.include?(code) if options[:filter]
               buffer = [$1, $2, $3, $4, $5, $6, $7, $8]
             elsif options[:trace]
               buffer[7] += "\n#{line}"

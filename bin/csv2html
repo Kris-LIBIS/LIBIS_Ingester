@@ -1,3 +1,4 @@
 #!/usr/bin/env ruby
 require 'libis/ingester/tasks/base/csv_to_html'
+include Libis::Ingester::Base::Csv2Html
 csv2html_io(ARGF, $stdout)
