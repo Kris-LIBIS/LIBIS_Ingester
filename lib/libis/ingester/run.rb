@@ -113,9 +113,9 @@ module Libis
           body status_log
         end
         mail.add_file csv_file
-        # mail.add_file html_file
+        mail.add_file html_file
         mail.deliver!
-        debug "Error report sent to #{parameter(:error_to)}."
+        debug "Error report sent to #{self.error_to}."
       rescue Timeout::Error => e
         warn "Error log file could not be sent by email."
         FileUtils.remove csv_file, force: true
