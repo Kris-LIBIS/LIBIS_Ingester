@@ -101,20 +101,22 @@ module Libis
         return unless self.error_to
         log2csv(log_file, csv_file, skip_date: true, filter: 'WEF', trace: true)
         csv2html(csv_file, html_file)
-        mail = Mail.new
-        mail.from 'teneo.libis@gmail.com'
-        mail.to self.error_to
-        mail.subject 'Ingest failed.'
-        mail.body "Unfortunately the ingest '#{self.name}' failed. Please find the ingest log in attachment."
-        mail.body "Below is a summary of the error messages."
-        status_log = csv2html_io(status2csv_io(self)).string
-        mail.html_part do
-          content_type 'text/html; charset=UTF-8'
-          body status_log
-        end
-        mail.add_file csv_file
-        mail.add_file html_file
-        mail.deliver!
+        status_log = csv2html_io(status2csv_io(self))
+        mail = Mail.new do
+          from 'teneo.libis@gmail.com'
+          to self.error_to
+          subject "Ingest failed: #{self.name}"
+          html_part do
+            content_type 'text/html; charset=UTF-8'
+            body [
+                     "Unfortunately the ingest '#{self.name}' failed. Please find the ingest log in attachment.",
+                     "Below is a summary of the error messages.",
+                     status_log.string
+            ].join("\n")
+          end
+          add_file csv_file
+          add_file html_file
+        end.deliver!
         puts "Ingest log sent to #{self.error_to}."
       rescue Exception
         puts "Ingest log file could not be sent by email."
@@ -129,7 +131,7 @@ module Libis
         mail = Mail.new
         mail.from 'teneo.libis@gmail.com'
         mail.to self.success_to
-        mail.subject 'Ingest complete.'
+        mail.subject "Ingest complete: #{self.name}"
         mail.body "The ingest '#{self.name}' finished successfully. Please find the ingest log in attachment."
         status_log = csv2html_io(status2csv_io(self)).string
         mail.html_part do
