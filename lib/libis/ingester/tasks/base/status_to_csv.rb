@@ -1,5 +1,6 @@
 require 'csv'
 require 'libis/ingester'
+require 'time_difference'
 
 module Libis
   module Ingester
@@ -51,6 +52,17 @@ module Libis
           end
 
           csv_out
+        end
+
+        protected
+
+        def time_diff_in_hours(start_time, end_time)
+          seconds =   TimeDifference.between(start_time, end_time).in_seconds.round
+          minutes = seconds / 60
+          seconds = seconds % 60
+          hours = minutes / 60
+          minutes = minutes % 60
+          "#{'%4d' % hours}:#{'%02d' % minutes}:#{'%02d' % seconds}"
         end
 
       end
