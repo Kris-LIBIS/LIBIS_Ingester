@@ -3,7 +3,10 @@ module Libis
     module Base
 
       module Format
-        def assign_format(item, format)
+
+        protected
+
+        def assign_format(format, item)
           mimetype = format[:mimetype]
 
           if mimetype
@@ -25,6 +28,44 @@ module Libis
           item.save!
 
         end
+
+        def apply_formats(item, format_list, folder = nil)
+
+          if item.is_a? Libis::Ingester::FileItem
+            format = format_list[item.fullpath]
+            format ||= format_list[item.namepath]
+            format ||= format_list[File.relative_path(folder, File.absolute_path(item.fullpath))] if folder
+            format ||= format_list[item.filename]
+            assign_format(format, item) if format
+          else
+            item.each do |subitem|
+              apply_formats(subitem, format_list, folder)
+            end
+          end
+
+        end
+
+        def process_messages(format_result, item)
+          format_result[:messages].each do |msg|
+            case msg[0]
+            when :debug
+              debug msg[1], item
+            when :info
+              info msg[1], item
+            when :warn
+              warn msg[1], item
+            when :error
+              error msg[1], item
+            when :fatal
+              fatal_error msg[1], item
+            else
+              info "#{msg[0]}: #{msg[1]}", item
+            end
+
+          end
+
+        end
+
       end
 
     end

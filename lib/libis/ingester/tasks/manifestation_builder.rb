@@ -7,11 +7,13 @@ require 'libis-format'
 Libis::Format::Converter::Repository.get_converters
 
 require 'libis/tools/extend/hash'
+require_relative 'base/format'
 
 module Libis
   module Ingester
 
     class ManifestationBuilder < Libis::Ingester::Task
+      include ::Libis::Ingester::Base::Format
 
       taskgroup :preingester
 
@@ -88,24 +90,24 @@ module Libis
 
           # Check if a generator is given
           case convert_info.generator
-            when 'assemble_images'
-              # The image assembly generator
-              assemble_images source_items, representation, convert_hash
-            when 'assemble_pdf'
-              # The PDF assembly generator
-              assemble_pdf source_items, representation, convert_hash
-            when 'thumbnail'
-              generate_thumbnail source_items, representation, convert_hash
-            when 'from_ie'
-              generate_from_ie(representation, convert_hash)
-            else
-              # No generator - convert each source file according to the specifications
-              representation.status_progress(self.namepath, 0, source_items.count)
-              source_items.each do |item|
-                convert item, representation, convert_hash if convert_hash[:source_files].blank? ||
-                    Regexp.new(convert_hash[:source_files]).match(item.filename)
-                representation.status_progress(self.namepath)
-              end
+          when 'assemble_images'
+            # The image assembly generator
+            assemble_images source_items, representation, convert_hash
+          when 'assemble_pdf'
+            # The PDF assembly generator
+            assemble_pdf source_items, representation, convert_hash
+          when 'thumbnail'
+            generate_thumbnail source_items, representation, convert_hash
+          when 'from_ie'
+            generate_from_ie(representation, convert_hash)
+          else
+            # No generator - convert each source file according to the specifications
+            representation.status_progress(self.namepath, 0, source_items.count)
+            source_items.each do |item|
+              convert item, representation, convert_hash if convert_hash[:source_files].blank? ||
+                  Regexp.new(convert_hash[:source_files]).match(item.filename)
+              representation.status_progress(self.namepath)
+            end
           end
         end
       end
@@ -157,11 +159,13 @@ module Libis
           options = nil
           options = convert_hash[:options] if convert_hash[:options] && convert_hash[:options].is_a?(Hash)
           options = convert_hash[:options].first if convert_hash[:options] && convert_hash[:options].is_a?(Array)
-          sources = sources.map do |source|
-            source_file = source.fullpath
-            source_format = Libis::Format::TypeDatabase.mime_types(source.properties[:mimetype]).first
-            convert_file(source_file, nil, source_format, source_format, options)[0]
-          end if options
+          sources = options ?
+                        sources.map do |source|
+                          source_file = source.fullpath
+                          source_format = Libis::Format::TypeDatabase.mime_types(source.properties[:mimetype]).first
+                          convert_file(source_file, nil, source_format, source_format, options)[0]
+                        end :
+                        sources.map {|source| source.fullpath}
           Libis::Format::Converter::ImageConverter.new.assemble_and_convert(sources, new_file, target_format)
           sources.each {|f| FileUtils.rm_f f} if options
           options = convert_hash[:options][1] rescue nil
@@ -171,7 +175,7 @@ module Libis
 
       def assemble_pdf(items, representation, convert_hash)
         file_name = "#{convert_hash[:generated_file] ?
-                           eval(convert_hash[:generated_file]) :
+                           Kernel.eval(convert_hash[:generated_file]) :
                            "#{representation.parent.name}_#{convert_hash[:name]}"
         }.pdf"
         assemble(items, representation, [:PDF], file_name, convert_hash[:id]) do |sources, new_file|
@@ -189,12 +193,12 @@ module Libis
         source_files = items.to_a.map do |item|
           # Collect all files from the list of items
           case item
-            when Libis::Ingester::FileItem
-              item
-            when Libis::Ingester::Division
-              item.all_files
-            else
-              nil
+          when Libis::Ingester::FileItem
+            item
+          when Libis::Ingester::Division
+            item.all_files
+          else
+            nil
           end
         end.select do |file|
           match_file(file, formats)
@@ -228,76 +232,76 @@ module Libis
       def convert(item, new_parent, convert_hash)
         case item
 
-          when Libis::Ingester::Division
-            div = item
-            unless convert_hash[:replace]
-              div = item.dup
-              div.parent = new_parent
-              div.save!
-              div
+        when Libis::Ingester::Division
+          div = item
+          unless convert_hash[:replace]
+            div = item.dup
+            div.parent = new_parent
+            div.save!
+            div
+          end
+          item.get_items.each {|child| convert(child, div, convert_hash)}
+
+        when Libis::Ingester::FileItem
+
+          return if new_parent.get_items.where(:'properties.converted_from' => item.id).count > 0
+
+          mimetype = item.properties['mimetype']
+          raise Libis::WorkflowError, 'File item %s format not identified.' % item unless mimetype
+
+          type_id = Libis::Format::TypeDatabase.mime_types(mimetype).first
+
+          unless convert_hash[:source_formats].blank?
+            unless type_id
+              warn 'Ignoring file item (%s) with unsupported file format (%s) in format conversion.' % [item, mimetype]
+              return
             end
-            item.get_items.each {|child| convert(child, div, convert_hash)}
-
-          when Libis::Ingester::FileItem
-
-            return if new_parent.get_items.where(:'properties.converted_from' => item.id).count > 0
-
-            mimetype = item.properties['mimetype']
-            raise Libis::WorkflowError, 'File item %s format not identified.' % item unless mimetype
-
-            type_id = Libis::Format::TypeDatabase.mime_types(mimetype).first
-
-            unless convert_hash[:source_formats].blank?
-              unless type_id
-                warn 'Ignoring file item (%s) with unsupported file format (%s) in format conversion.' % [item, mimetype]
-                return
-              end
-              group = Libis::Format::TypeDatabase.type_group(type_id)
-              check_list = [type_id, group].compact.map {|v| [v.to_s, v.to_sym]}.flatten
-              if (convert_hash[:source_formats] & check_list).empty?
-                debug 'File item format (%s) does not match conversion criteria (%s)', check_list.to_s, convert_hash[:source_formats].to_s
-                return
-              end
+            group = Libis::Format::TypeDatabase.type_group(type_id)
+            check_list = [type_id, group].compact.map {|v| [v.to_s, v.to_sym]}.flatten
+            if (convert_hash[:source_formats] & check_list).empty?
+              debug 'File item format (%s) does not match conversion criteria (%s)', check_list.to_s, convert_hash[:source_formats].to_s
+              return
             end
+          end
 
-            if convert_hash[:target_format].blank?
-              return copy_file(item, new_parent) if convert_hash[:copy_file]
-              return move_file(item, new_parent)
-            end
+          if convert_hash[:target_format].blank?
+            return copy_file(item, new_parent) if convert_hash[:copy_file]
+            return move_file(item, new_parent)
+          end
 
-            src_file = item.fullpath
-            new_file = File.join(
-                item.get_run.work_dir,
-                new_parent.id.to_s,
-                item.id.to_s,
-                [item.name,
-                 convert_hash[:name],
-                 extname(convert_hash[:target_format])
-                ].join('.')
-            )
+          src_file = item.fullpath
+          new_file = File.join(
+              item.get_run.work_dir,
+              new_parent.id.to_s,
+              item.id.to_s,
+              [item.name,
+               convert_hash[:name],
+               extname(convert_hash[:target_format])
+              ].join('.')
+          )
 
-            raise Libis::WorkflowError, 'File item %s format (%s) is not supported.' % [item, mimetype] unless type_id
-            new_file, converter = convert_file(src_file, new_file, type_id, convert_hash[:target_format].to_sym, convert_hash[:options])
-            return nil unless new_file
+          raise Libis::WorkflowError, 'File item %s format (%s) is not supported.' % [item, mimetype] unless type_id
+          new_file, converter = convert_file(src_file, new_file, type_id, convert_hash[:target_format].to_sym, convert_hash[:options])
+          return nil unless new_file
 
-            FileUtils.chmod('a+rw', new_file)
+          FileUtils.chmod('a+rw', new_file)
 
-            new_item = Libis::Ingester::FileItem.new
-            new_item.name = item.name
-            new_item.label = item.label
-            new_item.parent = new_parent
-            register_file(new_item)
-            new_item.options = item.options
-            new_item.properties['converter'] = converter
-            new_item.properties['converted_from'] = item.id
-            new_item.properties['convert_info'] = convert_hash[:id]
-            new_item.filename = new_file
-            format_identifier(new_item)
-            new_item.save!
-            new_item
+          new_item = Libis::Ingester::FileItem.new
+          new_item.name = item.name
+          new_item.label = item.label
+          new_item.parent = new_parent
+          register_file(new_item)
+          new_item.options = item.options
+          new_item.properties['converter'] = converter
+          new_item.properties['converted_from'] = item.id
+          new_item.properties['convert_info'] = convert_hash[:id]
+          new_item.filename = new_file
+          format_identifier(new_item)
+          new_item.save!
+          new_item
 
-          else
-            # no action
+        else
+          # no action
         end
       end
 
@@ -329,12 +333,12 @@ module Libis
         converterlist = []
         temp_files = []
         case options
-          when Hash
-            [options]
-          when Array
-            options
-          else
-            [{}]
+        when Hash
+          [options]
+        when Array
+          options
+        else
+          [{}]
         end.each do |opts|
           opts = opts.dup
           tgt_format = opts.delete(:target_format) || target_format
@@ -343,8 +347,8 @@ module Libis
           begin
             src_file, converter = convert_one_file(src_file, tgt_file, src_format, tgt_format, opts)
           rescue Exception => e
-            raise Libis::WorkflowError, "File conversion of '%s' from '%s' to '%s' failed: %s" %
-                [src_file, src_format, tgt_format, e.message]
+            raise Libis::WorkflowError, "File conversion of '%s' from '%s' to '%s' failed: %s @ %s" %
+                [src_file, src_format, tgt_format, e.message, e.backtrace.first]
           end
           src_format = tgt_format
           converterlist << converter
@@ -384,28 +388,8 @@ module Libis
 
       def format_identifier(item)
         result = Libis::Format::Identifier.get(item.fullpath, tool: :fido) || {}
-        result[:messages].each do |msg|
-          case msg[0]
-            when :debug
-              debug msg[1], item
-            when :info
-              info msg[1], item
-            when :warn
-              warn msg[1], item
-            when :error
-              error msg[1], item
-            when :fatal
-              fatal_error msg[1], item
-            else
-              info "#{msg[0]}: #{msg[1]}", item
-          end
-        end
-
-        format = result[:formats][item.fullpath]
-
-        item.properties['mimetype'] = format[:mimetype]
-        item.properties['puid'] = format[:puid]
-        item.properties['format_identification'] = format
+        process_messages(result, item)
+        apply_formats(item, result[:formats])
       end
 
       def tempname(source_file, target_format)

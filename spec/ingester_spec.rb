@@ -23,14 +23,15 @@ describe 'Ingester' do
   end
 
   let(:datadir) {File.join(Libis::Ingester::ROOT_DIR, 'spec', 'test_data')}
+  let(:job_name) {''}
   let(:job) {
     Libis::Ingester::Job.find_by name: job_name
   }
 
+  let(:print_log) {false}
 
   context 'ParameterTest' do
 
-    let(:print_log) {false}
     let(:job_name) {'Parameter Test Job'}
 
     it 'set no parameters at run-time' do
@@ -45,7 +46,8 @@ describe 'Ingester' do
       expect(run.tasks[0].parameter(:param7)).to eq 'set in input'
       expect(run.tasks[0].parameter(:param8)).to eq 'set in task config'
       ap run.tasks[0].parameter(:paramxx)
-      expect(run.tasks[0].parameter(:paramxx)).to eq Hash[:key1,'value1', :key2, 'value2']
+      # noinspection RubyStringKeysInHashInspection
+      expect(run.tasks[0].parameter(:paramxx)).to eq Hash['key1','value1', 'key2', 'value2']
 
     end
 
@@ -75,7 +77,6 @@ describe 'Ingester' do
 
   context 'DirCollector' do
 
-    let(:print_log) {true}
     let(:job_name) {'Simple Test Job'}
 
     it 'collect top level files' do
@@ -109,7 +110,6 @@ describe 'Ingester' do
 
   context 'With file grouping' do
 
-    let(:print_log) {false}
     let(:job_name) {'File Grouping Test'}
 
     it 'in collections' do
@@ -123,7 +123,6 @@ describe 'Ingester' do
 
   context 'with FileGrouper and IeBuilder' do
 
-    let(:print_log) {false}
     let(:job_name) {'IeBuilder Test'}
 
     it 'in collections' do
@@ -146,7 +145,6 @@ describe 'Ingester' do
 
   context 'complex ingest' do
 
-    let(:print_log) {false}
     let(:job_name) {'Complex Test Job'}
 
     it 'run the ingest' do
@@ -158,7 +156,6 @@ describe 'Ingester' do
 
   context 'Format identification' do
 
-    let(:print_log) {true}
 
     let(:formats) {
       {
@@ -169,11 +166,11 @@ describe 'Ingester' do
                   {
                       puid: 'fmt/40',
                       mimetype: 'application/msword',
-                      source: :droid
+                      tool: :droid
                   }, {
                       puid: 'fmt/111',
                       mimetype: nil,
-                      source: :fido
+                      tool: :fido
                   }
               ]
 
@@ -185,11 +182,11 @@ describe 'Ingester' do
                   {
                       puid: 'fmt/40',
                       mimetype: 'application/msword',
-                      source: :droid
+                      tool: :droid
                   }, {
                       puid: 'fmt/111',
                       mimetype: nil,
-                      source: :fido
+                      tool: :fido
                   }
               ]
           },
@@ -217,22 +214,23 @@ describe 'Ingester' do
     }
 
     let(:check_format) {
-      proc do |run|
+      proc do |run, print_log|
         expect(run.items.size).to eq formats.size
         expect(run.items.count).to eq formats.size
         formats.each_with_index do |(filepath, result), i|
-          puts "File.basename(filepath): #{File.basename(filepath)}"
+          puts "File.basename(filepath): #{File.basename(filepath)}" if print_log
           expect(run.items[i].filename).to eq File.basename(filepath)
+          ap run.items[i].properties if print_log
           expect(run.items[i].properties['mimetype']).to eq result[:mimetype]
           expect(run.items[i].properties['puid']).to eq result[:puid]
-          format_identification = run.items[i].properties['format_identification'].key_strings_to_symbols recursive: true
           if result[:alternatives]
-            expect(format_identification[:alternatives].size).to eq result[:alternatives].size
+            alternatives = run.items[i].properties['format_alternatives'].map(&:key_strings_to_symbols)
+            expect(alternatives.size).to eq result[:alternatives].size
             result[:alternatives].each_with_index do |alternative, j|
-              expect(format_identification[:alternatives][j]).to include alternative
+              expect(alternatives[j]).to include alternative
             end
           else
-            expect(format_identification[:alternatives]).to be_nil
+            expect(run.items[i].properties['format_alternatives']).to be_nil
           end
         end
       end
@@ -244,29 +242,31 @@ describe 'Ingester' do
 
       it 'identifies all files correctly' do
         run = job.execute location: datadir
-        check_format.call run
+        check_format.call run, print_log
       end
 
     end
 
     context 'In bulk' do
 
-      let(:job_name) {'Format identification - Dir'}
+      let(:job_name) {'Format identification - Bulk'}
 
       it 'identifies all files correctly' do
         run = job.execute location: datadir
-        check_format.call run
+        check_format.call run, print_log
       end
 
     end
 
     context 'One file at a time' do
 
+      let(:print_log) { true }
+
       let(:job_name) {'Format identification - File'}
 
       it 'identifies all files correctly' do
         run = job.execute location: datadir
-        check_format.call run
+        check_format.call run, print_log
       end
 
     end

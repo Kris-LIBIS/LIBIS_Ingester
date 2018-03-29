@@ -23,15 +23,16 @@ module Libis
         Note that this task will first determine the formats of all files in the given folder and subfolders (if deep_scan
         is set to true). It will then iterate over each known FileItem to find the matching file format information. The
         upside of this approach is that it requires the start of each of the underlying tools only once for the whole set
-        of files, compared with once for each file for hte FormatFileIdentifier. It will therefore perform significantly
+        of files, compared with once for each file for the FormatIdentifier. It will therefore perform significantly
         faster than the latter since starting Droid is very slow. However, if there are a lot of files, this also means
         that the format information for a lot of files needs to be kept in memory during the whole task run and this
         task will be more memory-intensive than it's file-by-file counterpart. If there are also a lot of files in the 
-        source folder that are ignored, these will also be format-identified by this task, resulting in some overhead.
+        source folder that are ignored, these will also be format-identified by this task, resulting in a significant 
+        overhead.
 
         You should therefore carefully consider which task to use. Of course this task will only be usable if all source
         files are stored in a single folder tree. If the files are disparsed over a large set of directories, it makes
-        no sense in using this task to format-identify the whole dir tree and the FormatFileIdentifier task will probably
+        no sense in using this task to format-identify the whole dir tree and the FormatIdentifier task will probably
         be faster in that case.
       STR
 
@@ -56,39 +57,8 @@ module Libis
             base_dir: parameter(:folder)
         }.merge(parameter(:format_options).key_strings_to_symbols)
         format_list = Libis::Format::Identifier.get(parameter(:folder), options)
-        format_list[:messages].each do |msg|
-          case msg[0]
-          when :debug
-            debug msg[1], item
-          when :info
-            info msg[1], item
-          when :warn
-            warn msg[1], item
-          when :error
-            error msg[1], item
-          when :fatal
-            fatal_error msg[1], item
-          else
-            info "#{msg[0]}: #{msg[1]}", item
-          end
-        end
-        apply_formats(item, format_list[:formats])
-      end
-
-      def apply_formats(item, format_list)
-
-        if item.is_a? Libis::Ingester::FileItem
-          format =
-              format_list[item.namepath] ||
-                  format_list[item.filename] ||
-                  format_list[File.relative_path(parameter(:folder), File.absolute_path(item.fullpath))]
-          assign_format(item, format)
-        else
-          item.each do |subitem|
-            apply_formats(subitem, format_list)
-          end
-        end
-
+        process_messages(format_list, item)
+        apply_formats(item, format_list[:formats], parameter(:folder))
       end
 
     end

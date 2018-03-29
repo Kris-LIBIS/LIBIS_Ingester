@@ -84,7 +84,7 @@ module Libis
         end
       end
 
-      def run(action)
+      def run(action = :run)
         super(action)
         dir = File.dirname(self.log_filename)
         name = File.basename(self.log_filename, '.*')
@@ -118,8 +118,8 @@ module Libis
           add_file html_file
         end.deliver!
         puts "Ingest log sent to #{self.error_to}."
-      rescue Exception
-        puts "Ingest log file could not be sent by email."
+      rescue Exception => e
+        puts "Ingest log could not be sent by email: #{e.message}"
         FileUtils.remove csv_file, force: true
         FileUtils.remove html_file, force: true
       end
@@ -145,8 +145,8 @@ module Libis
           add_file html_file
         end.deliver!
         puts "Ingest log sent to #{self.success_to}."
-      rescue Exception
-        puts "Ingest log could not be sent by email."
+      rescue Exception => e
+        puts "Ingest log could not be sent by email: #{e.message}"
         FileUtils.remove csv_file, force: true
         FileUtils.remove html_file, force: true
       end
