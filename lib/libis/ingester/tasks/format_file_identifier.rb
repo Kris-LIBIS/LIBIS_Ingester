@@ -33,7 +33,8 @@ module Libis
       def process(item)
         result = Libis::Format::Identifier.get(item.fullpath, parameter(:format_options).key_strings_to_symbols)
         process_messages(result, item)
-        assign_format(item, result[:formats].first)
+        format = result[:formats].first[1] rescue {}
+        assign_format(format, item)
       rescue => e
         raise Libis::WorkflowAbort, "Error during Format identification: #{e.message} @ #{e.backtrace.first}"
       end

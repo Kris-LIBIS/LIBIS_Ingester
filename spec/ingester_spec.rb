@@ -260,8 +260,6 @@ describe 'Ingester' do
 
     context 'One file at a time' do
 
-      let(:print_log) { true }
-
       let(:job_name) {'Format identification - File'}
 
       it 'identifies all files correctly' do
