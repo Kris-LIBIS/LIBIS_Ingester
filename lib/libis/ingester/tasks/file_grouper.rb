@@ -56,8 +56,8 @@ module Libis
 
       def process(item)
         grouping = parameter(:group_regex)
-        if grouping && eval(parameter(:group_source)) =~ Regexp.new(grouping)
-          collections = eval(parameter(:collection_label)).to_s.split('/') rescue []
+        if grouping && Kernel.eval(parameter(:group_source)) =~ Regexp.new(grouping)
+          collections = Kernel.eval(parameter(:collection_label)).to_s.split('/') rescue []
           target_parent = item.parent
           collections.each do |collection|
             sub_parent = target_parent.get_items.select do |c|
@@ -75,8 +75,8 @@ module Libis
           end
           group = nil
           if parameter(:group_label) || parameter(:group_name)
-            group_name = eval(parameter(:group_name)) if parameter(:group_name)
-            group_label = eval(parameter(:group_label)) if parameter(:group_label)
+            group_name = Kernel.eval(parameter(:group_name)) if parameter(:group_name)
+            group_label = Kernel.eval(parameter(:group_label)) if parameter(:group_label)
             # noinspection RubyScope
             group_name ||= group_label
             group_label ||= group_name
@@ -90,11 +90,11 @@ module Libis
             end
           end
           if parameter(:file_label)
-            item.label = eval(parameter(:file_label))
+            item.label = Kernel.eval(parameter(:file_label))
             debug 'Assigning label %s', item, item.label
           end
           if parameter(:file_name)
-            file_name = eval(parameter(:file_name))
+            file_name = Kernel.eval(parameter(:file_name))
             debug 'Renaming to %s', item, file_name
             item.name = file_name
           end

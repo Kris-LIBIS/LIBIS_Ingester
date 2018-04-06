@@ -50,10 +50,10 @@ module Libis
         check_item_type Libis::Ingester::Item, item
 
         case item
-          when Libis::Ingester::IntellectualEntity
-            create_ie item
-          else
-            item.get_items.each {|i| create_item(i)}
+        when Libis::Ingester::IntellectualEntity
+          create_ie item
+        else
+          item.get_items.each {|i| create_item(i)}
         end
       end
 
@@ -66,10 +66,10 @@ module Libis
 
         dc_record = if item.metadata_record
                       case item.metadata_record.format
-                        when 'DC'
-                          Libis::Tools::Metadata::DublinCoreRecord.new(item.metadata_record.data)
-                        else
-                          nil
+                      when 'DC'
+                        Libis::Tools::Metadata::DublinCoreRecord.new(item.metadata_record.data)
+                      else
+                        nil
                       end
                     else
                       Libis::Tools::Metadata::DublinCoreRecord.new
@@ -151,7 +151,7 @@ module Libis
       end
 
       def add_children(mets, rep, div, item, ie_ingest_dir)
-        item.divisions.each {|d| div << add_children(mets, rep, mets.div(d.name), d, ie_ingest_dir)}
+        item.divisions.each {|d| div << add_children(mets, rep, mets.div(label: d.name), d, ie_ingest_dir)}
         item.files.each {|f| div << add_file(mets, rep, f, ie_ingest_dir)}
         div
       end
@@ -181,24 +181,17 @@ module Libis
 
         # copy file to stream
         stream_dir = File.join(ie_ingest_dir, 'content', 'streams')
-        FileUtils.mkpath stream_dir
         target_path = File.join(stream_dir, file.target)
-        if parameter(:copy_files)
-          if File.exists?(target_path)
-            unless Libis::Tools::Checksum.hexdigest(target_path, :MD5) == item.properties['checksum_md5']
-              raise Libis::WorkflowError, 'Target file (%s) already exists with different content.' % [target_path]
-            end
-            debug "File copy of #{item.fullpath} skipped."
-          else
+        FileUtils.mkpath File.dirname(target_path)
+        if File.exists?(target_path)
+          unless Libis::Tools::Checksum.hexdigest(target_path, :MD5) == item.properties['checksum_md5']
+            raise Libis::WorkflowError, 'Target file (%s) already exists with different content.' % [target_path]
+          end
+          debug "File #{parameter(:copy_files) ? 'copy' : 'linking' } of #{item.fullpath} skipped."
+        else
+          if parameter(:copy_files)
             FileUtils.copy_entry(item.fullpath, target_path)
             debug "Copied file to #{target_path}.", item
-          end
-        else
-          if File.exists?(target_path)
-            unless Libis::Tools::Checksum.hexdigest(target_path, :MD5) == item.properties['checksum_md5']
-              raise Libis::WorkflowError, 'Target link (%s) already exists with different content.' % [target_path]
-            end
-            debug "File linking of #{item.fullpath} skipped."
           else
             FileUtils.symlink(item.fullpath, target_path)
             debug "Linked file to #{target_path}.", item
