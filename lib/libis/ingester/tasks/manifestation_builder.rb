@@ -82,7 +82,7 @@ module Libis
           source_rep = from_manifestation &&
               representation.parent.representation(from_manifestation.name)
           # noinspection ConvertOneChainedExprToSafeNavigation
-          source_items = source_rep && source_rep.get_items || representation.parent.originals
+          source_items = source_rep&.get_items || representation.parent.originals
 
           convert_hash = convert_info.to_hash
           convert_hash[:name] = representation.name
@@ -264,6 +264,10 @@ module Libis
             end
           end
 
+          (convert_hash[:properties] || {}).each do |key, value|
+            return nil unless item.properties[key] == value
+          end
+
           if convert_hash[:target_format].blank?
             return copy_file(item, new_parent) if convert_hash[:copy_file]
             return move_file(item, new_parent)
@@ -281,7 +285,8 @@ module Libis
           )
 
           raise Libis::WorkflowError, 'File item %s format (%s) is not supported.' % [item, mimetype] unless type_id
-          new_file, converter = convert_file(src_file, new_file, type_id, convert_hash[:target_format].to_sym, convert_hash[:options])
+          new_file_name, converter = convert_file(src_file, new_file, type_id, convert_hash[:target_format].to_sym, convert_hash[:options])
+          new_file = new_file_name
           return nil unless new_file
 
           FileUtils.chmod('a+rw', new_file)

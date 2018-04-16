@@ -163,7 +163,7 @@ module Libis
         config[:modification_date] = properties[:modification_time]
         config[:entity_type] = item.entity_type
         config[:location] = properties[:filename]
-        config[:target_location] = item.filepath
+        config[:target_location] = properties[:original_path] || item.filepath
         config[:mimetype] = properties[:mimetype]
         config[:size] = properties[:size]
         config[:puid] = properties[:puid]
