@@ -109,6 +109,7 @@ module Libis
         ie.name = row[:name]
         ie.label = row[:name]
         ie.parent = workitem
+        ie.properties['scope_id'] = row[:scope_id]
         debug "Created IE for '#{row[:scope_id]}' - '#{row[:name]}'"
         ie.save!
 
