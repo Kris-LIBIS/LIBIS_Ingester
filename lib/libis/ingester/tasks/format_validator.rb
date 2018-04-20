@@ -1,10 +1,14 @@
 require 'libis/ingester'
 require 'libis/format/type_database'
+require 'htmltoword'
+
+require_relative 'base/format'
 
 module Libis
   module Ingester
 
     class FormatValidator < ::Libis::Ingester::Task
+      include ::Libis::Ingester::Base::Format
 
       taskgroup :preprocessor
 
@@ -15,11 +19,16 @@ module Libis
         and files whose extension does not match the detected file format.
       STR
 
-      parameter ext_mismatch: 'FAIL', type: 'string', constraint: %w'FAIL WARN FIX',
+      parameter ext_mismatch: 'FAIL', type: :string, constraint: %w'FAIL WARN FIX',
                 description: 'Action to take when an extension mismatch is found. Valid values are:\n' +
                     '- FAIL: report this as an error and stop processing this object\n' +
                     '- WARN: report this as an error and continue (may cause issues later in Rosetta)\n' +
                     '- FIX: change the file extension and continue'
+      parameter encrypted_doc: 'FAIL', type: :string, constraint: %w'FAIL WARN DUMMY',
+                description: 'Action to take when an encrypted document is found. Valid values are:\n' +
+                    '- FAIL: report this as an error and stop processing this object\n' +
+                    '- WARN: report this as an error and continue (may cause issues later during ingest or in Rosetta)\n' +
+                    '- DUMMY: create a dummy file with a message why the file was rejected'
 
       parameter item_types: [Libis::Ingester::FileItem], frozen: true
       parameter recursive: true
@@ -28,11 +37,29 @@ module Libis
 
       def process(item)
 
-        raise Libis::WorkflowError, "Found Microsoft Office Encrypted Document: #{item.filepath}" if item.properties['puid'] == 'fmt/494'
+        msg = case item.properties['puid']
+              when 'fmt/494'
+                'Microsoft Office Encrypted Document'
+              when 'fmt/754'
+                'password protected Microsoft Word Document'
+              when 'fmt/755'
+                'password protected Microsoft Word Document Template'
+              else
+                nil
+              end
 
-        raise Libis::WorkflowError, "Found Microsoft Word Document that is password protected: #{item.filepath}" if item.properties['puid'] == 'fmt/754'
-
-        raise Libis::WorkflowError, "Found Microsoft Word Document Template that is password protected: #{item.filepath}" if item.properties['puid'] == 'fmt/755'
+        if msg
+          case parameter(:encrypted_doc)
+          when 'FAIL'
+            raise Libis::WorkflowError, "Found #{msg}: #{item.filepath}"
+          when 'WARN'
+            warn "Found #{msg}: #{item.filepath}"
+          when 'DUMMY'
+            replace_with_dummy(item, "File <i>#{item.filepath}</i> is a #{msg}")
+          else
+            raise Libis::WorkflowAbort, "Unknown value for encrypted_doc parameter encountered."
+          end
+        end
 
         if item.properties['format_ext_mismatch']
           format_type = item.properties[:format_type]
@@ -95,6 +122,18 @@ module Libis
         item.map do |subitem|
           collect_filepaths(subitem)
         end.flatten.compact
+      end
+
+      def replace_with_dummy(item, message)
+        html = '<html><head></head><body><h1/><h1>%s</h1><h1/>%s</body></html>' % [
+            'The preservation system rejected this file for the following reason:',
+            "File <i>#{item.fullpath}</i> is a <b>#{message}</b>"
+        ]
+        Htmltoword.config.custom_templates_path = File.join(Libis::Ingester::ROOT_DIR, 'config')
+        Htmltoword::Document.create_and_save(html, item.fullpath, 'Warning')
+        result = Libis::Format::Identifier.get(item.fullpath) || {}
+        process_messages(result, item)
+        apply_formats(item, result[:formats])
       end
 
     end
