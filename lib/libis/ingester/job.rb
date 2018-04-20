@@ -53,8 +53,8 @@ module Libis
 
       def execute(opts = {})
         opts['run_config'] ||= {}
-        opts['run_config']['error_to'] = self.error_to if self.error_to
-        opts['run_config']['success_to'] = self.success_to if self.success_to
+        opts['run_config']['error_to'] ||= self.error_to if self.error_to
+        opts['run_config']['success_to'] ||= self.success_to if self.success_to
         super opts
       end
 
