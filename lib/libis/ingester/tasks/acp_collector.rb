@@ -61,9 +61,10 @@ module Libis
         end
 
         Libis::Tools::Spreadsheet.foreach("#{parameter(:xls_file)}|Rosetta",
-                                            required: HEADERS,
-                                            extension: :xls) do |row|
-            process_row(row)
+                                          required: HEADERS,
+                                          extension: :xls) do |row|
+          next if row[HEADERS[0].key] == HEADERS[0].value
+          process_row(row)
         end
       end
 
