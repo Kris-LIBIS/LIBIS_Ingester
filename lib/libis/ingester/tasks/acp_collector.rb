@@ -114,8 +114,8 @@ module Libis
         debug "Created IE for '#{row[:scope_id]}' - '#{row[:name]}'"
         ie.save!
 
-        created = Time.parse(row[:created])
-        modified = Time.parse(row[:modfied])
+        created = DateTime.iso8601(row[:created])
+        modified = DateTime.iso8601(row[:modfied])
 
         if (original = create_file(row[:file], row[:size], row[:name], created, modified, row[:checksum]))
           original.properties['rep_type'] = 'original'
