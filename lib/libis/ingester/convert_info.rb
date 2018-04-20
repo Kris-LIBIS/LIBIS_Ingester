@@ -15,6 +15,7 @@ module Libis
       field :options, type: Array
       field :from_manifestation
       field :copy_file, type: Boolean
+      field :properties, type: Hash
 
       embedded_in :manifestation, class_name: Libis::Ingester::Manifestation.to_s
 
