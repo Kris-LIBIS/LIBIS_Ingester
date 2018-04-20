@@ -14,6 +14,12 @@ module Libis
       parameter term_type: 'REPCODE',
                 desrciption: 'Type of term value that will be passed',
                 constraint: %w(REPCODE ID)
+      parameter scope_db: nil, datatype: :string,
+                description: 'Scope database URL, default is set in configuration'
+      parameter scope_user: nil, datatype: :string,
+                description: 'Scope database user, default is set in configuration'
+      parameter scope_passwd: nil, datatype: :string,
+                description: 'Scope database password, default is set in configuration'
 
       protected
 
@@ -21,8 +27,9 @@ module Libis
         unless @scope
           @scope = ::Libis::Services::Scope::Search.new
           @scope.connect(
-              ::Libis::Ingester::Config['scope_user'],
-              ::Libis::Ingester::Config['scope_passwd']
+              parameter(:scope_user) || ::Libis::Ingester::Config['scope_user'],
+              parameter(:scope_passwd) || ::Libis::Ingester::Config['scope_passwd'],
+              parameter(:scope_db) || ::Libis::Ingester::Config['scope_db']
           )
         end
 
