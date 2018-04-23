@@ -84,12 +84,12 @@ module Libis
         file_item = Libis::Ingester::FileItem.new
         file_item.filename = file_name
 
-        unless file.properties['size'] == size
+        unless file_item.properties['size'] == size
           error "File #{name} size does not match metadata info"
           return nil
         end
 
-        unless file.properties['checksum_md5'] == checksum
+        unless file_item.properties['checksum_md5'] == checksum
           error "File #{name} checksum does not match metadata info"
           return nil
         end if checksum
