@@ -115,7 +115,7 @@ module Libis
         ie.save!
 
         created = DateTime.iso8601(row[:created])
-        modified = DateTime.iso8601(row[:modfied])
+        modified = DateTime.iso8601(row[:modified])
 
         if (original = create_file(row[:file], row[:size], row[:name], created, modified, row[:checksum]))
           original.properties['rep_type'] = 'original'
