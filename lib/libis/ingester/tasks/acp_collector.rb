@@ -80,7 +80,7 @@ module Libis
           return nil
         end
 
-        File.utime(modified, modified, file_name)
+        File.utime(modified.to_time, modified.to_time, file_name)
         file_item = Libis::Ingester::FileItem.new
         file_item.filename = file_name
 
@@ -110,8 +110,8 @@ module Libis
         ie.name = row[:name]
         ie.label = row[:name]
         ie.parent = workitem
-        ie.properties['scope_id'] = row[:scope_id]
-        debug "Created IE for '#{row[:scope_id]}' - '#{row[:name]}'"
+        ie.properties['scope_id'] = row[:scope_id].to_i
+        debug "Created IE for '#{row[:scope_id].to_i}' - '#{row[:name]}'"
         ie.save!
 
         created = DateTime.iso8601(row[:created])
