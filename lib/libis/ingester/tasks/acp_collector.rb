@@ -85,12 +85,12 @@ module Libis
         file_item.filename = file_name
 
         unless file_item.properties['size'] == size
-          error "File #{name} size does not match metadata info"
+          error "File #{source} size does not match metadata info [#{file_item.properties['size']} vs #{size}]"
           return nil
         end
 
         unless file_item.properties['checksum_md5'] == checksum
-          error "File #{name} checksum does not match metadata info"
+          error "File #{source} checksum does not match metadata info [#{file_item.properties['checksum_md5']} vs #{checksum}]"
           return nil
         end if checksum
 
@@ -117,7 +117,7 @@ module Libis
         created = DateTime.iso8601(row[:created])
         modified = DateTime.iso8601(row[:modified])
 
-        if (original = create_file(row[:file], row[:size], row[:name], created, modified, row[:checksum]))
+        if (original = create_file(row[:file], row[:size].to_i, row[:name], created, modified, row[:checksum]))
           original.properties['rep_type'] = 'original'
           original.save!
           ie << original
@@ -126,7 +126,7 @@ module Libis
         end
 
 
-        if (derived = create_file(row[:dc_file], row[:dc_size], (row[:dc_name] || row[:name]), created, modified))
+        if (derived = create_file(row[:dc_file], row[:dc_size].to_i, (row[:dc_name] || row[:name]), created, modified))
           derived.properties['rep_type'] = 'derived'
           derived.save!
           ie << derived
@@ -135,7 +135,7 @@ module Libis
         end
 
         fname = "#{File.basename row[:name]}#{File.extname row[:th_file]}"
-        if (thumbnail = create_file(row[:th_file], row[:th_size], fname, created, modified))
+        if (thumbnail = create_file(row[:th_file], row[:th_size].to_i, fname, created, modified))
           thumbnail.properties['rep_type'] = 'thumbnail'
           thumbnail.save!
           ie << thumbnail
