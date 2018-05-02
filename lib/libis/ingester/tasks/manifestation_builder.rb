@@ -43,9 +43,16 @@ module Libis
           set_status(rep, :STARTED)
           build_manifestation(rep, manifestation)
           if rep.items.size == 0
-            error "Representation is empty.", rep
-            set_status(rep, :FAILED)
-            raise Libis::WorkflowError, 'Could not find content for representation %s.' % rep.name
+            if manifestation.optional
+              warn "Manifestation %s '%s' is marked optional and no items were found. Representation will not be created.",
+                      manifestation.name, manifestation.label
+              set_status(rep, :DONE)
+              rep.destroy!
+            else
+              error "Representation %s is empty.", rep.name
+              set_status(rep, :FAILED)
+              raise Libis::WorkflowError, 'Could not find content for representation %s.' % [rep.name]
+            end
           else
             set_status(rep, :DONE)
           end
@@ -113,13 +120,13 @@ module Libis
       end
 
       def copy_file(file, to_parent)
-        debug "Copying '#{file.name}' to '#{to_parent.name}' in object tree."
+        debug "Copying '%s' to '%s' in object tree.", file.name, to_parent.name
         file = to_parent.copy_item(file)
         process_files(file)
       end
 
       def move_file(file, to_parent)
-        debug "Moving '#{file.name}' to '#{to_parent.name}' in object tree."
+        debug "Moving '%s' to '%s' in object tree.", file.name, to_parent.name
         file = to_parent.move_item(file)
         process_files(file)
       end
@@ -247,13 +254,13 @@ module Libis
           return if new_parent.get_items.where(:'properties.converted_from' => item.id).count > 0
 
           mimetype = item.properties['mimetype']
-          raise Libis::WorkflowError, 'File item %s format not identified.' % item unless mimetype
+          raise Libis::WorkflowError, 'File item %s format not identified.' % [item] unless mimetype
 
           type_id = Libis::Format::TypeDatabase.mime_types(mimetype).first
 
           unless convert_hash[:source_formats].blank?
             unless type_id
-              warn 'Ignoring file item (%s) with unsupported file format (%s) in format conversion.' % [item, mimetype]
+              warn 'Ignoring file item (%s) with unsupported file format (%s) in format conversion.', item, mimetype
               return
             end
             group = Libis::Format::TypeDatabase.type_group(type_id)
