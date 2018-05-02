@@ -141,7 +141,7 @@ module Libis
           ie << thumbnail
           ie.save!
           debug "Added thumbnail file to IE", ie
-        end
+        end if row[:th_file]
 
       end
 
