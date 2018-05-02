@@ -9,10 +9,7 @@ module Libis
 
       field :name
       field :label
-      field :entity_type
-      field :user_a
-      field :user_b
-      field :user_c
+      field :optional, type: Boolean, default: false
 
       belongs_to :access_right, class_name: Libis::Ingester::AccessRight.to_s, inverse_of: nil
       belongs_to :representation_info, class_name: Libis::Ingester::RepresentationInfo.to_s, inverse_of: nil
