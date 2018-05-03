@@ -232,9 +232,9 @@ module Libis
         debug "Created IE for '#{ie_info(data)}'"
         ie.save!
 
-        date = DateTime.iso8601(data[:created])
+        created = data[:created]
 
-        if (original = create_file(data[:original][:file], data[:original][:size], data[:name], date, data[:checksum]))
+        if (original = create_file(data[:original][:file], data[:original][:size], data[:name], created, data[:checksum]))
           original.properties['rep_type'] = 'original'
           original.save!
           ie << original
@@ -244,7 +244,7 @@ module Libis
           raise WorkflowError, "Failed to create original FileItem for IE '#{ie_info(data)}'"
         end
 
-        if (derived = create_file(data[:derived][:file], data[:derived][:size], (data[:deriv_name] || data[:name]), date))
+        if (derived = create_file(data[:derived][:file], data[:derived][:size], (data[:deriv_name] || data[:name]), created))
           derived.properties['rep_type'] = 'derived'
           derived.save!
           ie << derived
@@ -254,7 +254,7 @@ module Libis
 
         if data[:thumbnail]&.any?
           fname = "#{File.basename data[:name]}#{File.extname data[:thumbnail][:file]}"
-          if (thumbnail = create_file(data[:thumbnail][:file], data[:thumbnail][:size], fname, date))
+          if (thumbnail = create_file(data[:thumbnail][:file], data[:thumbnail][:size], fname, created))
             thumbnail.properties['rep_type'] = 'thumbnail'
             thumbnail.save!
             ie << thumbnail
