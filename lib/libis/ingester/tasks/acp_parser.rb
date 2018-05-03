@@ -40,7 +40,7 @@ module Libis
         xml_file = xml_files.first
         @element_stack = []
         @element_path = []
-        ie = null
+        ie = nil
         Libis::Ingester::Base::XmlParser.new(xml_file) do |function, *args|
           case (function)
           when :start_element
