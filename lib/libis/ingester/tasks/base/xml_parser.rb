@@ -15,7 +15,7 @@ module Libis
         end
 
         def xmldecl(version, encoding, standalone)
-          callback.call :error, version, encoding, standalone
+          callback.call :xmldecl, version, encoding, standalone
         end
 
         def start_document
