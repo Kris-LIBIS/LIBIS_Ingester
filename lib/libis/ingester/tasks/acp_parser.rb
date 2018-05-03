@@ -1,14 +1,13 @@
 # frozen_string_literal: true
-
 require 'libis/ingester'
 require_relative 'base/xml_parser'
 
-NAME_ELEMENT = /^abs:isad(Archief|Domein|Subdomein|Rubriek|Reeks|Serie|Groep|Dossier)$/
-IE_ELEMENT = /^(abs:isadStuk|cm:content)$/
-CONTAINER_ELEMENT = /^(view:view|cm:contains|cm:thumbnails)$/
-THUMBNAIL_ELEMENT = 'cm:thumbnail'
-BACKLOG_ELEMENT = 'cm:content'
-STUK_ELEMENT = 'abs:isadStuk'
+NAME_ELEMENT = /^isad(Archief|Domein|Subdomein|Rubriek|Reeks|Serie|Groep|Dossier)$/
+CONTAINER_ELEMENT = /^(view|contains|thumbnails)$/
+THUMBNAIL_ELEMENT = 'thumbnail'
+BACKLOG_ELEMENT = 'content'
+STUK_ELEMENT = 'isadStuk'
+IE_ELEMENT = /^(#{STUK_ELEMENT}|#{BACKLOG_ELEMENT})$/
 
 module Libis
   module Ingester
@@ -54,13 +53,13 @@ module Libis
         ie = nil
         Libis::Ingester::Base::XmlParser.new(xml_file) do |function, *args|
           case function
-          when :start_element
+          when :start_element_namespace
             element = args[0]
             element_stack.push(element)
             if element_stack[-2] =~ CONTAINER_ELEMENT
               element_path.push(element)
-              attrs = args[1].reduce({}) {|r, x| r[x[0]] = x[1]; r}
-              child_name = attrs['view:childName']&.gsub(/^cm:/, '')
+              attrs = args[1].reduce({}) {|r, x| r[x[0]] = x[3]; r}
+              child_name = attrs['childName']&.gsub(/^cm:/, '')
               case element
               when NAME_ELEMENT
                 name_path.push(child_name)
@@ -71,10 +70,11 @@ module Libis
               else # nothing
               end
             end
-          when :end_element
+          when :end_element_namespace
             element = args[0]
             raise WorkflowAbort, "Error processing XML: unexpected closing tag" unless element == element_stack.pop
             if element_stack[-1] =~ CONTAINER_ELEMENT
+              element_path.pop
               case element
               when NAME_ELEMENT
                 name_path.pop
@@ -86,66 +86,66 @@ module Libis
             end
           when :characters
             string = args[0].strip
-            unless string.empty?
-              if ie
-                case element_path[-1]
-                when IE_ELEMENT
-                  case element_stack[-1]
-                  when 'abs:isadMedium'
-                    if 'Digitaal' != string
-                      ie = nil
-                    end
-                  when 'abs:isadOrigineel'
-                    ie[:original] = parse_content_string(string)
-                  when 'cm:content'
-                    case element_path[-1]
-                    when STUK_ELEMENT
-                      ie[:derived] = parse_content_string(string)
-                    when BACKLOG_ELEMENT
-                      ie[:original] = parse_content_string(string)
-                    else # nothing
-                    end
-                  when 'abs:isadRaadpleegformaatNaam'
-                    ie[:deriv_name] = string
-                  when 'sys:node-dbid'
-                    ie[:vp_dbid] = string
-                  when 'sys:node-uuid'
-                    ie[:vp_uuid] = string
-                  when 'abs:isadAanmaakDatum'
-                    ie[:created] = DateTime.parse(string)
-                  when 'cm:created'
-                    ie[:created] ||= DateTime.parse(string)
-                  when 'abs:isadTitel'
-                    ie[:label] = string
-                  when 'od:titel'
-                    ie[:label] = string + ' - ' + name_path[-1]
-                  when 'abs:checksum'
-                    ie[:checksum] = string
-                  else # nothing
-                  end
-                when THUMBNAIL_ELEMENT
-                  case element_stack[-1]
-                  when 'cm:content'
-                    ie[:thumbnail] = parse_content_string(string)
-                  else # nothing
-                  end
-                else # nothing
-                end
-              else # ie
+            if ie
+              case element_path[-1]
+              when IE_ELEMENT
                 case element_stack[-1]
-                when 'view:exportOf'
-                  name_path = string.gsub('/cm:', '/').gsub(/_x[^_]*_/) do |x|
-                    ["0#{x.tr('_', '')}".to_i(16)].pack('U')
-                  end.split('/')[4..-1]
-                when 'abs:isadTitel'
-                  if element_path[-1] =~ NAME_ELEMENT
-                    name_path.pop
-                    name_path.push(string)
+                when 'isadMedium'
+                  if 'Digitaal' != string
+                    ie = nil
                   end
+                when 'isadOrigineel'
+                  ie[:original] = parse_content_string(string)
+                when 'content'
+                  case element_path[-1]
+                  when STUK_ELEMENT
+                    ie[:derived] = parse_content_string(string)
+                  when BACKLOG_ELEMENT
+                    ie[:original] = parse_content_string(string)
+                  else # nothing
+                  end
+                when 'isadRaadpleegformaatNaam'
+                  ie[:deriv_name] = string
+                when 'node-dbid'
+                  ie[:vp_dbid] = string
+                when 'node-uuid'
+                  ie[:vp_uuid] = string
+                when 'isadAanmaakDatum'
+                  ie[:created] = DateTime.parse(string)
+                when 'created'
+                  ie[:created] ||= DateTime.parse(string)
+                when 'isadTitel'
+                  ie[:label] = string
+                when 'titel'
+                  ie[:label] = name_path[-1] + ' - ' + string
+                when 'checksum'
+                  ie[:checksum] = string
+                when 'isadReferentie'
+                  ie[:refcode] = string
                 else # nothing
                 end
+              when THUMBNAIL_ELEMENT
+                case element_stack[-1]
+                when 'content'
+                  ie[:thumbnail] = parse_content_string(string)
+                else # nothing
+                end
+              else # nothing
               end
-            end
+            else # ie
+              case element_stack[-1]
+              when 'exportOf'
+                name_path = string.gsub('/cm:', '/').gsub(/_x[^_]*_/) do |x|
+                  ["0#{x.tr('_', '')}".to_i(16)].pack('U')
+                end.split('/')[4..-1]
+              when 'isadTitel'
+                if element_path[-1] =~ NAME_ELEMENT
+                  name_path.pop
+                  name_path.push(string)
+                end
+              else # nothing
+              end
+            end unless string.empty? # if ie
           else # nothinh
           end # function
 
@@ -218,9 +218,11 @@ module Libis
         dc = Libis::Tools::Metadata::DublinCoreRecord.new
         dc.title = data[ie.label]
         # noinspection RubyResolve
-        dc.identifier! "dbid:#{data[:vp_dbid]}"
+        dc.identifier! "refcode:#{data[:refcode]}" if data[:refcode]
         # noinspection RubyResolve
-        dc.identifier! "uuid:#{data[:vp_uuid]}"
+        dc.identifier! "dbid:#{data[:vp_dbid]}" if data[:vp_dbid]
+        # noinspection RubyResolve
+        dc.identifier! "uuid:#{data[:vp_uuid]}" if data[:vp_uuid]
         # noinspection RubyResolve
         dc.isPartOf data[:path] if data[:path]
         record.data = dc.to_xml
@@ -264,10 +266,7 @@ module Libis
       end
 
       def ie_info(ie)
-        [
-            ie[:name],
-            ie[:vp_dbid]&.to_s || ie[:vp_uuid]
-        ].join(' ')
+        "#{ie[:name]} [#{ie[:vp_dbid]&.to_s || ie[:vp_uuid]}]"
       end
 
     end
