@@ -105,8 +105,6 @@ module Libis
                       ie[:original] = parse_content_string(string)
                     else # nothing
                     end
-                  when 'cm:name'
-                    ie[:name] = string
                   when 'abs:isadRaadpleegformaatNaam'
                     ie[:deriv_name] = string
                   when 'sys:node-dbid'
@@ -217,17 +215,15 @@ module Libis
         ie.properties['vp_dbid'] = data[:vp_dbid]
         record = MetadataRecord.new
         record.format = 'DC'
-        record.data = Libis::Tools::Metadata::DublinCoreRecord.build do |dc|
-          dc.record do
-            dc.title = data[ie.label]
-            # noinspection RubyResolve
-            dc.identifier! "dbid:#{data[:vp_dbid]}"
-            # noinspection RubyResolve
-            dc.identifier! "uuid:#{data[:vp_uuid]}"
-            # noinspection RubyResolve
-            dc.isPartOf = data[:path] if data[:path]
-          end
-        end.to_xml
+        dc = Libis::Tools::Metadata::DublinCoreRecord.new
+        dc.title = data[ie.label]
+        # noinspection RubyResolve
+        dc.identifier! "dbid:#{data[:vp_dbid]}"
+        # noinspection RubyResolve
+        dc.identifier! "uuid:#{data[:vp_uuid]}"
+        # noinspection RubyResolve
+        dc.isPartOf data[:path] if data[:path]
+        record.data = dc.to_xml
         ie.metadata_record = record
         debug "Created IE for '#{ie_info(data)}'"
         ie.save!
@@ -250,7 +246,10 @@ module Libis
           ie << derived
           ie.save!
           debug "Added derived file to IE", ie
-        end if data[:derived] && data[:derived] != data[:original]
+        end if data[:derived] &&
+            !(data[:derived][:mime] == data[:original][:mime] &&
+                data[:derived][:size] == data[:original][:size]
+            )
 
         if data[:thumbnail]&.any?
           fname = "#{File.basename data[:name]}#{File.extname data[:thumbnail][:file]}"
