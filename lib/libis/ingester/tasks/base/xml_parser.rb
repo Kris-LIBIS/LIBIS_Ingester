@@ -3,7 +3,7 @@ require 'nokogiri'
 module Libis
   module Ingester
     module Base
-      class XmlParser < Nokogiri::XML::SAX::Parser
+      class XmlParser < Nokogiri::XML::SAX::Document
         attr_reader :callback
 
         def initialize(document, callback = nil, &block)
