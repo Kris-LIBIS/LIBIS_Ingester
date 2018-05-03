@@ -3,10 +3,6 @@
 require 'libis/ingester'
 require_relative 'base/xml_parser'
 
-require 'fileutils'
-
-require 'awesome_print'
-
 NAME_ELEMENT = /^abs:isad(Archief|Domein|Subdomein|Rubriek|Reeks|Serie|Groep|Dossier)$/
 IE_ELEMENT = /^(abs:isadStuk|cm:content)$/
 CONTAINER_ELEMENT = /^(view:view|cm:contains|cm:thumbnails)$/
@@ -54,11 +50,9 @@ module Libis
       def parse_xml(xml_file, item)
         element_stack = [] # stack of all elements traversed
         element_path = [] # stack of relevant elements traversed
-        name_path = [] # stack of names
+        name_path = [] # stack of relevant names
         ie = nil
         Libis::Ingester::Base::XmlParser.new(xml_file) do |function, *args|
-          # puts "Called: #{function}"
-          # ap args
           case function
           when :start_element
             element = args[0]
@@ -224,11 +218,15 @@ module Libis
         record = MetadataRecord.new
         record.format = 'DC'
         record.data = Libis::Tools::Metadata::DublinCoreRecord.build do |dc|
-          dc.title = data[ie.label]
-          dc.identifier = "dbid:#{data[:vp_dbid]}"
-          dc.identifier = "uuid:#{data[:vp_uuid]}"
-          # noinspection RubyResolve
-          dc.isPartOf = data[:path] if data[:path]
+          dc.record do
+            dc.title = data[ie.label]
+            # noinspection RubyResolve
+            dc.identifier! "dbid:#{data[:vp_dbid]}"
+            # noinspection RubyResolve
+            dc.identifier! "uuid:#{data[:vp_uuid]}"
+            # noinspection RubyResolve
+            dc.isPartOf = data[:path] if data[:path]
+          end
         end.to_xml
         ie.metadata_record = record
         debug "Created IE for '#{ie_info(data)}'"
