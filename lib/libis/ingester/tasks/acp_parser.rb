@@ -2,6 +2,7 @@
 require 'libis/ingester'
 require_relative 'base/xml_parser'
 
+PATH_ELEMENT = /^isad(Archief|Domein|Subdomein|Rubriek|Reeks|Serie|Groep|Dossier|Stuk|content|thumbnail)$/
 NAME_ELEMENT = /^isad(Archief|Domein|Subdomein|Rubriek|Reeks|Serie|Groep|Dossier)$/
 CONTAINER_ELEMENT = /^(view|contains|thumbnails)$/
 THUMBNAIL_ELEMENT = 'thumbnail'
@@ -57,7 +58,7 @@ module Libis
             element = args[0]
             element_stack.push(element)
             if element_stack[-2] =~ CONTAINER_ELEMENT
-              element_path.push(element)
+              element_path.push(element) if element =~ PATH_ELEMENT
               attrs = args[1].reduce({}) {|r, x| r[x[0]] = x[3]; r}
               child_name = attrs['childName']&.gsub(/^cm:/, '')
               case element
@@ -74,7 +75,7 @@ module Libis
             element = args[0]
             raise WorkflowAbort, "Error processing XML: unexpected closing tag" unless element == element_stack.pop
             if element_stack[-1] =~ CONTAINER_ELEMENT
-              element_path.pop
+              element_path.pop if element =~ PATH_ELEMENT
               case element
               when NAME_ELEMENT
                 name_path.pop
@@ -85,7 +86,7 @@ module Libis
               end
             end
           when :characters
-            string = args[0].strip
+            string = args[0]
             if ie
               case element_path[-1]
               when IE_ELEMENT
@@ -145,7 +146,7 @@ module Libis
                 end
               else # nothing
               end
-            end unless string.empty? # if ie
+            end  # if ie
           else # nothinh
           end # function
 
@@ -210,7 +211,7 @@ module Libis
         # create IE
         ie = Libis::Ingester::IntellectualEntity.new
         ie.name = data[:name]
-        ie.label = data[:label] || data[:name]
+        ie.label = data[:label] || (data[:path].split('/')[-1] + ' - ' + data[:name])
         ie.parent = parent
         ie.properties['path'] = data[:path] if data[:path]
         ie.properties['vp_dbid'] = data[:vp_dbid] if data[:vp_dbid]
