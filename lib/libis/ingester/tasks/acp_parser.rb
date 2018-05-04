@@ -146,7 +146,7 @@ module Libis
                 end
               else # nothing
               end
-            end  # if ie
+            end # if ie
           else # nothinh
           end # function
 
@@ -207,6 +207,9 @@ module Libis
       def create_ie(data, parent)
 
         raise WorkflowError, "Missing original file information for IE '#{ie_info(data)}'" if data[:original]&.empty?
+        unless data[:original][:size] > 0
+          error "Original contains file with size 0. File '#{data[:original][:file]}' will be skipped and no IE will be created."
+        end
 
         # create IE
         ie = Libis::Ingester::IntellectualEntity.new
@@ -253,9 +256,8 @@ module Libis
           ie.save!
           debug "Added derived file to IE", ie
         end if data[:derived] &&
-            !(data[:derived][:mime] == data[:original][:mime] &&
-                data[:derived][:size] == data[:original][:size]
-            )
+            !(data[:derived][:mime] == data[:original][:mime] && data[:derived][:size] == data[:original][:size]) &&
+            data[:derived][:size] > 0
 
         if data[:thumbnail]&.any?
           fname = "#{File.basename data[:name]}#{File.extname data[:thumbnail][:file]}"
@@ -267,6 +269,7 @@ module Libis
             debug "Added thumbnail file to IE", ie
           end
         end
+
       end
 
       def ie_info(ie)
