@@ -9,6 +9,7 @@ module Libis
         def initialize(document, callback = nil, &block)
           @callback = callback || block
           raise WorkflowAbort, "XmlParser created without callback or block" unless @callback
+          @char_buffer = ''
           File.open(document) do |f|
             Nokogiri::XML::SAX::Parser.new(self).parse(f)
           end
@@ -31,6 +32,7 @@ module Libis
         end
 
         def start_element(name, attrs = [])
+          send_content
           callback.call :start_element, name, attrs
         end
 
@@ -44,10 +46,11 @@ module Libis
         end
 
         def characters(string)
-          callback.call :characters, string
+          @char_buffer += string
         end
 
         def end_element(name)
+          send_content
           callback.call :end_element, name
         end
 
@@ -66,6 +69,14 @@ module Libis
 
         def warning(string)
           callback.call :warning, string
+        end
+
+        protected
+
+        def send_content
+          @char_buffer.strip!
+          callback.call :characters, @char_buffer unless @char_buffer.empty?
+          @char_buffer = ''
         end
 
       end
