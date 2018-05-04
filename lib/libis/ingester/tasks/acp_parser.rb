@@ -212,7 +212,10 @@ module Libis
         ie.name = data[:name]
         ie.label = data[:label] || data[:name]
         ie.parent = parent
-        ie.properties['vp_dbid'] = data[:vp_dbid]
+        ie.properties['path'] = data[:path] if data[:path]
+        ie.properties['vp_dbid'] = data[:vp_dbid] if data[:vp_dbid]
+        ie.properties['vp_uuid'] = data[:vp_uuid] if data[:vp_uuid]
+        ie.properties['refcode'] = data[:refcode] if data[:refcode]
         record = MetadataRecord.new
         record.format = 'DC'
         dc = Libis::Tools::Metadata::DublinCoreRecord.new
