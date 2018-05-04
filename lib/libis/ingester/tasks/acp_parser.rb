@@ -2,7 +2,7 @@
 require 'libis/ingester'
 require_relative 'base/xml_parser'
 
-PATH_ELEMENT = /^isad(Archief|Domein|Subdomein|Rubriek|Reeks|Serie|Groep|Dossier|Stuk|content|thumbnail)$/
+PATH_ELEMENT = /^isad(Archief|Domein|Subdomein|Rubriek|Reeks|Serie|Groep|Dossier|Stuk)|content|thumbnail$/
 NAME_ELEMENT = /^isad(Archief|Domein|Subdomein|Rubriek|Reeks|Serie|Groep|Dossier)$/
 CONTAINER_ELEMENT = /^(view|contains|thumbnails)$/
 THUMBNAIL_ELEMENT = 'thumbnail'
