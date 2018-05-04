@@ -59,7 +59,7 @@ module Libis
 
       # noinspection RubyResolve
       def create_ie(item)
-        item.properties['ingest_sub_dir'] = "#{item._id}.#{item.name}"
+        item.properties['ingest_sub_dir'] = "#{item._id}"
         item.save!
 
         mets = Libis::Tools::MetsFile.new
@@ -124,13 +124,14 @@ module Libis
 
         item.representations.each {|rep| add_rep(mets, rep, ie_ingest_dir)}
 
-        mets_filename = File.join(ie_ingest_dir, 'content', "#{item.name}.xml")
+        mets_filename = File.join(ie_ingest_dir, 'content', "#{item.id}.xml")
         FileUtils.mkpath(File.dirname(mets_filename))
         mets.xml_doc.save mets_filename
 
         sip_dc = Libis::Tools::Metadata::DublinCoreRecord.new do |xml|
           xml[:dc].title "#{item.get_run.name} - #{item.namepath}"
-          xml[:dc].identifier "run: #{item.get_run.name}"
+          xml[:dc].identifier item.get_run.name
+          xml[:dc].source item.namepath
           xml[:dcterms].alternate item.label
         end
 
