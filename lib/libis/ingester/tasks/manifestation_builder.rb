@@ -30,7 +30,7 @@ module Libis
 
         # Build all manifestations
         item.get_run.ingest_model.manifestations.each do |manifestation|
-          debug 'Building manifestation %s', manifestation.representation_info.name
+          debug 'Building manifestation %s', item, manifestation.representation_info.name
           rep = item.representation(manifestation.name)
           unless rep
             rep = Libis::Ingester::Representation.new
@@ -45,11 +45,11 @@ module Libis
           if rep.items.size == 0
             if manifestation.optional
               warn "Manifestation %s '%s' is marked optional and no items were found. Representation will not be created.",
-                      manifestation.name, manifestation.label
+                      item, manifestation.name, manifestation.label
               set_status(rep, :DONE)
               rep.destroy!
             else
-              error "Representation %s is empty.", rep.name
+              error "Representation %s is empty.", item, rep.name
               set_status(rep, :FAILED)
               raise Libis::WorkflowError, 'Could not find content for representation %s.' % [rep.name]
             end
@@ -79,7 +79,7 @@ module Libis
         # Perform each conversion
         manifestation.convert_infos.each do |convert_info|
 
-          debug 'Processing convert_info [%s]', convert_info.to_hash.to_s
+          debug 'Processing convert_info [%s]', representation, convert_info.to_hash.to_s
 
           # Get the source files
           # - either from the given representation
@@ -120,13 +120,13 @@ module Libis
       end
 
       def copy_file(file, to_parent)
-        debug "Copying '%s' to '%s' in object tree.", file.name, to_parent.name
+        debug "Copying '%s' to '%s' in object tree.", to_parent, file.name, to_parent.name
         file = to_parent.copy_item(file)
         process_files(file)
       end
 
       def move_file(file, to_parent)
-        debug "Moving '%s' to '%s' in object tree.", file.name, to_parent.name
+        debug "Moving '%s' to '%s' in object tree.", to_parent, file.name, to_parent.name
         file = to_parent.move_item(file)
         process_files(file)
       end
@@ -221,7 +221,7 @@ module Libis
 
         FileUtils.mkpath(File.dirname(new_file))
 
-        debug 'Building %s for %s from %d source files', new_file, representation.name, source_files.count
+        debug 'Building %s for %s from %d source files', representation, new_file, representation.name, source_files.count
         yield source_files, new_file
 
         FileUtils.chmod('a+rw', new_file)
@@ -266,7 +266,8 @@ module Libis
             group = Libis::Format::TypeDatabase.type_group(type_id)
             check_list = [type_id, group].compact.map {|v| [v.to_s, v.to_sym]}.flatten
             if (convert_hash[:source_formats] & check_list).empty?
-              debug 'File item format (%s) does not match conversion criteria (%s)', check_list.to_s, convert_hash[:source_formats].to_s
+              debug 'File item format (%s) does not match conversion criteria (%s)',
+                    item, check_list.to_s, convert_hash[:source_formats].to_s
               return
             end
           end
