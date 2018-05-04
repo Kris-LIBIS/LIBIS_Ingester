@@ -130,6 +130,8 @@ module Libis
 
         sip_dc = Libis::Tools::Metadata::DublinCoreRecord.new do |xml|
           xml[:dc].title "#{item.get_run.name} - #{item.namepath}"
+          xml[:dc].identifier "run: #{item.get_run.name}"
+          xml[:dcterms].alternate item.label
         end
 
         sip_dc.save(File.join(ie_ingest_dir, 'content', 'dc.xml'))
