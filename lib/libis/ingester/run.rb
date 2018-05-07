@@ -130,7 +130,7 @@ module Libis
         return unless self.success_to
         log2csv(log_file, csv_file, skip_date: false, filter: 'IWEF')
         csv2html(csv_file, html_file)
-        status_log = csv2html_io(status2csv_io(self)).string
+        status_log = csv2html_io(status2csv_io(self))
         mail = Mail.new do
           from 'teneo.libis@gmail.com'
         end
