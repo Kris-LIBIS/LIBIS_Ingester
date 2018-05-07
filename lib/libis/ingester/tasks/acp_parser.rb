@@ -210,6 +210,7 @@ module Libis
         raise WorkflowError, "Missing original file information for IE '#{ie_info(data)}'" unless data[:original]
         unless data[:original][:size].to_i > 0
           error "Original contains file with size 0. File '#{data[:original][:file]}' will be skipped and no IE will be created."
+          return
         end
 
         # create IE
