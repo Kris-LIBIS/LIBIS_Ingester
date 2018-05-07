@@ -223,7 +223,7 @@ module Libis
         record = MetadataRecord.new
         record.format = 'DC'
         dc = Libis::Tools::Metadata::DublinCoreRecord.new
-        dc.title = data[ie.label]
+        dc.title = ie.label
         # noinspection RubyResolve
         dc.identifier! "refcode:#{data[:refcode]}" if data[:refcode]
         # noinspection RubyResolve
@@ -231,7 +231,7 @@ module Libis
         # noinspection RubyResolve
         dc.identifier! "uuid:#{data[:vp_uuid]}" if data[:vp_uuid]
         # noinspection RubyResolve
-        dc.isPartOf data[:path] if data[:path]
+        dc.isPartOf = data[:path] if data[:path]
         record.data = dc.to_xml
         ie.metadata_record = record
         debug "Created IE for '#{ie_info(data)}'"
