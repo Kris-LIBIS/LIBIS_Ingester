@@ -138,7 +138,7 @@ module Libis
               when 'exportOf'
                 name_path = string.gsub('/cm:', '/').gsub(/_x[^_]*_/) do |x|
                   ["0#{x.tr('_', '')}".to_i(16)].pack('U')
-                end.split('/')[4..-1]
+                end.split('/')[3..-1]
               when 'isadTitel'
                 if element_path[-1] =~ NAME_ELEMENT
                   name_path.pop
