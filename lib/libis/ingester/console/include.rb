@@ -217,7 +217,7 @@ def select_worker(queue = nil, multiselect = false)
 end
 
 def worker_name(worker)
-  "#{worker.enqueued_at.localtime} : #{worker.klass.constantize.subject(worker.args.first).name}"
+  "#{worker.enqueued_at.localtime} : #{worker.klass.constantize.subject(worker.args.first).name rescue nil}"
 end
 
 def worker_detail(worker)
@@ -274,9 +274,45 @@ def select_bulk_option(options)
 end
 
 def select_item(item)
-  selection_menu('item', item.get_items, header: "Subitems of #{item.name}") { |i|
-    "#{i.class.name.split('::').last}: '#{i.name}' (#{i.items.count} items) [#{i.status_label}]"
-  } || item
+  items = item.get_items
+  paging = 25
+  return item if items.size == 0
+  if items.count > paging
+    paged_items = items.limit(paging)
+    no_pages = (items.count - 1) / paging + 1
+    max_page = no_pages - 1
+    page = min_page = 0
+    options = {header: "Subitems of #{item.name}"}
+    loop do
+      page = [page, min_page].max
+      page = [page, max_page].min
+      options[:hidden] = {}
+      options[:hidden]['previous'] = Proc.new { :previous } if page > min_page
+      options[:hidden]['next'] = Proc.new { :next } if page < max_page
+      options[:hidden]['goto'] = Proc.new { :goto }
+      result = selection_menu(
+          "item (#{page * paging + 1}-#{(page + 1) * paging})",
+          paged_items.offset(page * paging),
+          options
+      ) { |i|
+        "#{i.class.name.split('::').last}: '#{i.name}' (#{i.items.count} items) [#{i.status_label}]"
+      } || item
+      case result
+      when :previous
+        page -= 1 if page > min_page
+      when :next
+        page += 1 if page < max_page
+      when :goto
+        page = @hl.ask('Enter page number', Integer) { |q| q.in = Range.new(min_page, max_page) }
+      else
+        return result
+      end
+    end
+  else
+    selection_menu('item', item.get_items, header: "Subitems of #{item.name}") { |i|
+      "#{i.class.name.split('::').last}: '#{i.name}' (#{i.items.count} items) [#{i.status_label}]"
+    } || item
+  end
 end
 
 require 'awesome_print'
