@@ -102,21 +102,23 @@ module Libis
         log2csv(log_file, csv_file, skip_date: true, filter: 'WEF', trace: true)
         csv2html(csv_file, html_file)
         status_log = csv2html_io(status2csv_io(self))
-        Mail.new do
+        mail = Mail.new do
           from 'teneo.libis@gmail.com'
-          to self.error_to
-          subject "Ingest failed: #{self.name}"
-          html_part do
+        end
+        mail.to = self.error_to
+        mail.subject = "Ingest failed: #{self.name}"
+        html_part = Mail::Part.new do
             content_type 'text/html; charset=UTF-8'
-            body [
+        end
+        html_part.body = [
                      "Unfortunately the ingest '#{self.name}' failed. Please find the ingest log in attachment.",
                      "Status overview:",
                      status_log.string
                  ].join("\n")
-          end
-          add_file csv_file
-          add_file html_file
-        end.deliver!
+        mail.html_part = html_part
+        mail.add_file csv_file
+        mail.add_file html_file
+        mail.deliver!
         puts "Ingest log sent to #{self.error_to}."
       rescue Exception => e
         puts "Ingest log could not be sent by email: #{e.message}"
@@ -129,21 +131,23 @@ module Libis
         log2csv(log_file, csv_file, skip_date: false, filter: 'IWEF')
         csv2html(csv_file, html_file)
         status_log = csv2html_io(status2csv_io(self)).string
-        Mail.new do
+        mail = Mail.new do
           from 'teneo.libis@gmail.com'
-          to self.success_to
-          subject "Ingest complete: #{self.name}"
-          html_part do
+        end
+        mail.to self.success_to
+        mail.subject "Ingest complete: #{self.name}"
+        html_part = Mail::Part.new do
             content_type 'text/html; charset=UTF-8'
-            body [
+        end
+        html_part.body = [
                      "The ingest '#{self.name}' finished successfully. Please find the ingest log in attachment.",
                      "Status overview:",
                      status_log.string
                  ].join("\n")
-          end
-          add_file csv_file
-          add_file html_file
-        end.deliver!
+        mail.html_part = html_part
+        mail.add_file csv_file
+        mail.add_file html_file
+        mail.deliver!
         puts "Ingest log sent to #{self.success_to}."
       rescue Exception => e
         puts "Ingest log could not be sent by email: #{e.message}"
