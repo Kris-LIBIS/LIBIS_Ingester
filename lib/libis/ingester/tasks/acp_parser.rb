@@ -198,6 +198,7 @@ module Libis
         file_item.properties['creation_time'] = date
         file_item.properties['original_path'] = target
         file_item[:label] = File.basename(target)
+        file_item[:group_id] = 1
 
         file_item.save!
         file_item
