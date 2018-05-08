@@ -103,7 +103,7 @@ module Libis
         csv2html(csv_file, html_file)
         status_log = csv2html_io(status2csv_io(self))
         mail = Mail.new do
-          from 'teneo.libis@gmail.com'
+          from "Teneo.LIBIS+#{(0...6).map { (97 + rand(26)).chr }.join}@gmail.com"
         end
         mail.to = self.error_to
         mail.subject = "Ingest failed: #{self.name}"
@@ -128,7 +128,7 @@ module Libis
         csv2html(csv_file, html_file)
         status_log = csv2html_io(status2csv_io(self))
         mail = Mail.new do
-          from 'teneo.libis@gmail.com'
+          from "Teneo.LIBIS+#{(0...6).map { (97 + rand(26)).chr }.join}@gmail.com"
         end
         mail.to = self.success_to
         mail.subject = "Ingest complete: #{self.name}"
