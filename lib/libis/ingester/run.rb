@@ -107,15 +107,11 @@ module Libis
         end
         mail.to = self.error_to
         mail.subject = "Ingest failed: #{self.name}"
-        html_part = Mail::Part.new do
-            content_type 'text/html; charset=UTF-8'
-        end
-        html_part.body = [
-                     "Unfortunately the ingest '#{self.name}' failed. Please find the ingest log in attachment.",
-                     "Status overview:",
-                     status_log.string
-                 ].join("\n")
-        mail.html_part = html_part
+        mail.html_part = [
+            "Unfortunately the ingest '#{self.name}' failed. Please find the ingest log in attachment.",
+            "Status overview:",
+            status_log.string
+        ].join("\n")
         mail.add_file csv_file
         mail.add_file html_file
         mail.deliver!
@@ -134,17 +130,13 @@ module Libis
         mail = Mail.new do
           from 'teneo.libis@gmail.com'
         end
-        mail.to self.success_to
-        mail.subject "Ingest complete: #{self.name}"
-        html_part = Mail::Part.new do
-            content_type 'text/html; charset=UTF-8'
-        end
-        html_part.body = [
-                     "The ingest '#{self.name}' finished successfully. Please find the ingest log in attachment.",
-                     "Status overview:",
-                     status_log.string
-                 ].join("\n")
-        mail.html_part = html_part
+        mail.to = self.success_to
+        mail.subject = "Ingest complete: #{self.name}"
+        mail.html_part = [
+            "The ingest '#{self.name}' finished successfully. Please find the ingest log in attachment.",
+            "Status overview:",
+            status_log.string
+        ].join("\n")
         mail.add_file csv_file
         mail.add_file html_file
         mail.deliver!
