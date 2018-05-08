@@ -22,7 +22,7 @@ def submit_menu
       # noinspection RubyStringKeysInHashInspection
       options[1]['run_config'] = {
           'error_to' => @operator_email,
-          'succcess_to' => @operator_email
+          'success_to' => @operator_email
       }
     end
 
