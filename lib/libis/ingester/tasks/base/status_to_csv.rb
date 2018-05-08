@@ -51,6 +51,7 @@ module Libis
             csv_out.puts CSV.generate_line(data_array, col_sep: ';', quote_char: '"')
           end
 
+          csv_out.rewind
           csv_out
         end
 

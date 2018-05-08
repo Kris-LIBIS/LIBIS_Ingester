@@ -98,6 +98,7 @@ module Libis
           </html>
           STR
 
+          html_out.rewind
           html_out
         end
 

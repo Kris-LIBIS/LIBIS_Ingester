@@ -32,6 +32,7 @@ module Libis
           end
         ensure
           write_buffer_to_csv(buffer, csv_out, options)
+          csv_out.rewind
           csv_out
         end
 
