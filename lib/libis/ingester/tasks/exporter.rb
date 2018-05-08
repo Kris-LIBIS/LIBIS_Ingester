@@ -192,16 +192,19 @@ module Libis
       def email_report(item)
         return if parameter(:mail_to).blank?
         mail = Mail.new
-        mail.from 'teneo.libis@gmail.com'
-        mail.to parameter(:mail_to)
-        mail.cc parameter(:mail_cc) unless parameter(:mail_cc).blank?
-        mail.subject 'Ingest complete.'
-        mail.body "The ingest '#{item.name}' finished successfully. Please find the ingest summary in attachment."
+        mail.from = 'teneo.libis@gmail.com'
+        mail.to = parameter(:mail_to)
+        mail.cc = parameter(:mail_cc) unless parameter(:mail_cc).blank?
+        mail.subject = 'Ingest complete.'
+        mail.body = "The ingest '#{item.name}' finished successfully. Please find the ingest summary in attachment."
         mail.add_file get_export_file(item)
         mail.deliver!
         debug "Report sent to #{parameter(:mail_to)}#{parameter(:mail_cc).blank? ? '' : " and #{parameter(:mail_cc)}"}."
       rescue Timeout::Error => e
         warn "Ingest report could not be sent by email. The report can be found here: #{get_export_file(item)}"
+      rescue Exception => e
+        error "Problem encountered while trying to send report by email: #{e.message} @ #{e.backtrace[0]}. " +
+                  "The report can be found here: #{get_export_file(item)}"
       end
 
     end
