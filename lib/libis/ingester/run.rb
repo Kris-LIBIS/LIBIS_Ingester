@@ -101,9 +101,10 @@ module Libis
         return unless self.error_to
         log2csv(log_file, csv_file, skip_date: true, filter: 'WEF', trace: true)
         csv2html(csv_file, html_file)
+        log2csv(log_file, csv_file, skip_date: true, trace: true)
         status_log = csv2html_io(status2csv_io(self))
         mail = Mail.new do
-          from "Teneo.LIBIS+#{(0...6).map { (97 + rand(26)).chr }.join}@gmail.com"
+          from "teneo.libis+#{(0...6).map { (97 + rand(26)).chr }.join}@gmail.com"
         end
         mail.to = self.error_to
         mail.subject = "Ingest failed: #{self.name}"
@@ -126,9 +127,10 @@ module Libis
         return unless self.success_to
         log2csv(log_file, csv_file, skip_date: false, filter: 'IWEF')
         csv2html(csv_file, html_file)
+        log2csv(log_file, csv_file, skip_date: true, trace: true)
         status_log = csv2html_io(status2csv_io(self))
         mail = Mail.new do
-          from "Teneo.LIBIS+#{(0...6).map { (97 + rand(26)).chr }.join}@gmail.com"
+          from "teneo.libis+#{(0...6).map { (97 + rand(26)).chr }.join}@gmail.com"
         end
         mail.to = self.success_to
         mail.subject = "Ingest complete: #{self.name}"

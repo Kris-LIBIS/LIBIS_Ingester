@@ -192,7 +192,7 @@ module Libis
       def email_report(item)
         return if parameter(:mail_to).blank?
         mail = Mail.new
-        mail.from = "Teneo.LIBIS+#{(0...6).map { (97 + rand(26)).chr }.join}@gmail.com"
+        mail.from = "teneo.libis+#{(0...6).map { (97 + rand(26)).chr }.join}@gmail.com"
         mail.to = parameter(:mail_to)
         mail.cc = parameter(:mail_cc) unless parameter(:mail_cc).blank?
         mail.subject = 'Ingest complete.'
