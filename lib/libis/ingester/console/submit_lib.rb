@@ -18,6 +18,13 @@ def submit_menu
     bulk = select_bulk_option(options[1])
 
     options[1]['run_name'] = clean_string run_name
+    if @operator_email && !@operator_email.empty?
+      # noinspection RubyStringKeysInHashInspection
+      options[1]['run_config'] = {
+          'error_to' => @operator_email,
+          'succcess_to' => @operator_email
+      }
+    end
 
     if bulk
       key = bulk[:key]

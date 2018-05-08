@@ -13,6 +13,8 @@ OptionParser.new do |opts|
 
 end.parse!
 
+get_operator_email
+
 get_initializer
 
 loop do

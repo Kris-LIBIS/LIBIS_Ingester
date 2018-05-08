@@ -12,6 +12,10 @@ require 'readline'
 require 'highline'
 @hl = HighLine.new
 
+def get_operator_email
+  @operator_email = @hl.ask("Your email address: ")
+end
+
 def selection_menu(title, items, options = {})
   (options[:hidden] ||= {}).merge!('' => Proc.new { nil })
   keys = options[:hidden].keys.map { |key| key == '' ? '<return>' : key }
