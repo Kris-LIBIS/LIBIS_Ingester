@@ -103,22 +103,15 @@ module Libis
         csv2html(csv_file, html_file)
         log2csv(log_file, csv_file, skip_date: true, trace: true)
         status_log = csv2html_io(status2csv_io(self))
-        mail = Mail.new do
-          from "teneo.libis+#{(0...6).map { (97 + rand(26)).chr }.join}@gmail.com"
+        send_email(csv_file, html_file) do |mail|
+          mail.to = self.error_to
+          mail.subject = "Ingest failed: #{self.name}"
+          mail.html_part = [
+              "Unfortunately the ingest '#{self.name}' failed. Please find the ingest log in attachment.",
+              "Status overview:",
+              status_log.string
+          ].join("\n")
         end
-        mail.to = self.error_to
-        mail.subject = "Ingest failed: #{self.name}"
-        mail.html_part = [
-            "Unfortunately the ingest '#{self.name}' failed. Please find the ingest log in attachment.",
-            "Status overview:",
-            status_log.string
-        ].join("\n")
-        mail.add_file csv_file
-        mail.add_file html_file
-        mail.deliver!
-        puts "Ingest log sent to #{self.error_to}."
-      rescue Exception => e
-        puts "Ingest log could not be sent by email: #{e.message}"
         FileUtils.remove csv_file, force: true
         FileUtils.remove html_file, force: true
       end
@@ -129,24 +122,37 @@ module Libis
         csv2html(csv_file, html_file)
         log2csv(log_file, csv_file, skip_date: true, trace: true)
         status_log = csv2html_io(status2csv_io(self))
-        mail = Mail.new do
-          from "teneo.libis+#{(0...6).map { (97 + rand(26)).chr }.join}@gmail.com"
+        send_email(csv_file, html_file) do |mail|
+          mail.to = self.success_to
+          mail.subject = "Ingest complete: #{self.name}"
+          mail.html_part = [
+              "The ingest '#{self.name}' finished successfully. Please find the ingest log in attachment.",
+              "Status overview:",
+              status_log.string
+          ].join("\n")
         end
-        mail.to = self.success_to
-        mail.subject = "Ingest complete: #{self.name}"
-        mail.html_part = [
-            "The ingest '#{self.name}' finished successfully. Please find the ingest log in attachment.",
-            "Status overview:",
-            status_log.string
-        ].join("\n")
-        mail.add_file csv_file
-        mail.add_file html_file
-        mail.deliver!
-        puts "Ingest log sent to #{self.success_to}."
-      rescue Exception => e
-        puts "Ingest log could not be sent by email: #{e.message}"
         FileUtils.remove csv_file, force: true
         FileUtils.remove html_file, force: true
+      end
+
+      def send_email(*attachments, &block)
+        mail = Mail.new do
+          from "teneo.libis+#{(0...6).map {(97 + rand(26)).chr}.join}@gmail.com"
+        end
+        block.call(mail)
+        attachments.each do |file|
+          mail.add_file file
+        end
+        mail.deliver!
+        debug "Ingest status report sent to #{mail.to}."
+        return true
+      rescue Exception => e
+        if e.message =~ /message file too big/ && !attachments.empty?
+          send_email &block
+        else
+          error "Ingest status report could not be sent by email: #{e.message}"
+          return false
+        end
       end
 
       def remove_work_dir
