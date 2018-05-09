@@ -206,7 +206,9 @@ module Libis
         end
 
         bijlagen = proef.search('bestanden/bijlage').map(&:text)
-        files_from_xml = hoofdtekst + bijlagen
+        files_from_xml = []
+        files_from_xml += hoofdtekst
+        files_from_xml += bijlagen
 
         files_from_xml.each do |fname|
           unless files.any? {|file| File.basename(file) == fname}
