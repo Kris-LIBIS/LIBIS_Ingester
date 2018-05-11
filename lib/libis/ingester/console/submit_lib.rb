@@ -24,6 +24,7 @@ def submit_menu
           'error_to' => @operator_email,
           'success_to' => @operator_email
       }
+      puts "Status reports will be sent to: #{@operator_email}"
     end
 
     if bulk
