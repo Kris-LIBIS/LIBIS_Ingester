@@ -61,6 +61,7 @@ module Libis
               element_path.push(element) if element =~ PATH_ELEMENT
               attrs = args[1].reduce({}) {|r, x| r[x[0]] = x[3]; r}
               child_name = attrs['childName']&.gsub(/^cm:/, '')
+              child_name = Nokogiri::XML.fragment(child_name)
               case element
               when NAME_ELEMENT
                 name_path.push(child_name)
@@ -91,6 +92,8 @@ module Libis
               case element_path[-1]
               when IE_ELEMENT
                 case element_stack[-1]
+                when 'name'
+                  ie[:name] = string
                 when 'isadMedium'
                   if 'Digitaal' != string
                     ie = nil
@@ -139,7 +142,7 @@ module Libis
                 name_path = string.gsub('/cm:', '/').gsub(/_x[^_]*_/) do |x|
                   ["0#{x.tr('_', '')}".to_i(16)].pack('U')
                 end.split('/')[3..-1]
-              when 'isadTitel'
+              when 'name'
                 if element_path[-1] =~ NAME_ELEMENT
                   name_path.pop
                   name_path.push(string)
