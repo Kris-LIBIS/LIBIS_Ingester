@@ -1,6 +1,8 @@
 # encoding: utf-8
 # encoding: utf-8
 require 'fileutils'
+require "i18n"
+
 require 'libis/ingester'
 require 'libis/tools/metadata/marc21_record'
 require 'libis/tools/metadata/mappers/kuleuven'
@@ -166,7 +168,10 @@ module Libis
         config[:modification_date] = properties[:modification_time]
         config[:entity_type] = item.entity_type
         config[:location] = properties[:filename]
-        config[:target_location] = properties[:original_path] || item.filepath
+        # Workaround: review when Rosetta case #00552865 is fixed (then remove next line and remove transliteration and gsub again
+        config[:original] = File.basename(properties[:original_path] || item.filepath)
+        config[:target_location] = I18n.transliterate(properties[:original_path] || item.filepath).gsub(/[^a-zA-Z0-9\/.-]/,"_")
+        # End workaround
         config[:mimetype] = properties[:mimetype]
         config[:size] = properties[:size]
         config[:puid] = properties[:puid]
