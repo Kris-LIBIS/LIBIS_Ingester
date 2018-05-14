@@ -4,6 +4,8 @@ require 'libis/ingester/tasks/base/log_to_csv'
 require 'libis/ingester/tasks/base/csv_to_html'
 require 'libis/ingester/tasks/base/status_to_csv'
 
+require_relative 'tasks/base/mailer'
+
 module Libis
   module Ingester
 
@@ -11,6 +13,7 @@ module Libis
       include Libis::Ingester::Base::Log2Csv
       include Libis::Ingester::Base::Csv2Html
       include Libis::Ingester::Base::Status2Csv
+      include Libis::Ingester::Base::Mailer
 
       field :error_to, type: String
       field :success_to, type: String
@@ -133,26 +136,6 @@ module Libis
         end
         FileUtils.remove csv_file, force: true
         FileUtils.remove html_file, force: true
-      end
-
-      def send_email(*attachments, &block)
-        mail = Mail.new do
-          from "teneo.libis+#{(0...6).map {(97 + rand(26)).chr}.join}@gmail.com"
-        end
-        block.call(mail)
-        attachments.each do |file|
-          mail.add_file file
-        end
-        mail.deliver!
-        debug "Ingest status report sent to #{mail.to}."
-        return true
-      rescue Exception => e
-        if e.message =~ /message file too big/ && !attachments.empty?
-          send_email &block
-        else
-          error "Ingest status report could not be sent by email: #{e.message}"
-          return false
-        end
       end
 
       def remove_work_dir

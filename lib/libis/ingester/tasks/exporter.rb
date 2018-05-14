@@ -1,14 +1,15 @@
 require 'fileutils'
-require 'mail'
 
 require 'libis/tools/xml_document'
 
 require 'libis-ingester'
+require_relative 'base/mailer'
 
 module Libis
   module Ingester
 
     class Exporter < ::Libis::Ingester::Task
+      include Libis::Ingester::Base::Mailer
 
       taskgroup :postingester
 
@@ -62,13 +63,13 @@ module Libis
 
       def process(item)
         case item
-          when Libis::Ingester::Collection
-            export_collection(item)
-          when Libis::Ingester::IntellectualEntity
-            export_item(item)
-            stop_processing_subitems
-          else
-            # do nothing
+        when Libis::Ingester::Collection
+          export_collection(item)
+        when Libis::Ingester::IntellectualEntity
+          export_item(item)
+          stop_processing_subitems
+        else
+          # do nothing
         end
       end
 
@@ -92,7 +93,7 @@ module Libis
         key = get_key(export_file, item)
 
         extra = {}
-        parameter(:extra_keys).each do |k,v|
+        parameter(:extra_keys).each do |k, v|
           extra[k] = eval(v) rescue ''
         end
 
@@ -117,7 +118,7 @@ module Libis
         pid = "col#{pid}"
 
         extra = {}
-        parameter(:extra_keys).each do |k,v|
+        parameter(:extra_keys).each do |k, v|
           extra[k] = eval(v) rescue ''
         end
 
@@ -152,22 +153,22 @@ module Libis
         }.merge(extra)
         open(export_file, 'a') do |f|
           case parameter(:export_format).to_sym
-            when :tsv
-              f.puts data.keys.map { |k| for_tsv(k) }.join("\t") if f.size == 0 && parameter(:export_header)
-              f.puts data.values.map { |v| for_tsv(v) }.join("\t")
-            when :csv
-              f.puts data.keys.map { |k| for_csv(k) }.join(',') if f.size == 0 && parameter(:export_header)
-              f.puts data.values.map { |v| for_csv(v) }.join(',')
-            when :xml
-              f.puts '<?xml version="1.0" encoding="UTF-8"?>' if f.size == 0 && parameter(:export_header)
-              f.puts '<item'
-              data.each { |k, v| f.puts "  #{for_xml(k.to_s)}=\"#{for_xml(v)}\"" }
-              f.puts '/>'
-            when :yml
-              f.puts '# Ingester export file' if f.size == 0 && parameter(:export_header)
-              f.puts '- ' + data.map { |k,v| "#{k}: #{for_yml(v)}" }.join("\n  ")
-            else
-              #nothing
+          when :tsv
+            f.puts data.keys.map {|k| for_tsv(k)}.join("\t") if f.size == 0 && parameter(:export_header)
+            f.puts data.values.map {|v| for_tsv(v)}.join("\t")
+          when :csv
+            f.puts data.keys.map {|k| for_csv(k)}.join(',') if f.size == 0 && parameter(:export_header)
+            f.puts data.values.map {|v| for_csv(v)}.join(',')
+          when :xml
+            f.puts '<?xml version="1.0" encoding="UTF-8"?>' if f.size == 0 && parameter(:export_header)
+            f.puts '<item'
+            data.each {|k, v| f.puts "  #{for_xml(k.to_s)}=\"#{for_xml(v)}\""}
+            f.puts '/>'
+          when :yml
+            f.puts '# Ingester export file' if f.size == 0 && parameter(:export_header)
+            f.puts '- ' + data.map {|k, v| "#{k}: #{for_yml(v)}"}.join("\n  ")
+          else
+            #nothing
           end
 
         end
@@ -191,14 +192,12 @@ module Libis
 
       def email_report(item)
         return if parameter(:mail_to).blank?
-        mail = Mail.new
-        mail.from = "teneo.libis+#{(0...6).map { (97 + rand(26)).chr }.join}@gmail.com"
-        mail.to = parameter(:mail_to)
-        mail.cc = parameter(:mail_cc) unless parameter(:mail_cc).blank?
-        mail.subject = 'Ingest complete.'
-        mail.body = "The ingest '#{item.name}' finished successfully. Please find the ingest summary in attachment."
-        mail.add_file get_export_file(item)
-        mail.deliver!
+        send_email(get_export_file(item)) do |mail|
+          mail.to = parameter(:mail_to)
+          mail.cc = parameter(:mail_cc) unless parameter(:mail_cc).blank?
+          mail.subject = 'Ingest complete.'
+          mail.body = "The ingest '#{item.name}' finished successfully. Please find the ingest summary in attachment."
+        end
         debug "Report sent to #{parameter(:mail_to)}#{parameter(:mail_cc).blank? ? '' : " and #{parameter(:mail_cc)}"}."
       rescue Timeout::Error
         warn "Ingest report could not be sent by email. The report can be found here: #{get_export_file(item)}"
