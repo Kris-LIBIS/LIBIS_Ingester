@@ -34,7 +34,7 @@ module Libis
       # @param [Libis::Ingester::Run] item
       def process(item)
         unless Dir.exist?(parameter(:acp_dir))
-          raise Libis::WorkflowAbort, "ACP directory '#{parameter(:acp_dir)}' cannot not be found."
+          raise Libis::WorkflowAbort, "ACP directory '#{parameter(:acp_dir)}' cannot be found."
         end
 
         xml_files = Dir.glob(File.join(parameter(:acp_dir), '*.xml'))
