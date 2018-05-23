@@ -52,12 +52,12 @@ module Libis
       def process(item)
         unless File.exist?(parameter(:xls_file))
           raise Libis::WorkflowAbort,
-                "Excel file '#{parameter(:xls_file)}' cannot not be found."
+                "Excel file '#{parameter(:xls_file)}' cannot be found."
         end
 
         unless Dir.exist?(parameter(:acp_dir))
           raise Libis::WorkflowAbort,
-                "ACP directory '#{parameter(:acp_dir)}' cannot not be found."
+                "ACP directory '#{parameter(:acp_dir)}' cannot be found."
         end
 
         Libis::Tools::Spreadsheet.foreach("#{parameter(:xls_file)}|Rosetta",
