@@ -37,6 +37,9 @@ module Libis
           Division object will be converted in an IE by the IeBuilder task. The net effect is that for each top-level 
           subdirectory an IE will be created and the directory tree below that directory will be captured as a 'complex
           object' in a structmap.
+        - 'leaf': as 'complex' above, but only for the leaf directories - a.k.a. directories that do not contain
+          any sub-directories - a Division object is created. All files in a leaf directory will be added to the division
+          but a file in any other directory will not be added to a division and will result in an individual IE.
 
         For performance reasons, the collector limits the number of files it can collect. By default this is set to
         5000 as the ingest will start to get exponentially slower with files > 5000. This can be overwritten if 
@@ -60,7 +63,7 @@ module Libis
       parameter ignore: nil,
                 description: 'File pattern (Regexp) of files that should be ignored.'
 
-      parameter subdirs: 'ignore', constraint: %w[ignore recursive collection complex],
+      parameter subdirs: 'ignore', constraint: %w[ignore recursive collection complex leaf],
                 description: 'How to collect subdirs'
 
       parameter file_limit: 5000,
@@ -90,7 +93,7 @@ module Libis
         reg = parameter(:selection)
         reg = (reg and !reg.empty?) ? Regexp.new(reg) : nil
         ignore = parameter(:ignore) && Regexp.new(parameter(:ignore))
-        list = Naturally.sort_by_block(list) { |x| x.gsub('.', '.0.').gsub('_','.') } if parameter(:sort)
+        list = Naturally.sort_by_block(list) {|x| x.gsub('.', '.0.').gsub('_', '.')} if parameter(:sort)
         list.each do |file|
           file.strip!
           next if file =~ /^\.{1,2}$/
@@ -101,7 +104,7 @@ module Libis
             next
           end
           unless File.exists?(path)
-            warn"File '#{path}' not found."
+            warn "File '#{path}' not found."
             next
           end
           unless File.readable?(path)
@@ -117,22 +120,30 @@ module Libis
         child = nil
         if File.directory?(file)
           case parameter(:subdirs).to_s.downcase
-            when 'recursive'
-              collect(item, file)
-            when 'collection'
-              child = Libis::Ingester::DirCollection.new
-              child.filename = file
-              debug 'Created Collection item `%s`', child.name
-              item.add_item(child)
-              collect(child, file)
-            when 'complex'
+          when 'recursive'
+            collect(item, file)
+          when 'collection'
+            child = Libis::Ingester::DirCollection.new
+            child.filename = file
+            debug 'Created Collection item `%s`', child.name
+            item.add_item(child)
+            collect(child, file)
+          when 'complex'
+            child = Libis::Ingester::DirDivision.new
+            child.filename = file
+            debug 'Created Division item `%s`', child.name
+            item.add_item(child)
+            collect(child, file)
+          when 'leaf'
+            if is_leaf_dir?(file)
               child = Libis::Ingester::DirDivision.new
               child.filename = file
               debug 'Created Division item `%s`', child.name
               item.add_item(child)
               collect(child, file)
-            else
-              info "Ignoring subdir #{file}."
+            end
+          else
+            info "Ignoring subdir #{file}."
           end
         elsif File.file?(file)
           child = Libis::Ingester::FileItem.new
@@ -143,12 +154,18 @@ module Libis
         end
         if @counter > parameter(:file_limit)
           fatal_error 'Number of files found exceeds limit (%d). Consider splitting into separate runs or raise limit.',
-                item.get_run, parameter(:file_limit)
+                      item.get_run, parameter(:file_limit)
           raise Libis::WorkflowAbort, 'Number of files exceeds preset limit.'
         end
         return unless child
         child.save!
         item.get_run.status_progress(self.namepath, @counter)
+      end
+
+      def is_leaf_dir?(dir)
+        Dir.entries(dir).reject do |x|
+          %w'. ..'.include?(x) || File.file?(File.join(dir, x))
+        end.empty?
       end
 
     end
