@@ -22,6 +22,7 @@ module Libis
           csv_out ||= StringIO.new
           line_regex = /^(.), \[([\d-]+)T([\d:.]+) #([\d.]+)\]\s+(\S+)\s+-- (.*?) - (.*?) : (.*)/
           buffer = %w'Code Date Time Pid Status Task Item Message'
+          write_buffer_to_csv(buffer, csv_out, options)
           log_in.each_line do |line|
             if line =~ line_regex
               write_buffer_to_csv(buffer, csv_out, options)
