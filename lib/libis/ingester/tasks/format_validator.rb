@@ -81,12 +81,12 @@ module Libis
           when 'FIX'
             warn message
             if (ext = extensions.first)
-              old_name = item.properties['filename']
+              old_name = item.properties['original_path']
+              old_name ||= File.basename(item.properties['filename'])
               new_name = File.join(File.dirname(old_name), "#{File.basename(old_name, '.*')}.#{ext}")
-              File.rename(old_name, new_name)
-              item.properties['filename'] = new_name
+              item.properties['original_path'] = new_name
               item.save!
-              warn "Changed file name to '#{File.basename(new_name)}'."
+              warn "File will be renamed to '#{File.basename(new_name)}' in the repository."
             else
               message = 'Could not fix extenstion of file %s as no extension for the format (%s - %s - %s) is known in the type database' %
                   [item.filepath, item.properties['puid'], item.properties['format_name'], item.properties['format_version']]
