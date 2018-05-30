@@ -56,6 +56,7 @@ module Libis
             warn "Found #{msg}: #{item.filepath}"
           when 'DUMMY'
             replace_with_dummy(item, "File <i>#{item.filepath}</i> is a #{msg}")
+            warn "#{msg} '#{item.filepath}' was replaced with a dummy file"
           else
             raise Libis::WorkflowAbort, "Unknown value for encrypted_doc parameter encountered."
           end
