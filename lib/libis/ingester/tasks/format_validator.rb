@@ -1,6 +1,7 @@
 require 'libis/ingester'
 require 'libis/format/type_database'
 require 'htmltoword'
+require 'fileutils'
 
 require_relative 'base/format'
 
@@ -126,7 +127,9 @@ module Libis
       end
 
       def replace_with_dummy(item, message)
-        file_path = File.join(item.get_run.work_dir, item.id, File.basename(item.fullpath))
+        work_dir = File.join(item.get_run.work_dir, item.id)
+        FileUtils.mkpath(work_dir) unless Dir.exists?(work_dir)
+        file_path = File.join(work_dir, item.filename)
         html = '<html><head></head><body><h1/><h1>%s</h1><h1/>%s</body></html>' % [
             'The preservation system rejected this file for the following reason:',
             "File <i>#{item.fullpath}</i> is a <b>#{message}</b>"
