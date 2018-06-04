@@ -40,7 +40,11 @@ module Libis
 
         ::Libis::Ingester.configure do |cfg|
           @config.config.each do |key, value|
-            cfg.send("#{key}=", value)
+            if value.is_a?(Hash)
+              cfg[key].merge!(value)
+            else
+              cfg.send("#{key}=", value)
+            end
           end
         end
 
