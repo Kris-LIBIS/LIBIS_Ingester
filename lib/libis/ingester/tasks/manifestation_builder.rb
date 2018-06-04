@@ -17,6 +17,13 @@ module Libis
 
       taskgroup :preingester
 
+      parameter on_convert_error: 'FAIL', type: :string, constraint: %w'FAIL DROP COPY',
+                description: 'Action to take when a file conversion fails. Valid values are:\n' +
+                    '- FAIL: report this as an error and stop processing the item\n' +
+                    '- DROP: report this as an error and continue without the file\n' +
+                    '- COPY: report the error and copy the source file instead\n' +
+                    'Note that dropping the file may cause errors later, e.g. with empty representations.'
+
       parameter recursive: true, frozen: true
 
       parameter item_types: [Libis::Ingester::IntellectualEntity], frozen: true
@@ -45,7 +52,7 @@ module Libis
           if rep.items.size == 0
             if manifestation.optional
               warn "Manifestation %s '%s' is marked optional and no items were found. Representation will not be created.",
-                      item, manifestation.name, manifestation.label
+                   item, manifestation.name, manifestation.label
               set_status(rep, :DONE)
               rep.destroy!
             else
@@ -251,67 +258,81 @@ module Libis
 
         when Libis::Ingester::FileItem
 
-          return if new_parent.get_items.where(:'properties.converted_from' => item.id).count > 0
+          begin
 
-          mimetype = item.properties['mimetype']
-          raise Libis::WorkflowError, 'File item %s format not identified.' % [item] unless mimetype
+            return if new_parent.get_items.where(:'properties.converted_from' => item.id).count > 0
 
-          type_id = Libis::Format::TypeDatabase.mime_types(mimetype).first
+            mimetype = item.properties['mimetype']
+            raise Libis::WorkflowError, 'File item %s format not identified.' % [item] unless mimetype
 
-          unless convert_hash[:source_formats].blank?
-            unless type_id
-              warn 'Ignoring file item (%s) with unsupported file format (%s) in format conversion.', item, mimetype
-              return
+            type_id = Libis::Format::TypeDatabase.mime_types(mimetype).first
+
+            unless convert_hash[:source_formats].blank?
+              unless type_id
+                warn 'Ignoring file item (%s) with unsupported file format (%s) in format conversion.', item, mimetype
+                return
+              end
+              group = Libis::Format::TypeDatabase.type_group(type_id)
+              check_list = [type_id, group].compact.map {|v| [v.to_s, v.to_sym]}.flatten
+              if (convert_hash[:source_formats] & check_list).empty?
+                debug 'File item format (%s) does not match conversion criteria (%s)',
+                      item, check_list.to_s, convert_hash[:source_formats].to_s
+                return
+              end
             end
-            group = Libis::Format::TypeDatabase.type_group(type_id)
-            check_list = [type_id, group].compact.map {|v| [v.to_s, v.to_sym]}.flatten
-            if (convert_hash[:source_formats] & check_list).empty?
-              debug 'File item format (%s) does not match conversion criteria (%s)',
-                    item, check_list.to_s, convert_hash[:source_formats].to_s
+
+            (convert_hash[:properties] || {}).each do |key, value|
+              return nil unless item.properties[key] == value
+            end
+
+            if convert_hash[:target_format].blank?
+              return copy_file(item, new_parent) if convert_hash[:copy_file]
+              return move_file(item, new_parent)
+            end
+
+            src_file = item.fullpath
+            new_file = File.join(
+                item.get_run.work_dir,
+                new_parent.id.to_s,
+                item.id.to_s,
+                [item.name,
+                 convert_hash[:name],
+                 extname(convert_hash[:target_format])
+                ].join('.')
+            )
+
+            raise Libis::WorkflowError, 'File item %s format (%s) is not supported.' % [item, mimetype] unless type_id
+            new_file_name, converter = convert_file(src_file, new_file, type_id, convert_hash[:target_format].to_sym, convert_hash[:options])
+            new_file = new_file_name
+            return nil unless new_file
+
+            FileUtils.chmod('a+rw', new_file)
+
+            new_item = Libis::Ingester::FileItem.new
+            new_item.name = item.name
+            new_item.label = item.label
+            new_item.parent = new_parent
+            register_file(new_item)
+            new_item.options = item.options
+            new_item.properties['converter'] = converter
+            new_item.properties['converted_from'] = item.id
+            new_item.properties['convert_info'] = convert_hash[:id]
+            new_item.filename = new_file
+            format_identifier(new_item)
+            new_item.save!
+            new_item
+
+          rescue ::RuntimeError => e
+            case parameter(:on_convert_error)
+            when 'COPY'
+              copy_file(item, new_parent)
+            when 'DROP'
+              warn "Ignoring file '%s' because of error: '%s' @ '%s'", item.filepath, e.message, e.backtrace.first
               return
+            else
+              raise
             end
           end
-
-          (convert_hash[:properties] || {}).each do |key, value|
-            return nil unless item.properties[key] == value
-          end
-
-          if convert_hash[:target_format].blank?
-            return copy_file(item, new_parent) if convert_hash[:copy_file]
-            return move_file(item, new_parent)
-          end
-
-          src_file = item.fullpath
-          new_file = File.join(
-              item.get_run.work_dir,
-              new_parent.id.to_s,
-              item.id.to_s,
-              [item.name,
-               convert_hash[:name],
-               extname(convert_hash[:target_format])
-              ].join('.')
-          )
-
-          raise Libis::WorkflowError, 'File item %s format (%s) is not supported.' % [item, mimetype] unless type_id
-          new_file_name, converter = convert_file(src_file, new_file, type_id, convert_hash[:target_format].to_sym, convert_hash[:options])
-          new_file = new_file_name
-          return nil unless new_file
-
-          FileUtils.chmod('a+rw', new_file)
-
-          new_item = Libis::Ingester::FileItem.new
-          new_item.name = item.name
-          new_item.label = item.label
-          new_item.parent = new_parent
-          register_file(new_item)
-          new_item.options = item.options
-          new_item.properties['converter'] = converter
-          new_item.properties['converted_from'] = item.id
-          new_item.properties['convert_info'] = convert_hash[:id]
-          new_item.filename = new_file
-          format_identifier(new_item)
-          new_item.save!
-          new_item
 
         else
           # no action
