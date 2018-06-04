@@ -135,7 +135,7 @@ module Libis
             "File <i>#{item.fullpath}</i> is a <b>#{message}</b>"
         ]
         Htmltoword.config.custom_templates_path = File.join(Libis::Ingester::ROOT_DIR, 'config')
-        Htmltoword::Document.create_and_save(html, item.fullpath, 'Warning')
+        Htmltoword::Document.create_and_save(html, file_path, 'Warning')
         item.filename = file_path
         result = Libis::Format::Identifier.get(item.fullpath) || {}
         process_messages(result, item)
