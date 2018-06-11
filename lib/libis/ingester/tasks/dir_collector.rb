@@ -163,8 +163,9 @@ module Libis
       end
 
       def is_leaf_dir?(dir)
+        ignore = parameter(:ignore) && Regexp.new(parameter(:ignore))
         Dir.entries(dir).reject do |x|
-          %w'. ..'.include?(x) || File.file?(File.join(dir, x))
+          %w'. ..'.include?(x) || File.file?(File.join(dir, x)) || (ignore && x =~ ignore)
         end.empty?
       end
 
