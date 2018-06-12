@@ -47,6 +47,9 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'yard'
   spec.add_runtime_dependency 'htmltoword'
 
+  # tool requirements
+  spec.add_runtime_dependency 'fileutils'
+
   # server requirements
   spec.add_runtime_dependency 'puma'
   spec.add_runtime_dependency 'rack-cors'
