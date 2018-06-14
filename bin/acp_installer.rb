@@ -1,3 +1,5 @@
+#! /usr/bin/env ruby
+
 require 'fileutils'
 require 'zip'
 require 'mail'
@@ -14,6 +16,17 @@ class AcpInstaller
   attr_reader :acp_file, :target_dir, :email, :pkg
 
   def initialize(acp_file, target_dir, email)
+    unless acp_file
+      error "Must supply an ACP file path"
+      exit 1
+    end
+    unless target_dir
+      error "Must supply a target directory"
+      exit 1
+    end
+    unless email
+      error "Must supply one or more email addresses separated with a comma"
+    end
     @acp_file = acp_file
     @pkg = File.basename(acp_file, '.*')
     @target_dir = File.join(target_dir, @pkg)
@@ -76,3 +89,21 @@ class AcpInstaller
   end
 
 end
+
+if ARGV.count != 3
+  puts "USAGE: #{File.basename(__FILE__)} <acp_file> <target_dir> <email>"
+  puts "  with:"
+  puts "   <acp_file>   : the path to the ACP file"
+  puts "   <target_dir> : a directory to extract the ACP into (*)"
+  puts "   <email>      : the email address to send the XML file to (+)"
+  puts ""
+  puts "  notes:"
+  puts "    (*) in the <target_dir> a subdir with the name of the ACP file will be created and the ACP content will be"
+  puts "        extracted into that subdirectory"
+  puts "    (+) multiple email addresses can be supplied by separating them with a comma"
+  exit 1
+end
+acp_file = ARGV.shift
+target_dir = ARGV.shift
+email = ARGV.shift
+AcpInstaller.new(acp_file, target_dir, email).process

@@ -1,4 +1,5 @@
 require 'mail'
+require 'zip'
 
 module Libis
   module Ingester
@@ -6,7 +7,7 @@ module Libis
 
       module Mailer
 
-        def send_email(*attachments, &block)
+        def send_email(*attachments, opts = {}, &block)
           mail = Mail.new do
             from "teneo.libis@gmail.com"
           end
@@ -19,20 +20,52 @@ module Libis
           mail_to = "to #{mail.to}#{mail.cc ? " and #{mail.cc}" : ''}"
           debug "#{message} sent #{mail_to}"
           return true
+
         rescue Exception => e
+
           if e.message =~ /message file too big/ && !attachments.empty?
-            warn "#{message} with attachments was too big. Retrying without attachments"
-            attachments.each do |file|
-              warn "Attachment can be found here: #{file}"
+
+            if attachments.all?(/\.zip$/)
+
+              warn "Email '#{message}' is too big. Sending without attachments."
+
+              mail.body = mail.body.to_s + "\n\nWarning: The attachments were too big. Attachments can be found at:"
+              attachments.each do |file|
+                mail.body = mail.body.to_s + "\n - #{file}"
+              end
+
+              attachments = []
+
+            else
+
+              warn "Email '#{message}' is too big. Retrying with zip compression."
+
+              Zip.default_compression = Zlib::BEST_COMPRESSION
+
+              attachments.map! do |file|
+                zip_file = File.join('/tmp', "#{File.basename(file)}.zip")
+                Zip::File.open(zip_file, Zip::File::CREATE) do |zip|
+                  zip.add(File.basename(file), file)
+                end
+                zip_file
+              end
+
             end
-            send_email &block
+
+            send_email attachments, &block
+
           else
+
             error "#{message}' could not be sent #{mail_to}: #{e.message}"
+
             attachments.each do |file|
               warn "Attachment can be found here: #{file}"
             end
+
             return false
+
           end
+
         end
 
       end
