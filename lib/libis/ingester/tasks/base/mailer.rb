@@ -7,7 +7,7 @@ module Libis
 
       module Mailer
 
-        def send_email(*attachments, opts = {}, &block)
+        def send_email(*attachments, &block)
           mail = Mail.new do
             from "teneo.libis@gmail.com"
           end
