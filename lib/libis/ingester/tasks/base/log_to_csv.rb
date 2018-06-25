@@ -6,6 +6,8 @@ module Libis
 
       module Log2Csv
 
+        CSV_HEADER = %w'Code Date Time Pid Status Task Item Message'
+
         def log2csv(log_file, csv_file = nil, options = {})
           log_in = IO === log_file ? log_file : File.open(log_file, 'r')
           csv_out = csv_file ? File.open(csv_file, 'w') : StringIO.new
@@ -21,8 +23,7 @@ module Libis
         def log2csv_io(log_in, csv_out = nil, options = {})
           csv_out ||= StringIO.new
           line_regex = /^(.), \[([\d-]+)T([\d:.]+) #([\d.]+)\]\s+(\S+)\s+-- (.*?) - (.*?) : (.*)/
-          buffer = %w'Code Date Time Pid Status Task Item Message'
-          write_buffer_to_csv(buffer, csv_out, options)
+          buffer = CSV_HEADER
           log_in.each_line do |line|
             if line =~ line_regex
               write_buffer_to_csv(buffer, csv_out, options)
@@ -40,7 +41,8 @@ module Libis
         protected
 
         def write_buffer_to_csv(buffer, csv_out, options)
-          return if options[:filter] && buffer[0] && !options[:filter].upcase.include?(buffer[0])
+          return if buffer.strip.empty?
+          return if buffer != CSV_HEADER && options[:filter] && !options[:filter].upcase.include?(buffer[0])
           csv_out.puts(
               CSV.generate_line(
                   (options[:skip_date] ?

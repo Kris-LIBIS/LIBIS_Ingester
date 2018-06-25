@@ -104,7 +104,7 @@ module Libis
         return unless self.error_to
         log2csv(log_file, csv_file, skip_date: true, filter: 'WEF', trace: true)
         csv2html(csv_file, html_file)
-        log2csv(log_file, csv_file, skip_date: true, trace: true)
+        log2csv(log_file, csv_file, skip_date: false, trace: true)
         status_log = csv2html_io(status2csv_io(self))
         send_email(csv_file, html_file) do |mail|
           mail.to = self.error_to
@@ -121,9 +121,9 @@ module Libis
 
       def send_success_log(log_file, csv_file, html_file)
         return unless self.success_to
-        log2csv(log_file, csv_file, skip_date: false, filter: 'IWEF')
+        log2csv(log_file, csv_file, skip_date: true, filter: 'IWEF')
         csv2html(csv_file, html_file)
-        log2csv(log_file, csv_file, skip_date: true, trace: true)
+        log2csv(log_file, csv_file, skip_date: false, trace: true)
         status_log = csv2html_io(status2csv_io(self))
         send_email(csv_file, html_file) do |mail|
           mail.to = self.success_to
