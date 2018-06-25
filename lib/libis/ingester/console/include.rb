@@ -115,14 +115,14 @@ def select_job
 
   # noinspection RubyResolve
   db_menu('Job', @options[:organization].jobs, parent: @options[:organization].name) do |job|
-    "#{job.name} (#{job.runs.count} runs)"
+    "#{job.description} (#{job.runs.count} runs)"
   end
 end
 
 def select_run(options = {})
   return unless select_job
 
-  options.merge!(parent: @options[:job].name) { |_k, _v1, _v2| _v1 }
+  options.merge!(parent: @options[:job].description) { |_k, _v1, _v2| _v1 }
 
   # noinspection RubyResolve
   db_menu('Run', @options[:job].runs, options) {
