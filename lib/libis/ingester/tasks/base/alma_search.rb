@@ -17,6 +17,8 @@ module Libis
           klass.parameter library: '32KUL_LIBIS_NETWORK',
                           description: 'SRU institution code'
           klass.parameter converter: 'Kuleuven'
+          klass.parameter field: 'alma.mms_id',
+                          description: 'Alma field to search in'
         end
 
 
