@@ -1,6 +1,6 @@
 require 'libis/ingester'
 require 'libis/services/alma/sru_service'
-require 'libis/tools/metadata/marc21_record'
+require 'libis/metadata/marc21_record'
 require 'libis/tools/parameter'
 require 'open-uri'
 
@@ -33,7 +33,7 @@ module Libis
           result = @alma.search(field, URI::encode("\"#{term}\""), parameter(:library))
           warn "Multiple records found for #{field}=#{term}" if result.size > 1
 
-          return result.empty? ? nil : ::Libis::Tools::Metadata::Marc21Record.new(result.first.root)
+          return result.empty? ? nil : ::Libis::Metadata::Marc21Record.new(result.first.root)
 
         rescue Exception => e
           raise ::Libis::WorkflowError, "Alma request failed: #{e.message}"

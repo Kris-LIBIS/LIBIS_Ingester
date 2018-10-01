@@ -2,6 +2,7 @@
 require 'pathname'
 
 require 'libis/ingester'
+require 'libis/metadata/dublin_core_record'
 require 'libis/services/rosetta'
 require 'libis/services/rosetta/collection_handler'
 
@@ -131,9 +132,9 @@ module Libis
 
         # noinspection RubyResolve
         if item&.metadata_record
-          dc_record = Libis::Tools::Metadata::DublinCoreRecord.new item.metadata_record.data
+          dc_record = Libis::Metadata::DublinCoreRecord.new item.metadata_record.data
         else
-          dc_record = Libis::Tools::Metadata::DublinCoreRecord.new
+          dc_record = Libis::Metadata::DublinCoreRecord.new
           dc_record.title = collection_name
         end
 
@@ -180,7 +181,7 @@ module Libis
           collection.external_id = item.external_id
           # noinspection RubyResolve
           if item.metadata_record
-            dc_record = Libis::Tools::Metadata::DublinCoreRecord.new(item.metadata_record.data)
+            dc_record = Libis::Metadata::DublinCoreRecord.new(item.metadata_record.data)
             collection.md_dc.type = 'descriptive'
             collection.md_dc.sub_type = 'dc'
             collection.md_dc.content = dc_record.to_xml

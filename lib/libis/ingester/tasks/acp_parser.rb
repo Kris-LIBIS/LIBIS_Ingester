@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 require 'libis/ingester'
+require 'libis-metadata'
 require_relative 'base/xml_parser'
 
 PATH_ELEMENT = /^isad(Archief|Domein|Subdomein|Rubriek|Reeks|Serie|Groep|Dossier|Stuk)|content|thumbnail$/
@@ -227,7 +228,7 @@ module Libis
         ie.properties['refcode'] = data[:refcode] if data[:refcode]
         record = MetadataRecord.new
         record.format = 'DC'
-        dc = Libis::Tools::Metadata::DublinCoreRecord.new
+        dc = Libis::Metadata::DublinCoreRecord.new
         dc.title = ie.label
         # noinspection RubyResolve
         dc.identifier! "refcode:#{data[:refcode]}" if data[:refcode]

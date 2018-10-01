@@ -1,4 +1,5 @@
 require 'libis-tools'
+require 'libis-metadata'
 require 'libis-workflow'
 require 'libis-ingester'
 
@@ -241,7 +242,7 @@ module Libis
       def create_metadata(proef, id, instelling_id)
         kul_master = (instelling_id == KUL_ID)
         pub_date = DateTime.now.year
-        xml = ::Libis::Tools::Metadata::DublinCoreRecord.new
+        xml = ::Libis::Metadata::DublinCoreRecord.new
         xml.identifier = "#{id}"
         xml.title = proef.at('titel1').at('tekst').text.strip
         add_node(xml, :creator) {"#{proef.at('stdnaam').text.strip}, #{proef.at('stdvoornaam').text.strip} (author)"}

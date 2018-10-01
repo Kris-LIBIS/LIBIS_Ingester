@@ -1,4 +1,4 @@
-require 'libis-tools'
+require 'libis-metadata'
 require 'libis-workflow'
 require 'libis-ingester'
 
@@ -116,7 +116,7 @@ module Libis
       # @param [CSV::Row] row
       # noinspection RubyResolve
       def create_metadata(row)
-        xml = ::Libis::Tools::Metadata::DublinCoreRecord.new
+        xml = ::Libis::Metadata::DublinCoreRecord.new
         xml.identifier = row['<dc:identifier>'].strip
         xml.title = row['<dc:title>'].gsub(/""/, '"').strip
 

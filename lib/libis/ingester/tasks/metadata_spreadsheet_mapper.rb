@@ -1,4 +1,4 @@
-require 'libis/tools/metadata/dublin_core_record'
+require 'libis/metadata/dublin_core_record'
 
 require_relative 'metadata_collector'
 require_relative 'base/mapping'
@@ -44,7 +44,7 @@ module Libis
           return nil
         end
 
-        record = Libis::Tools::Metadata::DublinCoreRecord.new
+        record = Libis::Metadata::DublinCoreRecord.new
         data.each do |key,value|
           next unless key =~ /^<(dc(terms)?:[^>]+)>.*$/
           record.add_node $1, value

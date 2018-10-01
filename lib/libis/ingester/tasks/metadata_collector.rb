@@ -1,6 +1,7 @@
 # encoding: utf-8
 
 require 'libis/ingester'
+require 'libis/metadata'
 
 module Libis
   module Ingester
@@ -91,7 +92,7 @@ module Libis
 
       def convert_metadata(record)
         return record if parameter(:converter).blank?
-        mapper_class = "Libis::Tools::Metadata::Mappers::#{parameter(:converter)}".constantize
+        mapper_class = "Libis::Metadata::Mappers::#{parameter(:converter)}".constantize
         unless mapper_class
           raise Libis::WorkflowAbort, "Metadata converter class `#{parameter(:converter)}` not found."
         end

@@ -1,5 +1,5 @@
 require 'libis/ingester'
-require 'libis/tools/metadata/dublin_core_record'
+require 'libis/metadata/dublin_core_record'
 
 require_relative 'base/mapping'
 require_relative 'metadata_file_collector'
@@ -26,7 +26,7 @@ module Libis
         end
 
         begin
-          return Libis::Tools::Metadata::DublinCoreRecord.new(metadata_file)
+          return Libis::Metadata::DublinCoreRecord.new(metadata_file)
         rescue ArgumentError => e
           raise Libis::WorkflowError, "Dublin Core file '#{metadata_file}' parsing error: #{e.message}"
         end

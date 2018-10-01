@@ -2,7 +2,7 @@
 
 require 'libis/ingester'
 require 'libis/services/scope/search'
-require 'libis/tools/metadata/dublin_core_record'
+require 'libis/metadata/dublin_core_record'
 
 require_relative 'metadata_search_collector'
 module Libis
@@ -38,7 +38,7 @@ module Libis
 
         @scope.next_record do |doc|
           debug "Found record with title '#{doc.value('//dc:title')}"
-          return ::Libis::Tools::Metadata::DublinCoreRecord.new(doc.to_xml)
+          return ::Libis::Metadata::DublinCoreRecord.new(doc.to_xml)
         end
 
       rescue Exception => e

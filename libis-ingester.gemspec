@@ -29,10 +29,11 @@ Gem::Specification.new do |spec|
 
   spec.require_paths = ['lib']
 
-  spec.add_runtime_dependency 'libis-tools', '~> 0.9'
-  spec.add_runtime_dependency 'libis-format', '~> 0.9.46'
-  spec.add_runtime_dependency 'libis-services', '~> 0.2.1'
-  spec.add_runtime_dependency 'libis-workflow-mongoid', '~> 2.0.beta'
+  spec.add_runtime_dependency 'libis-tools', '~> 1.0'
+  spec.add_runtime_dependency 'libis-metadata', '~> 1.0'
+  spec.add_runtime_dependency 'libis-format', '~> 1.0'
+  spec.add_runtime_dependency 'libis-services', '~> 1.0'
+  spec.add_runtime_dependency 'libis-workflow-mongoid', '~> 2.0'
   spec.add_runtime_dependency 'mongoid-enum', '~> 0.3'
   spec.add_runtime_dependency 'rubyzip', '~> 1.1'
   spec.add_runtime_dependency 'naturally', '~> 2.1'
@@ -40,14 +41,13 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'double-bag-ftps'
   spec.add_runtime_dependency 'redis-namespace'
   spec.add_runtime_dependency 'filesize'
-  spec.add_runtime_dependency 'time_difference'
+  spec.add_runtime_dependency 'time_difference', '< 0.7'
   spec.add_runtime_dependency 'roo'
   spec.add_runtime_dependency 'roo-xls'
   spec.add_runtime_dependency 'mail'
   spec.add_runtime_dependency 'yard'
   spec.add_runtime_dependency 'htmltoword'
   spec.add_runtime_dependency 'roxml'
-  spec.add_runtime_dependency 'tty-prompt'
 
   # tool requirements
   spec.add_runtime_dependency 'fileutils'

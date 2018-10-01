@@ -1,5 +1,5 @@
 require 'libis-ingester'
-require 'libis/tools/metadata/dublin_core_record'
+require 'libis/metadata/dublin_core_record'
 require_relative 'base/csv_mapping'
 
 require 'date'
@@ -115,7 +115,7 @@ module Libis
           ie.save!
 
           # create DC metadata
-          dc = Libis::Tools::Metadata::DublinCoreRecord.new
+          dc = Libis::Metadata::DublinCoreRecord.new
           dc.title = ie_info[:title]
           dc.type = doctype unless doctype.blank?
           dc.subject = docdossier unless docdossier.blank?

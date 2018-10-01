@@ -319,6 +319,12 @@ module Libis
             new_item.properties['convert_info'] = convert_hash[:id]
             new_item.filename = new_file
             format_identifier(new_item)
+            new_item.properties['original_path'] = File.join(
+                File.dirname(item.properties['original_path']),
+                "%s.%s.%s" % [File.basename(item.properties['original_path']),
+                              convert_hash[:name],
+                              extname(convert_hash[:target_format])]
+            ) if item.properties['original_path']
             new_item.save!
             new_item
 
@@ -390,7 +396,7 @@ module Libis
         converter = converterlist.join(' + ')
         if target_file
           FileUtils.mkpath(File.dirname(target_file))
-          FileUtils.cp(src_file, target_file)
+          FileUtils.copy(src_file, target_file)
         else
           target_file = temp_files.pop
         end

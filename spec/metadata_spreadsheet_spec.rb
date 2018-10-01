@@ -2,6 +2,7 @@ require 'rspec'
 require_relative 'spec_helper'
 
 require 'libis-tools'
+require 'libis-metadata'
 
 $:.unshift File.join(File.dirname(__FILE__), '..', 'lib')
 require 'libis/ingester'
@@ -80,7 +81,7 @@ describe 'MetadataSpreadsheetMapper' do
       record = item.metadata_record
       expect(record).not_to be_nil
       expect(record).to be_a(Libis::Ingester::MetadataRecord)
-      record = Libis::Tools::Metadata::DublinCoreRecord.new(record.data)
+      record = Libis::Metadata::DublinCoreRecord.new(record.data)
       expect(record['//title']).to eq 'test (PDF)'
       expect(record['//description']).to eq 'PDF file for Ingester testing'
     end

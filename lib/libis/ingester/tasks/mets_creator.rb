@@ -4,8 +4,7 @@ require 'fileutils'
 require "i18n"
 
 require 'libis/ingester'
-require 'libis/tools/metadata/marc21_record'
-require 'libis/tools/metadata/mappers/kuleuven'
+require 'libis/metadata/dublin_core_record'
 require 'libis/tools/checksum'
 
 module Libis
@@ -69,12 +68,12 @@ module Libis
         dc_record = if item.metadata_record
                       case item.metadata_record.format
                       when 'DC'
-                        Libis::Tools::Metadata::DublinCoreRecord.new(item.metadata_record.data)
+                        Libis::Metadata::DublinCoreRecord.new(item.metadata_record.data)
                       else
                         nil
                       end
                     else
-                      Libis::Tools::Metadata::DublinCoreRecord.new
+                      Libis::Metadata::DublinCoreRecord.new
                     end
 
         if dc_record.title.text.blank? || parameter(:force_label_to_title)
@@ -130,7 +129,7 @@ module Libis
         FileUtils.mkpath(File.dirname(mets_filename))
         mets.xml_doc.save mets_filename
 
-        sip_dc = Libis::Tools::Metadata::DublinCoreRecord.new do |xml|
+        sip_dc = Libis::Metadata::DublinCoreRecord.new do |xml|
           xml[:dc].title "#{item.get_run.name} - #{item.namepath}"
           xml[:dc].identifier item.get_run.name
           xml[:dc].source item.namepath
@@ -208,7 +207,7 @@ module Libis
 
         # noinspection RubyResolve
         if item.metadata_record && item.metadata_record.format == 'DC'
-          dc = Libis::Tools::Metadata::DublinCoreRecord.parse item.metadata_record.data
+          dc = Libis::Metadata::DublinCoreRecord.parse item.metadata_record.data
           file.dc_record = dc.root.to_xml
         end
 

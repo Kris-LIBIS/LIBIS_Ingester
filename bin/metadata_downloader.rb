@@ -7,13 +7,13 @@ require 'pathname'
 require 'libis/services/alma/sru_service'
 require 'libis/services/scope/search'
 
-require 'libis/tools/metadata/marc21_record'
-require 'libis/tools/metadata/dublin_core_record'
+require 'libis/metadata/marc21_record'
+require 'libis/metadata/dublin_core_record'
 require 'libis/tools/xml_document'
 require 'libis/tools/extend/string'
 
-require 'libis/tools/metadata/mappers/kuleuven'
-require 'libis/tools/metadata/mappers/scope'
+require 'libis/metadata/mappers/kuleuven'
+require 'libis/metadata/mappers/scope'
 
 class MetadataDownloader
 
@@ -33,12 +33,12 @@ class MetadataDownloader
     case service
     when 'alma'
       @service = Libis::Services::Alma::SruService.new
-      @mapper_class = Libis::Tools::Metadata::Mappers::Kuleuven
+      @mapper_class = Libis::Metadata::Mappers::Kuleuven
       config[:field] = prompt.ask 'Alma field to search', default: 'alma.mms_id'
       config[:library] = prompt.ask 'Library code', default: '32KUL_KUL'
     when 'scope'
       @service = ::Libis::Services::Scope::Search.new
-      @mapper_class = Libis::Tools::Metadata::Mappers::Scope
+      @mapper_class = Libis::Metadata::Mappers::Scope
       config[:field] = prompt.select 'Scope field to search', %w'REPCODE ID'
       database = prompt.ask 'Database name'
       user = prompt.ask 'User name'
@@ -55,18 +55,18 @@ class MetadataDownloader
     exit(-1)
   end
 
-  # @return [Libis::Tools::Metadata::DublinCoreRecord]
+  # @return [Libis::Metadata::Marc21Record|Libis::Metadata::DublinCoreRecord]
   def search(term)
     record = case service
              when ::Libis::Services::Alma::SruService
                result = service.search(config[:field], URI::encode("\"#{term}\""), config[:library])
                prompt.warn "WARNING: Multiple records found for #{config[:field]}=#{term}" if result.size > 1
-               result.empty? ? nil : ::Libis::Tools::Metadata::Marc21Record.new(result.first.root)
+               result.empty? ? nil : ::Libis::Metadata::Marc21Record.new(result.first.root)
 
              when ::Libis::Services::Scope::Search
                service.query(term, type: config[:field])
                service.next_record do |doc|
-                 ::Libis::Tools::Metadata::DublinCoreRecord.new(doc.to_xml)
+                 ::Libis::Metadata::DublinCoreRecord.new(doc.to_xml)
                end
 
              else
