@@ -41,8 +41,8 @@ module Libis
         protected
 
         def write_buffer_to_csv(buffer, csv_out, options)
-          return if buffer.strip.empty?
-          return if buffer != CSV_HEADER && options[:filter] && !options[:filter].upcase.include?(buffer[0])
+          return if buffer.empty? || buffer.all? {|x| x.strip.empty?}
+          return if buffer != CSV_HEADER &&p options[:filter] && !options[:filter].upcase.include?(buffer[0])
           csv_out.puts(
               CSV.generate_line(
                   (options[:skip_date] ?
@@ -51,7 +51,7 @@ module Libis
                   ),
                   col_sep: ';', quote_char: '"'
               )
-          ) unless buffer.empty?
+          )
         end
 
       end
