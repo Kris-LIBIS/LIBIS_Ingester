@@ -13,6 +13,7 @@ require_relative 'menu'
 @options = {}
 
 def db_menu(title, items, options = {}, &block)
+  @db_page ||= Hash.new(0)
   key = title.downcase.to_sym
   return @options[key] if @options[key]
   if (name = @options["#{key}_name".to_sym])
@@ -22,34 +23,38 @@ def db_menu(title, items, options = {}, &block)
       return item
     end
   end
-  options[:proc] = lambda { |item| @options[title.downcase.to_sym] = item }
-  block = Proc.new { |item| item.name } unless block_given?
+  options[:proc] = lambda {|item| @options[title.downcase.to_sym] = item}
+  block = Proc.new {|item| item.name} unless block_given?
   paging = 25
   if items.count > paging
     paged_items = items.limit(paging)
     no_pages = (items.count - 1) / paging + 1
     max_page = no_pages - 1
-    page = min_page = 0
+    min_page = 0
+    page = @db_page[title]
     options[:hidden] ||= {}
     hidden = options[:hidden]
     loop do
       page = [page, min_page].max
       page = [page, max_page].min
       options[:hidden] = hidden.dup
-      options[:hidden]['previous'] = Proc.new { :previous } if page > min_page
-      options[:hidden]['next'] = Proc.new { :next } if page < max_page
-      options[:hidden]['goto'] = Proc.new { :goto }
-      result = selection_menu("#{title} (#{page * paging + 1}-#{(page + 1) * paging})",
+      options[:hidden]['previous'] = Proc.new {:previous} if page > min_page
+      options[:hidden]['next'] = Proc.new {:next} if page < max_page
+      options[:hidden]['goto'] = Proc.new {:goto}
+      result = selection_menu("#{title} (#{page * paging + 1}-#{(page + 1) * paging}) page #{page + 1}/#{no_pages}",
                               paged_items.offset(page * paging), options, &block)
       case result
-        when :previous
-          page -= 1 if page > min_page
-        when :next
-          page += 1 if page < max_page
-        when :goto
-          page = @hl.ask('Enter page number', Integer) { |q| q.in = Range.new(min_page, max_page) }
-        else
-          return result
+      when :previous
+        page -= 1 if page > min_page
+      when :next
+        page += 1 if page < max_page
+      when :goto
+        page = @hl.ask("Enter page number (#{min_page + 1}..#{no_pages})", Integer) do |q|
+          q.in = Range.new(min_page + 1, no_pages)
+        end - 1
+      else
+        @db_page[title] = page
+        return result
       end
     end
   else
@@ -91,7 +96,7 @@ def select_user
   end
 
   loop do
-    @options[:password] = @hl.ask('Password: ') { |q| q.echo = '.' } unless @options[:password]
+    @options[:password] = @hl.ask('Password: ') {|q| q.echo = '.'} unless @options[:password]
     return true if @options[:user].authenticate(@options[:password])
     @options[:password] = nil
   end
@@ -122,7 +127,7 @@ end
 def select_run(options = {})
   return unless select_job
 
-  options.merge!(parent: @options[:job].description) { |_k, _v1, _v2| _v1 }
+  options.merge!(parent: @options[:job].description) {|_k, _v1, _v2| _v1}
 
   # noinspection RubyResolve
   db_menu('Run', @options[:job].runs, options) {
@@ -132,7 +137,7 @@ end
 
 def get_processes
   processes = []
-  ::Sidekiq::ProcessSet.new.each { |process| processes.push(process) }
+  ::Sidekiq::ProcessSet.new.each {|process| processes.push(process)}
   processes
 end
 
@@ -158,9 +163,9 @@ def select_active_queue(options = {})
   queues = Set.new
   get_processes.each do |process|
     next if process.stopping?
-    process['queues'].each { |queue| queues.add(queue) }
+    process['queues'].each {|queue| queues.add(queue)}
   end
-  queuelist = queues.each_with_object([]) { |q, l| l << Sidekiq::Queue.new(q) }
+  queuelist = queues.each_with_object([]) {|q, l| l << Sidekiq::Queue.new(q)}
   select_queue(queuelist, options)
 end
 
@@ -179,7 +184,7 @@ def select_queue(queue_list, options = {})
 
   menu = {}
   menu['+'] = Proc.new {
-    name = @hl.ask('queue name:') { |q| q.validate = /\A[a-z][a-z0-9_]*\Z/ }
+    name = @hl.ask('queue name:') {|q| q.validate = /\A[a-z][a-z0-9_]*\Z/}
     Sidekiq::Client.new.redis_pool.with do |conn|
       conn.multi do
         conn.sadd('queues'.freeze, name)
@@ -210,7 +215,7 @@ def select_worker(queue = nil, multiselect = false)
   queue ||= select_defined_queue
   return unless queue.is_a?(Sidekiq::Queue)
   workers = []
-  queue.each { |worker| workers << worker }
+  queue.each {|worker| workers << worker}
   selection_menu('Run', workers, multiselect: multiselect) do |worker|
     worker_detail(worker)
   end
@@ -222,7 +227,7 @@ end
 
 def worker_detail(worker)
   result = worker_name(worker)
-  parameters = worker.args.last.map { |p| "\t\t#{p.first} = #{p.last}" }
+  parameters = worker.args.last.map {|p| "\t\t#{p.first} = #{p.last}"}
   if parameters.size > 0
     result += "\n" + parameters.join("\n")
   end
@@ -238,7 +243,7 @@ def select_options(job)
     options[key] = value
   end if job.input
 
-  set_option = Proc.new { |opt|
+  set_option = Proc.new {|opt|
     key, value = opt
     if key =~ /(location|dir)/
       dir = select_path(true, false, value)
@@ -247,13 +252,13 @@ def select_options(job)
       file = select_path(true, true, value)
       options[key] = File.absolute_path(file) unless file.nil? || file.empty? || !File.file?(file) || !File.exist?(file)
     else
-      options[key] = value ? @hl.ask("#{key} : ") { |q| q.default = value } : @hl.ask("#{key} : ")
+      options[key] = value ? @hl.ask("#{key} : ") {|q| q.default = value} : @hl.ask("#{key} : ")
     end
     true
   }
 
   loop do
-    option = selection_menu('Parameters', options, parent: job.name, proc: set_option) { |opt|
+    option = selection_menu('Parameters', options, parent: job.name, proc: set_option) {|opt|
       "#{opt.first} : #{opt.last}"
     }
     break unless option
@@ -265,9 +270,9 @@ end
 
 def select_bulk_option(options)
   return nil if options.empty?
-  option = selection_menu('Bulk parameter', options) { |opt| "#{opt.first} : #{opt.last}" }
+  option = selection_menu('Bulk parameter', options) {|opt| "#{opt.first} : #{opt.last}"}
   return nil unless option
-  maxlevel = @hl.ask('Number of subdir levels to process', Integer) { |q| q.default = 1 }
+  maxlevel = @hl.ask('Number of subdir levels to process', Integer) {|q| q.default = 1}
 
   dirs = `find #{option.last} -mindepth #{maxlevel} -maxdepth #{maxlevel} -type d -print`.split("\n")
   {key: option.first, values: dirs}
@@ -276,42 +281,45 @@ end
 def select_item(item)
   items = item.get_items
   paging = 25
+  @item_page ||= Hash.new(0)
   return item if items.size == 0
   if items.count > paging
     paged_items = items.limit(paging)
     no_pages = (items.count - 1) / paging + 1
     max_page = no_pages - 1
-    @page ||= min_page = 0
+    min_page = 0
+    page = @item_page[item.name]
     options = {header: "Subitems of #{item.name}"}
     loop do
-      @page = [@page, min_page].max
-      @page = [@page, max_page].min
+      page = [page, min_page].max
+      page = [page, max_page].min
       options[:hidden] = {}
-      options[:hidden]['previous'] = Proc.new { :previous } if @page > min_page
-      options[:hidden]['next'] = Proc.new { :next } if @page < max_page
-      options[:hidden]['goto'] = Proc.new { :goto }
+      options[:hidden]['previous'] = Proc.new {:previous} if page > min_page
+      options[:hidden]['next'] = Proc.new {:next} if page < max_page
+      options[:hidden]['goto'] = Proc.new {:goto}
       result = selection_menu(
-          "item (#{@page * paging + 1}-#{(@page + 1) * paging}) / #{items.count} page #{@page + 1}/#{no_pages}",
-          paged_items.offset(@page * paging),
+          "item (#{page * paging + 1}-#{(page + 1) * paging}) / #{items.count} page #{page + 1}/#{no_pages}",
+          paged_items.offset(page * paging),
           options
-      ) { |i|
+      ) {|i|
         "#{i.class.name.split('::').last}: '#{i.name}' (#{i.items.count} items) [#{i.status_label}]"
       } || item
       case result
       when :previous
-        @page -= 1 if @page > min_page
+        page -= 1 if page > min_page
       when :next
-        @page += 1 if @page < max_page
+        page += 1 if page < max_page
       when :goto
-        @page = @hl.ask("Enter page number (#{min_page + 1}..#{no_pages})", Integer) do |q|
+        page = @hl.ask("Enter page number (#{min_page + 1}..#{no_pages})", Integer) do |q|
           q.in = Range.new(min_page + 1, no_pages)
         end - 1
       else
+        @item_page[item.name] = page
         return result
       end
     end
   else
-    selection_menu('item', item.get_items, header: "Subitems of #{item.name}") { |i|
+    selection_menu('item', item.get_items, header: "Subitems of #{item.name}") {|i|
       "#{i.class.name.split('::').last}: '#{i.name}' (#{i.items.count} items) [#{i.status_label}]"
     } || item
   end
