@@ -281,29 +281,29 @@ def select_item(item)
     paged_items = items.limit(paging)
     no_pages = (items.count - 1) / paging + 1
     max_page = no_pages - 1
-    page = min_page = 0
+    @page ||= min_page = 0
     options = {header: "Subitems of #{item.name}"}
     loop do
-      page = [page, min_page].max
-      page = [page, max_page].min
+      @page = [@page, min_page].max
+      @page = [@page, max_page].min
       options[:hidden] = {}
-      options[:hidden]['previous'] = Proc.new { :previous } if page > min_page
-      options[:hidden]['next'] = Proc.new { :next } if page < max_page
+      options[:hidden]['previous'] = Proc.new { :previous } if @page > min_page
+      options[:hidden]['next'] = Proc.new { :next } if @page < max_page
       options[:hidden]['goto'] = Proc.new { :goto }
       result = selection_menu(
-          "item (#{page * paging + 1}-#{(page + 1) * paging}) / #{items.count} page #{page + 1}/#{no_pages}",
-          paged_items.offset(page * paging),
+          "item (#{@page * paging + 1}-#{(@page + 1) * paging}) / #{items.count} page #{@page + 1}/#{no_pages}",
+          paged_items.offset(@page * paging),
           options
       ) { |i|
         "#{i.class.name.split('::').last}: '#{i.name}' (#{i.items.count} items) [#{i.status_label}]"
       } || item
       case result
       when :previous
-        page -= 1 if page > min_page
+        @page -= 1 if @page > min_page
       when :next
-        page += 1 if page < max_page
+        @page += 1 if @page < max_page
       when :goto
-        page = @hl.ask("Enter page number (#{min_page + 1}..#{no_pages})", Integer) do |q|
+        @page = @hl.ask("Enter page number (#{min_page + 1}..#{no_pages})", Integer) do |q|
           q.in = Range.new(min_page + 1, no_pages)
         end - 1
       else
