@@ -291,7 +291,7 @@ def select_item(item)
       options[:hidden]['next'] = Proc.new { :next } if page < max_page
       options[:hidden]['goto'] = Proc.new { :goto }
       result = selection_menu(
-          "item (#{page * paging + 1}-#{(page + 1) * paging})",
+          "item (#{page * paging + 1}-#{(page + 1) * paging}) / #{items.count} page #{page + 1}/#{no_pages}",
           paged_items.offset(page * paging),
           options
       ) { |i|
@@ -303,7 +303,9 @@ def select_item(item)
       when :next
         page += 1 if page < max_page
       when :goto
-        page = @hl.ask('Enter page number', Integer) { |q| q.in = Range.new(min_page, max_page) }
+        page = @hl.ask("Enter page number (#{min_page + 1}..#{no_pages})", Integer) do |q|
+          q.in = Range.new(min_page + 1, no_pages)
+        end - 1
       else
         return result
       end
