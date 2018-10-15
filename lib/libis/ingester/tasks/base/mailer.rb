@@ -25,7 +25,7 @@ module Libis
 
           if e.message =~ /message file too big/ && !attachments.empty?
 
-            if attachments.all?(/\.zip$/)
+            if attachments.all? { |x| x =~ /\.zip$/ }
 
               warn "Email '#{message}' is too big. Sending without attachments."
 

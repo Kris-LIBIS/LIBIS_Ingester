@@ -15,8 +15,12 @@ module Libis
       include Libis::Ingester::Base::Status2Csv
       include Libis::Ingester::Base::Mailer
 
+      field :base_dir, type: String
       field :error_to, type: String
       field :success_to, type: String
+
+      # noinspection RailsParamDefResolve
+      belongs_to :ingest_model, class_name: Libis::Ingester::IngestModel.to_s
 
       set_callback(:destroy, :before) do |document|
         dir = document.ingest_dir
@@ -43,7 +47,7 @@ module Libis
       end
 
       def ingest_model
-        self.job.ingest_model
+        self.ingest_model || self.job.ingest_model
       end
 
       def producer

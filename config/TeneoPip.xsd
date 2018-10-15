@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
+    targetNamespace="https://teneo.libis.be/schema" xmlns:teneo="https://teneo.libis.be/schema">
+    <xs:element name="pip">
+        <xs:annotation>
+            <xs:documentation>This is the root element of the PIP (Pre-Ingest Package) for the Teneo Ingester</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="config" type="teneo:config">
+                    <xs:annotation>
+                        <xs:documentation>All configuration parameters for the PIP</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <xs:element name="collection" type="teneo:collection" maxOccurs="unbounded"
+                    minOccurs="0"/>
+                <xs:element name="ie" type="teneo:ie" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:group ref="teneo:work_item"/>
+            </xs:sequence>
+            <xs:attributeGroup ref="teneo:identification"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:simpleType name="namestring">
+        <xs:annotation>
+            <xs:documentation>A safe string containing only alfanumeric characters and underscore</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[a-zA-Z0-9_]+"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="config">
+        <xs:sequence>
+            <xs:element minOccurs="0" name="base_dir" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>The root directory for all file/dir relative paths. Defaults to the directory thie SIP is in</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element minOccurs="0" name="ingest_model" type="teneo:ingest_model">
+                <xs:annotation>
+                    <xs:documentation>The default ingest model; overrides the job's default ingest model</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="ingest_job">
+        <xs:annotation>
+            <xs:documentation>A reference to an ingest job in the ingester database</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="option">
+                <xs:annotation>
+                    <xs:documentation>Configuration parameters for the ingest job</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="xs:string">
+                            <xs:attribute name="key" type="xs:string"/>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="name" type="teneo:namestring">
+            <xs:annotation>
+                <xs:documentation>Name of the ingest job as defined in the ingester database</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+    <xs:complexType name="ingest_model">
+        <xs:annotation>
+            <xs:documentation>A reference to an ingest model in the ingester database</xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="name" type="teneo:namestring" use="required">
+            <xs:annotation>
+                <xs:documentation>Name of the ingest model as defined in the ingester database</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+    <xs:complexType name="collection">
+        <xs:sequence>
+            <xs:group ref="teneo:work_item"/>
+            <xs:element minOccurs="0" name="metadata" type="teneo:metadata"/>
+            <xs:element name="collection" type="teneo:collection" maxOccurs="unbounded"
+                minOccurs="0"/>
+            <xs:element name="ie" type="teneo:ie" maxOccurs="unbounded" minOccurs="0"/>
+        </xs:sequence>
+        <xs:attributeGroup ref="teneo:identification">
+            <xs:annotation>
+                <xs:documentation>Label placeholders:
+- %id% : collection id
+- %title% : dc:title of the collection metadata
+- %date% : dc:date of the collection metadata</xs:documentation>
+            </xs:annotation>
+        </xs:attributeGroup>
+        <xs:attribute default="true" name="navigate" type="xs:boolean"/>
+        <xs:attribute default="false" name="publish" type="xs:boolean"/>
+    </xs:complexType>
+    <xs:complexType name="ie">
+        <xs:sequence>
+            <xs:element name="access_right" minOccurs="0"/>
+            <xs:element minOccurs="0" name="retention_policy"/>
+            <xs:group ref="teneo:work_item"/>
+            <xs:element minOccurs="0" name="metadata" type="teneo:metadata"/>
+            <xs:element maxOccurs="unbounded" name="file" type="teneo:file"/>
+        </xs:sequence>
+        <xs:attributeGroup ref="teneo:identification">
+            <xs:annotation>
+                <xs:documentation>Label placeholders:
+- %id% : ie id
+- %title% : dc:title of the ie metadata
+- %date% : dc:date of the ie metadata</xs:documentation>
+            </xs:annotation>
+        </xs:attributeGroup>
+        <xs:attribute name="ingest_model" type="teneo:namestring" use="optional">
+            <xs:annotation>
+                <xs:documentation>Specific Ingest Model to be used for this IE. If not present, the run/job Ingest Model will be used.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+    <xs:complexType name="file">
+        <xs:sequence>
+            <xs:element name="path">
+                <xs:annotation>
+                    <xs:documentation>The absolute/relative file path for the referenced file</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="size" type="xs:integer">
+                <xs:annotation>
+                    <xs:documentation>The file's size in bytes</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element minOccurs="0" name="mimetype"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="checksum" type="teneo:checksum"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="alt_label">
+                <xs:annotation>
+                    <xs:documentation>File labels for logical structmaps; path should start with logical structmap name</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="teneo:label">
+                            <xs:attribute default="/" name="separator" type="xs:string">
+                                <xs:annotation>
+                                    <xs:documentation>Separator to use for the path of the label</xs:documentation>
+                                </xs:annotation>
+                            </xs:attribute>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attributeGroup ref="teneo:identification">
+            <xs:annotation>
+                <xs:documentation>Label placeholders:
+- %id% : file id
+- %title% : dc:title of the file metadata
+- %date% : dc:date of the file metadata</xs:documentation>
+            </xs:annotation>
+        </xs:attributeGroup>
+        <xs:attribute name="target_rep" type="teneo:namestring"/>
+    </xs:complexType>
+    <xs:complexType name="metadata">
+        <xs:choice>
+            <xs:element name="search">
+                <xs:annotation>
+                    <xs:documentation>Search for metadata in one of the predefined metadata source systems</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:attribute name="config" type="teneo:namestring" use="required">
+                        <xs:annotation>
+                            <xs:documentation>The name of a metadata source configuration in the ingester</xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="key" type="xs:string" use="required">
+                        <xs:annotation>
+                            <xs:documentation>The lookup key to be used when searching for metadata; a search term or a absolute or relative file path</xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="file">
+                <xs:annotation>
+                    <xs:documentation>Metdata supplied in a separate file</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:attribute name="path" type="xs:string" use="required">
+                        <xs:annotation>
+                            <xs:documentation>The absolute/relative file path for the referenced file</xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="record">
+                <xs:annotation>
+                    <xs:documentation>Metadata supplied in-line in the PIP; a fully qualified Dublin Core record as CDATA or string</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:choice>
+    </xs:complexType>
+    <xs:simpleType name="label">
+        <xs:annotation>
+            <xs:documentation>The label for the object (collection, work, file, ...). It can contain placeholders for runtime information by surrounding them with '%' characters. A litteral '%' can be included with '%%'.
+Placeholders that are available can vary depending on the context</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:complexType name="checksum">
+        <xs:simpleContent>
+            <xs:extension base="teneo:hex_string">
+                <xs:attribute name="algorithm">
+                    <xs:simpleType>
+                        <xs:restriction base="teneo:namestring">
+                            <xs:pattern value="CRC|MD5|SHA(1|123|256|512)"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:attribute>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <xs:simpleType name="hex_string">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9A-Fa-f]+"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:attributeGroup name="identification">
+        <xs:attribute name="id" type="teneo:namestring" use="required"/>
+        <xs:attribute name="label" type="teneo:label" use="required">
+            <xs:annotation>
+                <xs:documentation/>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:attributeGroup>
+    <xs:group name="work_item">
+        <xs:annotation>
+            <xs:documentation>Contains properties and options, both key-value types and meaning depends on the context; often they allow to supply some uncommon ingester configuration options</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="property">
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="xs:string">
+                            <xs:attribute name="key" type="xs:string"/>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="option">
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="xs:string">
+                            <xs:attribute name="key" type="xs:string"/>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+</xs:schema>
