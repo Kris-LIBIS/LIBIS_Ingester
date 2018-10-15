@@ -14,7 +14,6 @@ module Libis
       include Libis::Ingester::Base::Csv2Html
       include Libis::Ingester::Base::Status2Csv
       include Libis::Ingester::Base::Mailer
-      include ::Libis::Tools::Logger
 
       field :error_to, type: String
       field :success_to, type: String

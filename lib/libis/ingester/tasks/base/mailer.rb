@@ -56,7 +56,7 @@ module Libis
 
           else
 
-            error "#{message}' could not be sent #{mail_to}: #{e.message}"
+            error "#{message}' could not be sent #{mail_to}: #{e.message}" if self.respond_to?(:error)
 
             attachments.each do |file|
               warn "Attachment can be found here: #{file}"
@@ -65,6 +65,22 @@ module Libis
             return false
 
           end
+
+          def error(msg)
+            $stderr.puts "ERROR: #{msg}"
+          end unless method_defined? :error
+
+          def warn(msg)
+            $stderr.puts "WARNING: #{msg}"
+          end unless method_defined? :warn
+
+          def info(msg)
+            $stderr.puts "INFO: #{msg}"
+          end unless method_defined? :info
+
+          def debug(msg)
+            $stderr.puts "DEBUG: #{msg}"
+          end unless method_defined? :debug
 
         end
 
