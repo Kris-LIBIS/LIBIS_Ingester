@@ -19,6 +19,9 @@ module Libis
           klass.parameter converter: 'Kuleuven'
           klass.parameter field: 'alma.mms_id',
                           description: 'Alma field to search in'
+          klass.parameter not_found: 'ignore',
+                          description: 'What to do when record is not found',
+                          enum: %w'ignore warn error abort'
         end
 
 
@@ -33,7 +36,22 @@ module Libis
           result = @alma.search(field, URI::encode("\"#{term}\""), parameter(:library))
           warn "Multiple records found for #{field}=#{term}" if result.size > 1
 
-          return result.empty? ? nil : ::Libis::Metadata::Marc21Record.new(result.first.root)
+          return ::Libis::Metadata::Marc21Record.new(result.first.root) unless result.empty?
+
+          txt = "No records found for #{field}=#{term}"
+
+          case parameter(:not_found)
+          when 'warn'
+            warn txt
+          when 'error'
+            error txt
+          when 'abort'
+            raise ::Libis::WorkflowError, txt
+          else
+            # ignore
+          end
+
+          nil
 
         rescue Exception => e
           raise ::Libis::WorkflowError, "Alma request failed: #{e.message}"
