@@ -66,19 +66,19 @@ module Libis
 
           end
 
-          def error(msg)
+          def error(msg, *args)
             $stderr.puts "ERROR: #{msg}"
           end unless method_defined? :error
 
-          def warn(msg)
+          def warn(msg, *args)
             $stderr.puts "WARNING: #{msg}"
           end unless method_defined? :warn
 
-          def info(msg)
+          def info(msg, *args)
             $stderr.puts "INFO: #{msg}"
           end unless method_defined? :info
 
-          def debug(msg)
+          def debug(msg, *args)
             $stderr.puts "DEBUG: #{msg}"
           end unless method_defined? :debug
 

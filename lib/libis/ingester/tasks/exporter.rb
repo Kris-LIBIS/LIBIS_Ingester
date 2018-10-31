@@ -56,7 +56,7 @@ module Libis
                 description: 'Format of the export file.',
                 constraint: %w'tsv csv xml yml'
       parameter export_header: true, description: 'Add header line to export file.'
-      parameter item_types: %w(Libis::Ingester::IntellectualEntity)
+      parameter item_types: %w(Libis::Ingester::IntellectualEntity Libis::Ingester::Collection)
       parameter recursive: true, frozen: true
 
       protected
@@ -75,7 +75,8 @@ module Libis
 
       def post_process(item)
         return unless item.is_a?(Libis::Ingester::Run)
-        email_report item
+        attachments = item.options[:export_attachments].split(/\s*,\s*/)
+        email_report item, *attachments
       end
 
       protected
@@ -190,9 +191,9 @@ module Libis
         string.inspect.to_yaml
       end
 
-      def email_report(item)
+      def email_report(item, *attachments)
         return if parameter(:mail_to).blank?
-        send_email(get_export_file(item)) do |mail|
+        send_email(get_export_file(item), *attachments) do |mail|
           mail.to = parameter(:mail_to)
           mail.cc = parameter(:mail_cc) unless parameter(:mail_cc).blank?
           mail.subject = 'Ingest complete.'

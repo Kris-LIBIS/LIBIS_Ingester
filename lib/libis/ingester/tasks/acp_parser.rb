@@ -44,6 +44,8 @@ module Libis
         end
 
         xml_file = xml_files.first
+        item.options[:export_attachments] = xml_file
+
         parse_xml(xml_file, item)
 
       end
