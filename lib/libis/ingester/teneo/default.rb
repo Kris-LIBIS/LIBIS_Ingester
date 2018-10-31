@@ -4,23 +4,21 @@
 #
 
 require "roxml"
+require "libis/ingester/teneo/ingest_model"
 
 module Libis module Ingester module Teneo
 
 
-class Checksum 
+class Default 
   include ROXML
 
   xml_namespaces "ns1" => "https://teneo.libis.be/schema"
 
-  xml_name "ns1:checksum"
+  xml_name "ns1:default"
+
+          xml_accessor :ingest_model, :as => Libis::Ingester::Teneo::IngestModel, :from => "ns1:ingest_model", :required => false
 
 
-    xml_accessor :content, :from => ".", :required => false
-
-  
-      xml_accessor :algorithm, :from => "@algorithm", :required => false
-    
   
 end
 

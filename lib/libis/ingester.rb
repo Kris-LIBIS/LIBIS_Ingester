@@ -38,6 +38,7 @@ module Libis
     autoload :Representation, 'libis/ingester/representation'
 
     autoload :MetadataRecord, 'libis/ingester/metadata_record'
+    autoload :MetadataSearchConfig, 'libis/ingester/metadata_search_config'
 
     def self.configure
       yield ::Libis::Ingester::Config.instance

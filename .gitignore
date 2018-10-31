@@ -41,3 +41,5 @@ lib/libis/ingester/server/web/app/yarn-error.log
 /lib/libis/ingester/server/config/key.pem
 /lib/libis/ingester/server/config/key.priv.pem
 /test.rb
+/config/TeneoPip/ruby
+/config/instance1.xml

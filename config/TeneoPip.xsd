@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
     targetNamespace="https://teneo.libis.be/schema" xmlns:teneo="https://teneo.libis.be/schema">
+    <xs:annotation>
+        <xs:documentation>This schema identifies the Teneo PIP format. PIP stands for Pre-Ingest Package and defines all the information that the Ingester needs to get it's job done.</xs:documentation>
+    </xs:annotation>
     <xs:element name="pip">
         <xs:annotation>
             <xs:documentation>This is the root element of the PIP (Pre-Ingest Package) for the Teneo Ingester</xs:documentation>
@@ -10,6 +13,11 @@
                 <xs:element name="config" type="teneo:config">
                     <xs:annotation>
                         <xs:documentation>All configuration parameters for the PIP</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <xs:element name="default">
+                    <xs:annotation>
+                        <xs:documentation>Default values for other elements in this PIP.</xs:documentation>
                     </xs:annotation>
                 </xs:element>
                 <xs:element name="collection" type="teneo:collection" maxOccurs="unbounded"
@@ -35,6 +43,10 @@
                     <xs:documentation>The root directory for all file/dir relative paths. Defaults to the directory thie SIP is in</xs:documentation>
                 </xs:annotation>
             </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="default">
+        <xs:sequence>
             <xs:element minOccurs="0" name="ingest_model" type="teneo:ingest_model">
                 <xs:annotation>
                     <xs:documentation>The default ingest model; overrides the job's default ingest model</xs:documentation>
@@ -97,8 +109,8 @@
     </xs:complexType>
     <xs:complexType name="ie">
         <xs:sequence>
-            <xs:element name="access_right" minOccurs="0"/>
-            <xs:element minOccurs="0" name="retention_policy"/>
+            <xs:element name="access_right" minOccurs="0" type="xs:string"/>
+            <xs:element minOccurs="0" name="retention_policy" type="xs:string"/>
             <xs:group ref="teneo:work_item"/>
             <xs:element minOccurs="0" name="metadata" type="teneo:metadata"/>
             <xs:element maxOccurs="unbounded" name="file" type="teneo:file"/>
@@ -124,7 +136,7 @@
                     <xs:documentation>The absolute/relative file path for the referenced file</xs:documentation>
                 </xs:annotation>
             </xs:element>
-            <xs:element name="size" type="xs:integer">
+            <xs:element name="size" type="xs:integer" minOccurs="0">
                 <xs:annotation>
                     <xs:documentation>The file's size in bytes</xs:documentation>
                 </xs:annotation>
@@ -187,6 +199,23 @@
                             <xs:documentation>The absolute/relative file path for the referenced file</xs:documentation>
                         </xs:annotation>
                     </xs:attribute>
+                    <xs:attribute default="DC" name="format" use="optional">
+                        <xs:simpleType>
+                            <xs:restriction base="xs:string">
+                                <xs:enumeration value="DC"/>
+                                <xs:enumeration value="MARC21"/>
+                            </xs:restriction>
+                        </xs:simpleType>
+                    </xs:attribute>
+                    <xs:attribute default="KULeuven" name="mapping">
+                        <xs:simpleType>
+                            <xs:restriction base="xs:string">
+                                <xs:enumeration value="KULeuven"/>
+                                <xs:enumeration value="KADOC"/>
+                                <xs:enumeration value="Flandrica"/>
+                            </xs:restriction>
+                        </xs:simpleType>
+                    </xs:attribute>
                 </xs:complexType>
             </xs:element>
             <xs:element name="record">
@@ -209,7 +238,12 @@ Placeholders that are available can vary depending on the context</xs:documentat
                 <xs:attribute name="algorithm">
                     <xs:simpleType>
                         <xs:restriction base="teneo:namestring">
-                            <xs:pattern value="CRC|MD5|SHA(1|123|256|512)"/>
+                            <xs:enumeration value="CRC"/>
+                            <xs:enumeration value="MD5"/>
+                            <xs:enumeration value="SHA1"/>
+                            <xs:enumeration value="SHA128"/>
+                            <xs:enumeration value="SHA256"/>
+                            <xs:enumeration value="SHA512"/>
                         </xs:restriction>
                     </xs:simpleType>
                 </xs:attribute>
@@ -222,10 +256,25 @@ Placeholders that are available can vary depending on the context</xs:documentat
         </xs:restriction>
     </xs:simpleType>
     <xs:attributeGroup name="identification">
-        <xs:attribute name="id" type="teneo:namestring" use="required"/>
-        <xs:attribute name="label" type="teneo:label" use="required">
+        <xs:attribute name="id" type="teneo:namestring" use="required">
             <xs:annotation>
-                <xs:documentation/>
+                <xs:documentation>Unique identifier for the object this attribute is attached to.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="label" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>A user-friendly name for the object this attribute is attached to, The label will typically be the name/title that the end-user will see in lists or viewers.
+
+The default value is to use the same value as the id.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="label_template" type="teneo:label">
+            <xs:annotation>
+                <xs:documentation>A template string that will be used to calculate a new value for the label at run-time. Placeholders can be used that reference information that may only be known at run-time:
+
+%id% : value of the id field
+%title% : dc:title of the metadata
+%date% : dc:date of the metadata</xs:documentation>
             </xs:annotation>
         </xs:attribute>
     </xs:attributeGroup>
