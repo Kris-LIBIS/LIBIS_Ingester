@@ -61,15 +61,21 @@ module Libis
 
         parse_item run, pip
 
-        cfg = pip.config
+        run.base_dir = pip.config?.base_dir || File.dirname(parameter(:pip_file))
 
-        run.base_dir = cfg.base_dir || File.dirname(parameter(:pip_file))
-
-        if cfg.ingest_model
-          im = Libis::Ingester::IngestModel.find_by(name: cfg.ingest_model)
-          raise Libis::WorkflowAbort "Ingest model '#{cfg.ingest_model}' not found." unless im
+        if pip.defaults?.ie?.ingest_model
+          im = Libis::Ingester::IngestModel.find_by(name: pip.defaults.ie.ingest_model)
+          raise Libis::WorkflowAbort "Ingest model '#{pip.defaults.ie.ingest_model}' not found." unless im
           run.ingest_model = im
         end
+
+        pip.defaults?.collection?.navigate && (run.options[:collection_navigate] = pip.defaults?.collection?.navigate)
+        pip.defaults?.collection?.publish && (run.options[:collection_publish] = pip.defaults?.collection?.publish)
+
+        pip.defaults?.metadata?.search?.config && (run.options[:metadata_search] = pip.defaults?.metadata?.search?.config)
+        pip.defaults?.metadata?.file?.format && (run.options[:metadata_file_format] = pip.defaults?.metadata?.file?.format)
+        pip.defaults?.metadata?.file?.mapping & (run.options[:metadata_file_mapping] = pip.defaults?.metadata?.file?.mapping)
+        pip.defaults?.metadata?.record && (run.options[:metadata_record] = pip.defaults?.metadata?.record)
 
         pip.collections.each do |collection|
           parse_collection run, collection

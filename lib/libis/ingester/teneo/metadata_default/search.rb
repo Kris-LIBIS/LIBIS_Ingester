@@ -6,7 +6,7 @@
 require "roxml"
 
 module Libis module Ingester module Teneo
-class Metadata
+class MetadataDefault
 
 class Search 
   include ROXML
@@ -18,10 +18,7 @@ class Search
 
 
   
-      xml_accessor :config, :from => "@config", :required => false
-    
-  
-      xml_accessor :key, :from => "@key", :required => true
+      xml_accessor :config, :from => "@config", :required => true
     
   
 end
