@@ -6,20 +6,22 @@
 require "roxml"
 
 module Libis module Ingester module Teneo
-class Pip
+class MetadataDefault
 
-class Option 
+class File 
   include ROXML
 
   
 
-  xml_name "Option"
+  xml_name "File"
 
 
-    xml_accessor :content, :from => ".", :required => false
 
   
-      xml_accessor :key, :from => "@key", :required => false
+      xml_accessor :format, :from => "@format", :required => false
+    
+  
+      xml_accessor :mapping, :from => "@mapping", :required => false
     
   
 end
