@@ -17,6 +17,7 @@ else
 
 fi
 rvm use jruby-1.7
+rm -fR ruby
 jaxb2ruby -t roxml -n "https://teneo.libis.be/schema=Libis::Ingester::Teneo" ../TeneoPip.xsd
 cd ruby/libis/ingester
 TGT=../../../../../lib/libis/ingester/teneo
