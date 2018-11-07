@@ -8,20 +8,20 @@ require "roxml"
 module Libis module Ingester module Teneo
 
 
-class CollectionDefault 
+class DcElement 
   include ROXML
 
   xml_namespaces "ns1" => "https://teneo.libis.be/schema"
 
-  xml_name "ns1:collection_default"
+  xml_name "ns1:dc_element"
 
 
 
   
-      xml_accessor :navigate?, :from => "@navigate", :required => false
+      xml_accessor :tag, :from => "@tag", :required => false
     
   
-      xml_accessor :publish?, :from => "@publish", :required => false
+      xml_accessor :value, :from => "@value", :required => false
     
   
 end

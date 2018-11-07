@@ -16,7 +16,6 @@
                         <xs:documentation>All configuration parameters for the PIP</xs:documentation>
                     </xs:annotation>
                 </xs:element>
-                <xs:element name="defaults" type="teneo:defaults"/>
                 <xs:element name="collection" type="teneo:collection" maxOccurs="unbounded"
                     minOccurs="0"/>
                 <xs:element name="ie" type="teneo:ie" maxOccurs="unbounded" minOccurs="0"/>
@@ -39,11 +38,14 @@
                     <xs:documentation>The root directory for all file/dir relative paths. Defaults to the directory thie SIP is in</xs:documentation>
                 </xs:annotation>
             </xs:element>
+            <xs:element minOccurs="0" name="metadata" type="teneo:metadata_default"/>
+            <xs:element minOccurs="0" name="collection" type="teneo:collection_default"/>
+            <xs:element minOccurs="0" name="ie" type="teneo:ie_default"/>
         </xs:sequence>
     </xs:complexType>
     <xs:complexType name="collection">
         <xs:sequence>
-            <xs:group ref="teneo:work_item"/>
+            <xs:group ref="teneo:work_item" minOccurs="0"/>
             <xs:element minOccurs="0" name="metadata" type="teneo:metadata"/>
             <xs:element name="collection" type="teneo:collection" maxOccurs="unbounded"
                 minOccurs="0"/>
@@ -60,11 +62,27 @@
         <xs:attribute default="true" name="navigate" type="xs:boolean"/>
         <xs:attribute default="false" name="publish" type="xs:boolean"/>
     </xs:complexType>
+    <xs:element name="newElement"/>
     <xs:complexType name="ie">
         <xs:sequence>
-            <xs:group ref="teneo:work_item"/>
-            <xs:element minOccurs="0" name="metadata" type="teneo:metadata"/>
             <xs:element maxOccurs="unbounded" name="file" type="teneo:file"/>
+            <xs:group ref="teneo:work_item" minOccurs="0"/>
+            <xs:element minOccurs="0" name="metadata" type="teneo:metadata"/>
+            <xs:element minOccurs="0" name="ingest_model" type="teneo:ingest_model">
+                <xs:annotation>
+                    <xs:documentation>Specific Ingest Model to be used for this IE. If not present, the run/job Ingest Model will be used.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element minOccurs="0" name="access_right" type="teneo:namestring">
+                <xs:annotation>
+                    <xs:documentation>Overwrites the ingest model's default access right for this IE.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element minOccurs="0" name="retention_policy" type="teneo:namestring">
+                <xs:annotation>
+                    <xs:documentation>Overwrites the ingest model's default retention policy for this IE.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
         </xs:sequence>
         <xs:attributeGroup ref="teneo:identification">
             <xs:annotation>
@@ -74,13 +92,6 @@
 - %date% : dc:date of the ie metadata</xs:documentation>
             </xs:annotation>
         </xs:attributeGroup>
-        <xs:attribute name="ingest_model" type="teneo:namestring" use="optional">
-            <xs:annotation>
-                <xs:documentation>Specific Ingest Model to be used for this IE. If not present, the run/job Ingest Model will be used.</xs:documentation>
-            </xs:annotation>
-        </xs:attribute>
-        <xs:attribute name="access_right" type="teneo:namestring"/>
-        <xs:attribute name="retention_policy" type="teneo:namestring"/>
     </xs:complexType>
     <xs:complexType name="file">
         <xs:sequence>
@@ -124,63 +135,75 @@
         <xs:attribute name="target_rep" type="teneo:namestring"/>
     </xs:complexType>
     <xs:complexType name="metadata">
-        <xs:choice>
-            <xs:element name="search">
+        <xs:sequence>
+            <xs:choice minOccurs="1">
+                <xs:element name="record" minOccurs="1">
+                    <xs:annotation>
+                        <xs:documentation>Metadata supplied in-line in the PIP; a fully qualified Dublin Core record as CDATA or string</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <xs:element name="search">
+                    <xs:annotation>
+                        <xs:documentation>Search for metadata in one of the predefined metadata source systems</xs:documentation>
+                    </xs:annotation>
+                    <xs:complexType>
+                        <xs:attribute name="config" type="teneo:namestring" use="optional">
+                            <xs:annotation>
+                                <xs:documentation>The name of a metadata source configuration in the ingester</xs:documentation>
+                            </xs:annotation>
+                        </xs:attribute>
+                        <xs:attribute name="key" type="xs:string" use="required">
+                            <xs:annotation>
+                                <xs:documentation>The lookup key to be used when searching for metadata; a search term or a absolute or relative file path</xs:documentation>
+                            </xs:annotation>
+                        </xs:attribute>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="file">
+                    <xs:annotation>
+                        <xs:documentation>Metdata supplied in a separate file</xs:documentation>
+                    </xs:annotation>
+                    <xs:complexType>
+                        <xs:attribute name="path" type="xs:string" use="required">
+                            <xs:annotation>
+                                <xs:documentation>The absolute/relative file path for the referenced file</xs:documentation>
+                            </xs:annotation>
+                        </xs:attribute>
+                        <xs:attribute default="DC" name="format" use="optional">
+                            <xs:simpleType>
+                                <xs:restriction base="xs:string">
+                                    <xs:enumeration value="DC"/>
+                                    <xs:enumeration value="MARC21"/>
+                                </xs:restriction>
+                            </xs:simpleType>
+                        </xs:attribute>
+                        <xs:attribute default="KULeuven" name="mapping">
+                            <xs:simpleType>
+                                <xs:restriction base="xs:string">
+                                    <xs:enumeration value="KULeuven"/>
+                                    <xs:enumeration value="KADOC"/>
+                                    <xs:enumeration value="Flandrica"/>
+                                </xs:restriction>
+                            </xs:simpleType>
+                        </xs:attribute>
+                    </xs:complexType>
+                </xs:element>
+            </xs:choice>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="prepend" type="teneo:dc_element">
                 <xs:annotation>
-                    <xs:documentation>Search for metadata in one of the predefined metadata source systems</xs:documentation>
+                    <xs:documentation>DC element to prepend to the metadata record</xs:documentation>
                 </xs:annotation>
-                <xs:complexType>
-                    <xs:attribute name="config" type="teneo:namestring" use="optional">
-                        <xs:annotation>
-                            <xs:documentation>The name of a metadata source configuration in the ingester</xs:documentation>
-                        </xs:annotation>
-                    </xs:attribute>
-                    <xs:attribute name="key" type="xs:string" use="required">
-                        <xs:annotation>
-                            <xs:documentation>The lookup key to be used when searching for metadata; a search term or a absolute or relative file path</xs:documentation>
-                        </xs:annotation>
-                    </xs:attribute>
-                </xs:complexType>
             </xs:element>
-            <xs:element name="file">
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="append" type="teneo:dc_element">
                 <xs:annotation>
-                    <xs:documentation>Metdata supplied in a separate file</xs:documentation>
-                </xs:annotation>
-                <xs:complexType>
-                    <xs:attribute name="path" type="xs:string" use="required">
-                        <xs:annotation>
-                            <xs:documentation>The absolute/relative file path for the referenced file</xs:documentation>
-                        </xs:annotation>
-                    </xs:attribute>
-                    <xs:attribute default="DC" name="format" use="optional">
-                        <xs:simpleType>
-                            <xs:restriction base="xs:string">
-                                <xs:enumeration value="DC"/>
-                                <xs:enumeration value="MARC21"/>
-                            </xs:restriction>
-                        </xs:simpleType>
-                    </xs:attribute>
-                    <xs:attribute default="KULeuven" name="mapping">
-                        <xs:simpleType>
-                            <xs:restriction base="xs:string">
-                                <xs:enumeration value="KULeuven"/>
-                                <xs:enumeration value="KADOC"/>
-                                <xs:enumeration value="Flandrica"/>
-                            </xs:restriction>
-                        </xs:simpleType>
-                    </xs:attribute>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="record">
-                <xs:annotation>
-                    <xs:documentation>Metadata supplied in-line in the PIP; a fully qualified Dublin Core record as CDATA or string</xs:documentation>
+                    <xs:documentation>DC element to append to the metadata record.</xs:documentation>
                 </xs:annotation>
             </xs:element>
-        </xs:choice>
+        </xs:sequence>
     </xs:complexType>
     <xs:simpleType name="label">
         <xs:annotation>
-            <xs:documentation>The label for the object (collection, work, file, ...). It can contain placeholders for runtime information by surrounding them with '%' characters. A litteral '%' can be included with '%%'.
+            <xs:documentation>Text associated to an element. It can contain placeholders for runtime information by surrounding them with '%' characters. A litteral '%' can be included with '%%'.
 Placeholders that are available can vary depending on the context</xs:documentation>
         </xs:annotation>
         <xs:restriction base="xs:string"/>
@@ -261,13 +284,23 @@ The default value is to use the same value as the id.</xs:documentation>
         <xs:attribute default="false" name="publish" type="xs:boolean"/>
     </xs:complexType>
     <xs:complexType name="ie_default">
-        <xs:attribute name="ingest_model" type="teneo:namestring" use="optional">
-            <xs:annotation>
-                <xs:documentation>Specific Ingest Model to be used for this IE. If not present, the run/job Ingest Model will be used.</xs:documentation>
-            </xs:annotation>
-        </xs:attribute>
-        <xs:attribute name="access_right" type="teneo:namestring"/>
-        <xs:attribute name="retention_policy" type="teneo:namestring"/>
+        <xs:sequence minOccurs="0">
+            <xs:element minOccurs="0" name="ingest_model" type="teneo:ingest_model">
+                <xs:annotation>
+                    <xs:documentation>Specific Ingest Model to be used for this run. If not present, the job Ingest Model will be used.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element minOccurs="0" name="access_right" type="teneo:namestring">
+                <xs:annotation>
+                    <xs:documentation>Overwrites the ingest model's default access right for the IEs in this PIP.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element minOccurs="0" name="retention_policy" type="teneo:namestring">
+                <xs:annotation>
+                    <xs:documentation>Overwrites the ingest model's default retention policy for the IEs in this PIP.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
     </xs:complexType>
     <xs:complexType name="metadata_default">
         <xs:sequence>
@@ -312,13 +345,44 @@ The default value is to use the same value as the id.</xs:documentation>
                     <xs:documentation>Metadata supplied in-line in the PIP; a fully qualified Dublin Core record as CDATA or string</xs:documentation>
                 </xs:annotation>
             </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="prepend" type="teneo:dc_element">
+                <xs:annotation>
+                    <xs:documentation>DC element to prepend to the metadata record</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="append" type="teneo:dc_element">
+                <xs:annotation>
+                    <xs:documentation>DC element to append to the metadata record.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
         </xs:sequence>
     </xs:complexType>
-    <xs:complexType name="defaults">
-        <xs:sequence>
-            <xs:element minOccurs="0" name="metadata" type="teneo:metadata_default"/>
-            <xs:element minOccurs="0" name="collection" type="teneo:collection_default"/>
-            <xs:element minOccurs="0" name="ie" type="teneo:ie_default"/>
+    <xs:complexType name="ingest_model">
+        <xs:sequence minOccurs="0">
+            <xs:element minOccurs="0" name="overrides">
+                <xs:annotation>
+                    <xs:documentation>List of values of the Ingest Model configuration to override</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:attribute name="entity_type" type="teneo:namestring"/>
+                    <xs:attribute name="user_a" type="xs:string"/>
+                    <xs:attribute name="user_b" type="xs:string"/>
+                    <xs:attribute name="user_c" type="xs:string"/>
+                    <xs:attribute name="status" type="teneo:status_type"/>
+                </xs:complexType>
+            </xs:element>
         </xs:sequence>
+        <xs:attribute name="name" type="teneo:namestring" use="required"/>
+    </xs:complexType>
+    <xs:simpleType name="status_type">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="ACTIVE"/>
+            <xs:enumeration value="SUPPRESSED"/>
+            <xs:enumeration value="DONTPUB"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="dc_element">
+        <xs:attribute name="tag" type="xs:Name"/>
+        <xs:attribute name="value" type="xs:string"/>
     </xs:complexType>
 </xs:schema>
