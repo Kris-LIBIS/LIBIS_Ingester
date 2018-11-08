@@ -33,10 +33,10 @@ module Libis
       # noinspection RubyResolve
       def process(item)
 
-        item.status_progress(self.namepath, 0, item.get_run.ingest_model.manifestations.count)
+        item.status_progress(self.namepath, 0, item.get_ingest_model.manifestations.count)
 
         # Build all manifestations
-        item.get_run.ingest_model.manifestations.each do |manifestation|
+        item.get_ingest_model.manifestations.each do |manifestation|
           debug 'Building manifestation %s', item, manifestation.representation_info.name
           rep = item.representation(manifestation.name)
           unless rep

@@ -18,9 +18,22 @@ module Libis
       field :base_dir, type: String
       field :error_to, type: String
       field :success_to, type: String
+      field :metadata_file_format, type: String
+      field :metadata_file_mapping, type: String
+      field :metadata_record, type: String
+      field :collection_navigate, type: Boolean
+      field :collection_publish, type: Boolean
+
 
       # noinspection RailsParamDefResolve
       belongs_to :ingest_model, class_name: Libis::Ingester::IngestModel.to_s
+      # noinspection RailsParamDefResolve
+      belongs_to :access_right, class_name: Libis::Ingester::AccessRight.to_s, inverse_of: nil
+      # noinspection RailsParamDefResolve
+      belongs_to :retention_period, class_name: Libis::Ingester::RetentionPeriod.to_s, inverse_of: nil
+
+      # noinspection RailsParamDefResolve
+      belongs_to :metadata_search_config, class_name: Libis::Ingester::IngestModel.to_s
 
       set_callback(:destroy, :before) do |document|
         dir = document.ingest_dir
@@ -42,12 +55,26 @@ module Libis
         self.name;
       end
 
+      # @return [Libis::Ingester::Workflow]
       def workflow
         self.job.workflow
       end
 
-      def ingest_model
+      # @return [Libis::Ingester::IngestModel]
+      def get_ingest_model
         self.ingest_model || self.job.ingest_model
+      end
+
+      # @return [Libis::Ingester::AccessRight]
+      def get_access_right
+        # noinspection RubyResolve
+        self.access_right || self.job.ingest_model.access_right
+      end
+
+      # @return [Libis::Ingester::RetentionPeriod]
+      def get_retention_period
+        # noinspection RubyResolve
+        self.retention_period || self.job.ingest_model.retention_period
       end
 
       def producer

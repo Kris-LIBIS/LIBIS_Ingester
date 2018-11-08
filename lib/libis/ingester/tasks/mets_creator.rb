@@ -59,16 +59,16 @@ module Libis
       end
 
       # noinspection RubyResolve
-      def create_ie(item)
-        item.properties['ingest_sub_dir'] = "#{item._id}"
-        item.save!
+      def create_ie(ie)
+        ie.properties['ingest_sub_dir'] = "#{ie._id}"
+        ie.save!
 
         mets = Libis::Tools::MetsFile.new
 
-        dc_record = if item.metadata_record
-                      case item.metadata_record.format
+        dc_record = if ie.metadata_record
+                      case ie.metadata_record.format
                       when 'DC'
-                        Libis::Metadata::DublinCoreRecord.new(item.metadata_record.data)
+                        Libis::Metadata::DublinCoreRecord.new(ie.metadata_record.data)
                       else
                         nil
                       end
@@ -77,11 +77,11 @@ module Libis
                     end
 
         if dc_record.title.text.blank? || parameter(:force_label_to_title)
-          debug "Setting DC title to '#{item.label}'"
-          dc_record.title = item.label
+          debug "Setting DC title to '#{ie.label}'"
+          dc_record.title = ie.label
         end
 
-        collection_list = item.ancestors.select do |i|
+        collection_list = ie.ancestors.select do |i|
           i.is_a? Libis::Ingester::Collection
         end.map do |collection|
           collection.label
@@ -91,56 +91,50 @@ module Libis
 
         dc_record.isPartOf = collection_list.reverse.join('/') unless collection_list.empty?
 
-        ingest_model = item.get_run.ingest_model
+        ingest_model = ie.get_run.ingest_model
 
         dc_record.identifier! ingest_model.identifier if ingest_model.identifier
 
         mets.dc_record = dc_record.root.to_xml
 
         amd = {
-            status: item.properties['status'] || ingest_model.status || 'ACTIVE',
-            entity_type: item.properties['entity_type'] || ingest_model.entity_type,
-            user_a: item.properties['user_a'] || ingest_model.user_a,
-            user_b: item.properties['user_b'] || ingest_model.user_b,
-            user_c: item.properties['user_c'] || ingest_model.user_c,
+            status: ie.properties['status'] || ingest_model.status || 'ACTIVE',
+            entity_type: ie.properties['entity_type'] || ingest_model.entity_type,
+            user_a: ie.properties['user_a'] || ingest_model.user_a,
+            user_b: ie.properties['user_b'] || ingest_model.user_b,
+            user_c: ie.properties['user_c'] || ingest_model.user_c,
         }
 
-        access_right = ingest_model.access_right
-        if item.properties['access_right']
-          access_right = ::Libis::Ingester::AccessRight.find_by(name: item.properties['access_right'])
-        end
+        access_right = ie.get_access_right
         amd[:access_right] = access_right.ar_id if access_right
 
-        retention_period = ingest_model.retention_period
-        if item.properties['retention_period']
-          retention_period = ::Libis::Ingester::RetentionPeriod.find_by(name: item.properties['retention_period'])
-        end
+        retention_period = ie.get_retention_period
         amd[:retention_period] = retention_period.rp_id if retention_period
 
-        amd[:collection_id] = item.parent.properties['collection_id'] if item.parent.is_a?(Libis::Ingester::Collection)
+        amd[:collection_id] = ie.parent.properties['collection_id'] if ie.parent.is_a?(Libis::Ingester::Collection)
 
         mets.amd_info = amd
 
-        ie_ingest_dir = File.join @ingest_dir, item.properties['ingest_sub_dir']
+        ie_ingest_dir = File.join @ingest_dir, ie.properties['ingest_sub_dir']
 
-        item.representations.each {|rep| add_rep(mets, rep, ie_ingest_dir)}
+        ie.representations.each {|rep| add_rep(mets, rep, ie_ingest_dir)}
 
-        mets_filename = File.join(ie_ingest_dir, 'content', "#{item.id}.xml")
+        mets_filename = File.join(ie_ingest_dir, 'content', "#{ie.id}.xml")
         FileUtils.mkpath(File.dirname(mets_filename))
         mets.xml_doc.save mets_filename
 
         sip_dc = Libis::Metadata::DublinCoreRecord.new do |xml|
-          xml[:dc].title "#{item.get_run.name} - #{item.namepath}"
-          xml[:dc].identifier item.get_run.name
-          xml[:dc].source item.namepath
-          xml[:dcterms].alternate item.label
+          xml[:dc].title "#{ie.get_run.name} - #{ie.namepath}"
+          xml[:dc].identifier ie.get_run.name
+          xml[:dc].source ie.namepath
+          xml[:dcterms].alternate ie.label
         end
 
         sip_dc.save(File.join(ie_ingest_dir, 'content', 'dc.xml'))
 
         FileUtils.chmod_R 'a+rwX', ie_ingest_dir
 
-        debug "Created METS file '#{mets_filename}'.", item
+        debug "Created METS file '#{mets_filename}'.", ie
       end
 
       def add_rep(mets, item, ie_ingest_dir)

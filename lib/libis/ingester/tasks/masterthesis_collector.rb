@@ -120,7 +120,8 @@ module Libis
         # noinspection RubyNestedTernaryOperatorsInspection
         ar_extension = embargo == 0 ? (pub ? 'PUBLIC' : 'IP-RESTRICTED') : 'PROTECTED'
         ar_name = "AR_MT_#{instelling_id}_#{ar_extension}"
-        unless Libis::Ingester::AccessRight.find_by(name: ar_name)
+        ar = Libis::Ingester::AccessRight.find_by(name: ar_name)
+        unless ar
           error "AccessRight #{ar_name} not found.", workitem
           set_status(workitem, :FAILED)
           return
@@ -130,9 +131,9 @@ module Libis
         ie_item = Libis::Ingester::IntellectualEntity.new
         ie_item.name = dir_name
         ie_item.label = xml_doc['//titel1/tekst'].strip
+        ie_item.access_right = ar
         ie_item.properties['source_path'] = dir
         ie_item.properties['identifier'] = dir_name
-        ie_item.properties['access_right'] = ar_name
         ie_item.properties['user_a'] = 'Ingest from SAP'
         ie_item.properties['user_b'] = xml_doc['//voorkeurbib']
 

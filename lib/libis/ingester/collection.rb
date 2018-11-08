@@ -29,6 +29,16 @@ module Libis
         self.items.select { |item| item.is_a? ::Libis::Ingester::IntellectualEntity }
       end
 
+      def navigate?
+        # noinspection RubyResolve
+        self.navigate.nil? ? self.get_run.collection_navigate : self.navigate
+      end
+
+      # noinspection RubyResolve
+      def publish?
+        self.publish.nil? ? self.get_run.collection_publish : self.publish
+      end
+
     end
 
   end

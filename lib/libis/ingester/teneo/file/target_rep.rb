@@ -6,23 +6,23 @@
 require "roxml"
 
 module Libis module Ingester module Teneo
+class File
 
-
-class Checksum 
+class TargetRep 
   include ROXML
 
-  xml_namespaces "ns1" => "https://teneo.libis.be/schema/pip"
+  
 
-  xml_name "ns1:checksum"
+  xml_name "TargetRep"
 
 
     xml_accessor :content, :from => ".", :required => false
 
   
-      xml_accessor :algorithm, :from => "@algorithm", :required => false
+      xml_accessor :derivative_of, :from => "@derivative_of", :required => false
     
   
 end
 
-
+end
 end end end

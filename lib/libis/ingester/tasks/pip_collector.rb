@@ -3,6 +3,8 @@ require 'libis/ingester'
 require 'libis/tools/xml_document'
 require 'libis/ingester/teneo/pip'
 
+require_relative 'base/metadata_search'
+
 module Libis
   module Ingester
 
@@ -65,11 +67,7 @@ module Libis
 
         run.base_dir = cfg.base_dir || File.dirname(parameter(:pip_file))
 
-        if cfg.ingest_model
-          im = Libis::Ingester::IngestModel.find_by(name: cfg.ingest_model)
-          raise Libis::WorkflowAbort "Ingest model '#{cfg.ingest_model}' not found." unless im
-          run.ingest_model = im
-        end
+        parse_run_defaults(run, cfg.defaults)
 
         pip.collections.each do |collection|
           parse_collection run, collection
@@ -83,6 +81,29 @@ module Libis
 
       end
 
+      # @param [Libis::Ingester::Run] run
+      # @param [Libis::Ingester::Teneo::Defaults] defaults
+      def parse_run_defaults(run, defaults)
+        return unless defaults
+        # TODO: implement defaults
+        if defaults.ie&.ingest_model
+          im = Libis::Ingester::IngestModel.find_by(name: defaults.ie.ingest_model)
+          raise Libis::WorkflowAbort "Ingest model '#{defaults.ie.ingest_model}' not found." unless im
+          run.ingest_model = im
+        end
+
+        if defaults.metatadata.search&.config
+          cfg = Libis::Ingester::MetadataSearchConfig.find_by(name: defaults.metatadata.search.config)
+          raise Libis::WorkflowAbort "Metadata search configuration '#{defaults.metatadata.search.config}' not found." unless cfg
+          run.metadata_search_config = cfg
+        end
+
+        run.metadata_file_format = defaults.metatadata.file.format if defaults.metatadata&.file&.format
+        run.metadata_file_mapping = defaults.metatadata.file.mapping if defaults.metatadata&.file&.mapping
+        run.metadata_record = defaults.metatadata.record if defaults.metatadata&.record
+
+      end
+
       # @param [Libis::Ingester::Item] parent
       # @param [Libis::Ingester::Teneo::Collection] pip_collection
       def parse_collection(parent, pip_collection)
@@ -92,7 +113,7 @@ module Libis
 
         parse_item collection, pip_collection
 
-        collection.navigate = pip_collection.navigate?
+        collection.navigate = pip_collection.navigate? ||
         collection.publish = pip_collection.publish?
 
         parse_metadata collection, pip_collection.metadata
@@ -152,6 +173,8 @@ module Libis
         return unless pip_metadata
 
         if pip_metadata.record
+          item.metadata = pip_metadata.record
+        elsif @run.metadata_record
           item.metadata = pip_metadata.record
         elsif pip_metadata.file
           file_info = pip_metadata.file
@@ -215,8 +238,12 @@ module Libis
       # @param [Libis::Ingester::Item] item
       def metadata_search(item, config, key)
         return unless config && key
-
-
+        @searcher ||= {}
+        @searcher[config] ||= Libis::Ingester::Base::MetadataSearch.new(config)
+        record = @searcher[config].search(key)
+        error "Metadata record not found for '#{key}' in '#{config}'", item unless record
+        item.metadata_record.data = record.to_xml
+        item.metadata_record.format = 'DC'
       end
 
     end

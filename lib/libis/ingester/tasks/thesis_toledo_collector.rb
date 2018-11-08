@@ -48,14 +48,17 @@ module Libis
         end
 
         parameter(:value_files).each_with_index do |csv_file, index|
-          process_csv(File.join(location, csv_file), parameter(:access_rights)[index])
+          ar_name = parameter(:access_rights)[index]
+          ar = Libis::Ingester::AccessRight.find_by(name: ar_name)
+          raise Libis::WorkflowError, "Access Right with name '#{ar_name}' not found" unless ar
+          process_csv(File.join(location, csv_file), ar)
         end
 
       end
 
       private
       # @param [String] csv_file path to the CSV file
-      # @param [String] ar Access Right name to use
+      # @param [Libis::Ingester::AccessRight] ar Access Right to use
       def process_csv(csv_file, ar)
         files_csv = CSV.open(csv_file, headers: true, skip_blanks: true)
         file_list = files_csv.each
@@ -84,8 +87,8 @@ module Libis
             ie_item = Libis::Ingester::IntellectualEntity.new
             ie_item.name = row['label'].gsub(/[^0-9A-Za-z._]/, '_')
             ie_item.label = row['label']
+            ie_item.access_right = ar
             ie_item.properties['entity_type'] = parameter(:entity_type)
-            ie_item.properties['access_right'] = ar
             ie_item.properties['vpid'] = vpid
             ie_item.properties['user_a'] = 'Ingest from Toledo'
             ie_item.properties['user_b'] = row['embargo opmerking']
