@@ -51,7 +51,7 @@ $:.unshift File.join(File.dirname(__FILE__), '..', 'lib')
 # Tester.new(nil).parse('/nas/upload/vlp/T1/T1_fotos.xml')
 
 require 'libis/ingester/teneo/pip'
-pip = Libis::Ingester::Teneo::Pip.from_xml(File.read('/home/kris/Documents/TeneoSip/sip1.xml'))
+pip = Libis::Ingester::Teneo::Pip.from_xml(File.read('config/instance1.xml'))
 print_pip(pip)
 
 # @param [Libis::Ingester::Teneo::Pip] pip
