@@ -75,7 +75,8 @@ module Libis
 
       def post_process(item)
         return unless item.is_a?(Libis::Ingester::Run)
-        attachments = item.options[:export_attachments].split(/\s*,\s*/)
+        attachments = []
+        attachments = item.options[:export_attachments].split(/\s*,\s*/) if item.options[:export_attachments]
         email_report item, *attachments
       end
 
