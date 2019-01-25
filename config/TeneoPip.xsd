@@ -106,7 +106,7 @@ It is possible to provide derivatives here as well. See the target_rep element o
     </xs:complexType>
     <xs:complexType name="file">
         <xs:sequence>
-            <xs:element name="path">
+            <xs:element name="path" type="xs:string">
                 <xs:annotation>
                     <xs:documentation>The absolute/relative file path for the referenced file. The relative path is using the PIP's base dir as a starting point.</xs:documentation>
                 </xs:annotation>
@@ -116,7 +116,7 @@ It is possible to provide derivatives here as well. See the target_rep element o
                     <xs:documentation>The file's size in bytes</xs:documentation>
                 </xs:annotation>
             </xs:element>
-            <xs:element minOccurs="0" name="mimetype">
+            <xs:element minOccurs="0" name="mimetype" type="xs:string">
                 <xs:annotation>
                     <xs:documentation>The MIME Type that the file is known or expected to have.</xs:documentation>
                 </xs:annotation>
@@ -155,6 +155,13 @@ Only one file should reference a given file like this for a particular represent
                         </xs:extension>
                     </xs:simpleContent>
                 </xs:complexType>
+            </xs:element>
+            <xs:element minOccurs="0" name="group_id" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>The groupID that this file will get in the METS file. Files with the same groupIDs in different representations will be linked in the IE Viewer, so it is important that if derived files are supplied the corresponding files get the same groupID here.
+
+The default value is the file name without the extension.</xs:documentation>
+                </xs:annotation>
             </xs:element>
         </xs:sequence>
         <xs:attributeGroup ref="teneo:identification">
