@@ -34,7 +34,6 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'libis-format', '~> 1.0'
   spec.add_runtime_dependency 'libis-services', '~> 1.0'
   spec.add_runtime_dependency 'libis-workflow-mongoid', '~> 2.0'
-  spec.add_runtime_dependency 'mongoid-enum', '~> 0.3'
   spec.add_runtime_dependency 'rubyzip', '~> 1.1'
   spec.add_runtime_dependency 'naturally', '~> 2.1'
   spec.add_runtime_dependency 'highline'

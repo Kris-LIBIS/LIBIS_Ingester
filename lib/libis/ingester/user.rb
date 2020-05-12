@@ -2,7 +2,6 @@
 require 'digest'
 
 require 'libis/workflow/mongoid/base'
-require 'mongoid/enum'
 require 'libis/tools/checksum'
 require 'libis/ingester'
 
@@ -12,13 +11,12 @@ module Libis
     class User
 
       include Libis::Workflow::Mongoid::Base
-      include Mongoid::Enum
 
       store_in collection: 'users'
 
       field :name
       field :password_hash
-      enum :role, [:submitter, :admin], default: :submitter
+      field :role, type: Symbol, default: :submitter
 
       index({name: 1}, {unique: true, name: 'by_name'})
 
