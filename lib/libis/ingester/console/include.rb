@@ -6,11 +6,17 @@ require 'libis-format'
 require 'libis-services'
 require 'libis-tools'
 
+require 'tty-screen'
+
 require 'libis/ingester/initializer'
 
 require_relative 'menu'
 
 @options = {}
+
+def paging_size
+  paging = (TTY::Screen.rows - 3) / 5 * 5
+end
 
 def db_menu(title, items, options = {}, &block)
   @db_page ||= Hash.new(0)
@@ -25,7 +31,7 @@ def db_menu(title, items, options = {}, &block)
   end
   options[:proc] = lambda {|item| @options[title.downcase.to_sym] = item}
   block = Proc.new {|item| item.name} unless block_given?
-  paging = 25
+  paging = paging_size
   if items.count > paging
     paged_items = items.limit(paging)
     no_pages = (items.count - 1) / paging + 1
