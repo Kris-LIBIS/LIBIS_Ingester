@@ -110,7 +110,6 @@ module Libis
 
         def load_config(options = {})
           each_config(options[:postfix]) do |cfg|
-            puts cfg
             yield(cfg) if block_given?
             options[:klass].from_hash(cfg)
           end
