@@ -43,7 +43,7 @@ USER ${USERNAME}
 WORKDIR ${HOME_DIR}
 
 # Copy files into image
-COPY --chown=${UID}:${GID} Ingester .
+COPY --chown=${UID}:${GID} . .
 
 # Start the menu
 CMD ["ruby", "bin/main_menu.rb", "--config", "site.config.yml"]
