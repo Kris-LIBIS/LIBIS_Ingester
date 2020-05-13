@@ -1,4 +1,4 @@
-$:.unshift File.join(File.dirname(__FILE__), '..', 'lib')
+$:.unshift File.join(__dir__, '..', '..', '..')
 require 'libis-ingester'
 
 require 'libis/ingester/initializer'
