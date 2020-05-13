@@ -19,6 +19,7 @@ gem 'mail'
 gem 'yard'
 gem 'htmltoword'
 gem 'roxml'
+gem 'sidekiq', '< 7'
 
 # tool requirements
 gem 'fileutils'

@@ -47,6 +47,7 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'yard'
   spec.add_runtime_dependency 'htmltoword'
   spec.add_runtime_dependency 'roxml'
+  spec.add_runtime_dependency 'sidekiq', '< 7'
 
   # tool requirements
   spec.add_runtime_dependency 'fileutils'
