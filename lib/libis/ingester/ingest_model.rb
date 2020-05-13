@@ -23,10 +23,10 @@ module Libis
       field :identifier
 
       has_many :jobs, class_name: Libis::Ingester::Job.to_s, inverse_of: :ingest_model,
-               dependent: :restrict, autosave: true, order: :name.asc
+               dependent: :restrict_with_error, autosave: true, order: :name.asc
 
-      belongs_to :access_right, class_name: Libis::Ingester::AccessRight.to_s, inverse_of: nil
-      belongs_to :retention_period, class_name: Libis::Ingester::RetentionPeriod.to_s, inverse_of: nil
+      belongs_to :access_right, class_name: Libis::Ingester::AccessRight.to_s, inverse_of: nil, optional: true
+      belongs_to :retention_period, class_name: Libis::Ingester::RetentionPeriod.to_s, inverse_of: nil, optional: true
 
       embeds_many :manifestations, class_name: Libis::Ingester::Manifestation.to_s
 

@@ -11,8 +11,8 @@ module Libis
       field :label
       field :optional, type: Boolean, default: false
 
-      belongs_to :access_right, class_name: Libis::Ingester::AccessRight.to_s, inverse_of: nil
-      belongs_to :representation_info, class_name: Libis::Ingester::RepresentationInfo.to_s, inverse_of: nil
+      belongs_to :access_right, class_name: Libis::Ingester::AccessRight.to_s, inverse_of: nil, optional: true
+      belongs_to :representation_info, class_name: Libis::Ingester::RepresentationInfo.to_s, inverse_of: nil, optional: true
 
       embeds_many :convert_infos, class_name: Libis::Ingester::ConvertInfo.to_s
 

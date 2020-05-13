@@ -14,7 +14,7 @@ module Libis
 
       index({pid: 1}, {sparse: true, name: 'by_pid'})
 
-      belongs_to :retention_period, class_name: Libis::Ingester::RetentionPeriod.to_s, inverse_of: nil
+      belongs_to :retention_period, class_name: Libis::Ingester::RetentionPeriod.to_s, inverse_of: nil, optional: true
 
       def representations
         self.items.where(_type: Libis::Ingester::Representation.to_s).no_timeout

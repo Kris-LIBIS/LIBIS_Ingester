@@ -110,6 +110,7 @@ module Libis
 
         def load_config(options = {})
           each_config(options[:postfix]) do |cfg|
+            puts cfg
             yield(cfg) if block_given?
             options[:klass].from_hash(cfg)
           end
@@ -137,6 +138,7 @@ module Libis
         end
 
         def read_yaml(file)
+          puts "\t ... #{File.basename file}"
           config = Libis::Tools::ConfigFile.new({}, preserve_original_keys: false)
           config << file
           config.to_h.key_symbols_to_strings(recursive: true)

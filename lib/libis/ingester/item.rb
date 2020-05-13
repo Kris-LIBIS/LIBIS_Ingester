@@ -8,7 +8,7 @@ module Libis
     class Item < ::Libis::Workflow::Mongoid::WorkItem
 
       embeds_one :metadata_record, class_name: Libis::Ingester::MetadataRecord.to_s, inverse_of: :item
-      belongs_to :access_right, class_name: Libis::Ingester::AccessRight.to_s, inverse_of: nil
+      belongs_to :access_right, class_name: Libis::Ingester::AccessRight.to_s, inverse_of: nil, optional: true
 
       accepts_nested_attributes_for :metadata_record, :access_right
 
