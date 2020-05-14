@@ -1,0 +1,16 @@
+.dockerignore
+Dockerfile
+.git
+.gitignore
+.travis.yml
+mongoid.yml
+site.config.yml
+sidekiq*.yml
+Rakefile
+spec
+LICENSE.TXT
+README.md
+libis-ingester.gemspec
+test.rb
+runner.rb
+lib/libis/ingester/server
