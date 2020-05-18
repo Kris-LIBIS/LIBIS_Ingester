@@ -29,6 +29,10 @@ RUN wget -q https://github.com/digital-preservation/droid/releases/download/droi
     && unzip -qd /opt/droid droid-binary-6.5-bin.zip \
     && chmod 755 /opt/droid/droid.sh
 
+# Set timezone
+ARG TZ=Europe/Brussels
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 # Create application user
 ARG UID=2000
 ARG GID=2000
