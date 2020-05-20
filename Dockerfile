@@ -16,10 +16,19 @@ RUN wget -qO - https://www.mongodb.org/static/pgp/server-4.2.asc | apt-key add -
       python-2.7 python-pip python-setuptools python-wheel \
       unzip \
       default-jre \
+      apt-transport-https software-properties-common \
+    && wget -qO - https://adoptopenjdk.jfrog.io/adoptopenjdk/api/gpg/key/public | apt-key add - \
+    && add-apt-repository --yes https://adoptopenjdk.jfrog.io/adoptopenjdk/deb/ \
+    && apt-get update -qq \
+    && apt-get install -qqy --no-install-recommends adoptopenjdk-8-hotspot \
     && apt-get clean \
     && rm -fr /var/cache/apt/archives/* \
     && rm -fr /var/lib/apt/lists/* /tmp/* /var/tmp* \
     && truncate -s 0 /var/log/*log
+
+# Select java version
+RUN update-alternatives --set java  `update-alternatives --list java | grep adoptopenjdk-8-hotspot`
+ENV JAVA_HOME=$(dirname ($dirname `update-alternatives --list java | grep adoptopenjdk-8-hotspot`))
 
 # Install fido
 RUN pip install opf-fido
