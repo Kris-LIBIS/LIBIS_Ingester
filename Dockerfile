@@ -27,8 +27,8 @@ RUN wget -qO - https://www.mongodb.org/static/pgp/server-4.2.asc | apt-key add -
     && truncate -s 0 /var/log/*log
 
 # Select java version
-RUN update-alternatives --set java  `update-alternatives --list java | grep adoptopenjdk-8-hotspot`
-ENV JAVA_HOME=$(dirname $(dirname `update-alternatives --list java | grep adoptopenjdk-8-hotspot`))
+ENV JAVA_HOME=/usr/lib/jvm/adoptopenjdk-8-hotspot-amd64
+RUN update-alternatives --set java ${JAVA_HOME}/bin/java
 
 # Install fido
 RUN pip install opf-fido
