@@ -109,13 +109,31 @@ module Libis
         end
 
         def load_config(options = {})
-          each_config(options[:postfix]) do |cfg|
+          each_config(options[:postfix]) do |cfg, fname = 'site config'|
+            puts " - #{cfg['name']} [#{fname}]" if cfg['name']
             yield(cfg) if block_given?
             options[:klass].from_hash(cfg)
           end
         end
 
         def each_config(postfix)
+          case (cfg = @config[postfix])
+            when Array
+              cfg.map {|c| yield c}
+            when Hash
+              yield cfg
+            else
+              #skip
+          end
+          @datadir.each do |dir|
+            Dir.glob("*_#{postfix}.cfg", base: dir).each do |filename|
+              full_name = File.join(dir, filename)
+              yield read_yaml(full_name), full_name
+            end
+          end
+        end
+
+        def each_config_(postfix)
           cfg_list = []
           @datadir.each do |dir|
             Dir.entries(dir).each do |filename|
@@ -137,10 +155,12 @@ module Libis
         end
 
         def read_yaml(file)
-          puts "\t ... #{File.basename file}"
           config = Libis::Tools::ConfigFile.new({}, preserve_original_keys: false)
           config << file
           config.to_h.key_symbols_to_strings(recursive: true)
+        rescue StandardError => e
+          puts "ERROR while parsing file '#{file}'"
+          raise e
         end
 
       end
