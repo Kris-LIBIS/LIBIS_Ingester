@@ -1,6 +1,8 @@
 require 'mail'
 require 'zip'
 
+require 'libis/ingester'
+
 module Libis
   module Ingester
     module Base
@@ -11,6 +13,9 @@ module Libis
           mail = Mail.new do
             from "teneo.libis@gmail.com"
           end
+          proto = Libis::Ingester::Config.email['method'] || :smtp
+          settings = Libis::Ingester::Config.email['settings'] || {}
+          mail.delivery_method proto, settings
           block.call(mail)
           attachments.each do |file|
             mail.add_file file

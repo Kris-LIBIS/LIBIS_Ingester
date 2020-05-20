@@ -40,7 +40,12 @@ module Libis
 
         ::Libis::Ingester.configure do |cfg|
           @config.config.each do |key, value|
-            if value.is_a?(Hash)
+            if value.is_a?(Hash) && cfg[key]
+              unless cfg[key].respond_to?(:merge!)
+                Libis::Ingester::Config.logger.error "Config value type mismatch for key #{key}. Old '#{cfg[key]}' - new '#{value}'"
+                next
+              end
+              next unless cfg[key].is_a?(Hash)
               cfg[key].merge!(value)
             else
               cfg.send("#{key}=", value)
