@@ -6,32 +6,38 @@ require 'open3'
 
 def item_status(item)
   puts "Status overview for [#{item.class.name.split('::').last}] '#{item.name}':"
-  format_str = '%-30s %-12s %-10s %-20s %-20s %10s'
-  puts format_str % %w'Task Progress Status Started Updated Elapsed'
-  puts '-' * 107
+  format_str = '%-30s %-12s %-10s %-20s %-20s %10s %10s'
+  puts format_str % %w'Task Progress Status Started Updated Elapsed Running'
+  puts '-' * 118
   item.reload.status_log.inject({}) do |hash, status|
-    task = status['task'].gsub(/[^\/]*\//, '- ')
-    task = '- ' + task unless task == 'Run'
+    task = status['task'].gsub(/[^\/]*\//, '')
     data = {
+        level: status['task'].count("/"),
         status: status['status'].to_s.capitalize,
         start: status['created'].localtime,
         end: status['updated'].localtime
     }
+    data[:level] += 1 unless task == 'Run'
     if status['progress']
       data[:progress] = status['progress'].to_s
       data[:progress] += ' of ' + status['max'].to_s if status['max']
     end
-    data.delete :start if hash[task]
+    data[:running] = time_diff(data[:start], data[:end]).in_seconds
+    if hash[task]
+      data[:running] += hash[task][:running]
+      data.delete(:start)
+    end
     (hash[task] ||= {}).merge! data
     hash
   end.each do |task, data|
     data_array = [
-        task,
+        '- ' * data[:level] + task,
         data[:progress].to_s,
         data[:status],
         data[:start].strftime('%d/%m/%Y %T'),
         data[:end].strftime('%d/%m/%Y %T'),
         time_diff_in_hours(data[:start], data[:end]),
+        time_diff_in_hours(Time.new(0), Time.new(0) + data[:running])
     ]
     puts format_str % data_array
   end
