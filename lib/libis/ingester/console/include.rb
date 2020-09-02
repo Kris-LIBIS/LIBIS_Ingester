@@ -15,7 +15,7 @@ require_relative 'menu'
 @options = {}
 
 def paging_size
-  paging = (TTY::Screen.rows - 3) / 5 * 5
+  (TTY::Screen.rows - 3) / 5 * 5
 end
 
 def db_menu(title, items, options = {}, &block)
@@ -149,16 +149,16 @@ end
 
 def select_process(processes = nil, options = {})
   processes ||= get_processes
-  format = '%-30s %-30s %s'
+  format = '%-40s %-30s %s'
   xformat = '   ' + format
   xformat = ' ' + xformat if processes.count > 9
   header = xformat % %w(Process Threads Queues)
   selection_menu('Process', processes, options.merge(header: header)) do |process|
-    name = '%s [%d]' % [process['tag'], process['pid']]
+    name = '%s [%s]' % [process['tag'], process['hostname']]
     workers = '(%d of %d busy)' % [process['busy'], process['concurrency']]
     workers += ' **HALTED**' if process['quiet'] == 'true'
     format % [
-        '%.29s %s' % [name, '.' * [0, 29 - name.size].max],
+        '%.39s %s' % [name, '.' * [0, 39 - name.size].max],
         '%.29s %s' % [workers, '.' * [0, 29 - workers.size].max],
         process['queues'].join(', ')
     ]
@@ -197,6 +197,7 @@ def select_queue(queue_list, options = {})
       end
     end
     Sidekiq::Queue.new(name)
+    true
   } if options[:with_create]
   menu['-'] = Proc.new do
     queue = select_defined_queue
