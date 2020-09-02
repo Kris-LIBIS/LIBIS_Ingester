@@ -12,8 +12,15 @@ require 'readline'
 require 'highline'
 @hl = HighLine.new
 
+require 'yaml'
+
 def get_operator_email
-  @operator_email = @hl.ask("Your email address: ")
+  users = YAML.load_file('data/users.yml')
+  @operator_email = @hl.choose do |menu|
+    menu.prompt = 'Select user: '
+    users.each { |u| menu.choice(u['name']) {u['email']} }
+    menu.choice('other') { puts "Add user to 'data/users.yml' file"; exit }
+  end
 end
 
 def selection_menu(title, items, options = {})
