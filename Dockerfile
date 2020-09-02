@@ -53,6 +53,8 @@ RUN useradd --home-dir ${HOME_DIR} --create-home --no-log-init --uid ${UID} --gi
 USER ${USERNAME}
 WORKDIR ${HOME_DIR}
 
+ENV NLS_LANG=AMERICAN_AMERICA.AL32UTF8
+
 # Copy files into image
 COPY --chown=${UID}:${GID} . .
 
