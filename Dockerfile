@@ -1,11 +1,8 @@
 FROM libis/teneo-ruby:latest
 
-RUN wget -qO - https://www.mongodb.org/static/pgp/server-4.2.asc | apt-key add - \
-    && echo "deb http://repo.mongodb.org/apt/debian buster/mongodb-org/4.2 main" | tee /etc/apt/sources.list.d/mongodb-org-4.2.list \
-    && apt-get update -qq \
+RUN apt-get update -qq \
     && apt-get -qqy upgrade \
     && apt-get install -qqy --no-install-recommends \
-      mongodb-org \
       libchromaprint-dev \
       ffmpeg \
       libreoffice \
@@ -36,7 +33,8 @@ RUN pip install opf-fido
 # Install droid
 RUN wget -q https://github.com/digital-preservation/droid/releases/download/droid-6.5/droid-binary-6.5-bin.zip \
     && unzip -qd /opt/droid droid-binary-6.5-bin.zip \
-    && chmod 755 /opt/droid/droid.sh
+    && chmod 755 /opt/droid/droid.sh \
+    && rm droid-binary-6.5-bin.zip
 
 # Set timezone
 ARG TZ=Europe/Brussels
