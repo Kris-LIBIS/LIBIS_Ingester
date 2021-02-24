@@ -66,29 +66,29 @@ module Libis
         end
 
         unless @collection_service
-          # @collection_service = Libis::Services::Rosetta::CollectionHandler.new(
-          #     Libis::Ingester::Config.base_url,
-          #     logger: Libis::Ingester::Config.logger, log_level: :debug, log: false
-          # )
-          rosetta = Libis::Services::Rosetta::Service.new(
-              Libis::Ingester::Config.base_url, Libis::Ingester::Config.pds_url,
-              logger: Libis::Ingester::Config.logger, log_level: :debug, log: true
+          @collection_service = Libis::Services::Rosetta::CollectionHandler.new(
+              Libis::Ingester::Config.base_url,
+              logger: Libis::Ingester::Config.logger, log_level: :debug, log: false
           )
+          #rosetta = Libis::Services::Rosetta::Service.new(
+          #    Libis::Ingester::Config.base_url, Libis::Ingester::Config.pds_url,
+          #    logger: Libis::Ingester::Config.logger, log_level: :debug, log: true
+          #)
           producer_info = item.get_run.producer
-          # @collection_service.authenticate(producer_info[:agent], producer_info[:password], producer_info[:institution])
-          institution = producer_info[:institution]
-          # Temp fix: adapt institution code to code used in PDS. Need to remove when basic auth is fixed (case #00527632)
-          institution = case institution
-                        when 'KUL'
-                          'ROSETTA_KULEUVEN'
-                        when 'INS00'
-                          'ROSETTA'
-                        else
-                          "ROSETTA_#{institution}"
-                        end
-          handle = rosetta.login(producer_info[:agent], producer_info[:password], institution)
-          raise Libis::WorkflowAbort, 'Could not log in into Rosetta.' if handle.nil?
-          @collection_service = rosetta.collection_service
+          @collection_service.authenticate(producer_info[:agent], producer_info[:password], producer_info[:institution])
+          #institution = producer_info[:institution]
+          ## Temp fix: adapt institution code to code used in PDS. Need to remove when basic auth is fixed (case #00527632)
+          #institution = case institution
+          #              when 'KUL'
+          #                'ROSETTA_KULEUVEN'
+          #              when 'INS00'
+          #                'ROSETTA'
+          #              else
+          #                "ROSETTA_#{institution}"
+          #              end
+          #handle = rosetta.login(producer_info[:agent], producer_info[:password], institution)
+          #raise Libis::WorkflowAbort, 'Could not log in into Rosetta.' if handle.nil?
+          #@collection_service = rosetta.collection_service
         end
 
         parent_id = item.parent.properties['collection_id'] if item.parent

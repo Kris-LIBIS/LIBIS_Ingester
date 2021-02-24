@@ -13,4 +13,6 @@ README.md
 libis-ingester.gemspec
 test.rb
 runner.rb
+Makefile
 lib/libis/ingester/server
+.idea
