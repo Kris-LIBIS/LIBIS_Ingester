@@ -43,3 +43,7 @@ lib/libis/ingester/server/web/app/yarn-error.log
 /test.rb
 /config/TeneoPip/ruby/
 /config/instance1.xml
+/config/*.pip
+/config/*.json
+
+*~
