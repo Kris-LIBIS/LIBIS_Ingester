@@ -287,7 +287,7 @@ end
 
 def select_item(item)
   items = item.get_items
-  paging = 25
+  paging = paging_size
   @item_page ||= Hash.new(0)
   return item if items.size == 0
   if items.count > paging
