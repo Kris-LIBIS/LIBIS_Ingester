@@ -16,7 +16,7 @@ module Libis
 
       field :name
       field :password_hash
-      field :role, type: Symbol, default: :submitter
+      field :role, type: String, default: 'submitter'
 
       index({name: 1}, {unique: true, name: 'by_name'})
 
