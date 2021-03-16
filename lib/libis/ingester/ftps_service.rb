@@ -1,4 +1,5 @@
-require 'double_bag_ftps'
+require 'net/ftp'
+require 'openssl'
 
 module Libis
   module Ingester
@@ -14,7 +15,6 @@ module Libis
         @port = _port
         @user = _user
         @password = _password
-        @ftp_service = DoubleBagFTPS.new
         connect
       end
 
@@ -104,9 +104,15 @@ module Libis
       
       attr_accessor :host, :port, :user, :password
 
-      # @return [DoubleBagFTPS]
+      # @return [Net:FTP]
       def ftp_service
-        @ftp_service
+        @ftp_service ||= Net::FTP.new(
+          ssl: {options: true, verify_mode: OpenSSL::SSL::VERIFY_NONE},
+          private_data_connection: true,
+          passive: true,
+          open_timeout: 10.0,
+          read_timeout: 120.0,
+        )
       end
 
       # Tries to execute ftp commands; reconnects and tries again if connection timed out
@@ -122,13 +128,8 @@ module Libis
 
       # Connect to FTP server
       def connect
-        ftp_service.open_timeout = 10.0
-        ftp_service.ftps_mode = DoubleBagFTPS::EXPLICIT
-        ftp_service.ssl_context = DoubleBagFTPS.create_ssl_context(verify_mode: OpenSSL::SSL::VERIFY_NONE)
         ftp_service.connect(host, port)
         ftp_service.login user, password
-        ftp_service.passive = true
-        ftp_service.read_timeout = 120.0
       end
 
       # Disconnect from FTP server
