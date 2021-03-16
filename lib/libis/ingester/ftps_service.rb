@@ -106,8 +106,8 @@ module Libis
 
       # @return [Net:FTP]
       def ftp_service
-        @ftp_service ||= Net::FTP.new(
-          ssl: {options: true, verify_mode: OpenSSL::SSL::VERIFY_NONE},
+        @ftp_service ||= Net::FTP.new(nil,
+          ssl: {verify_mode: OpenSSL::SSL::VERIFY_NONE},
           private_data_connection: true,
           passive: true,
           open_timeout: 10.0,
