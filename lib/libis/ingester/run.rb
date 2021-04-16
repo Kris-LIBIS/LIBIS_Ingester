@@ -89,6 +89,9 @@ module Libis
 
       def run(action = :run)
         super(action)
+      rescue Exception => e
+        log_message(:fatal, text: "#{e.message} @ #{e.backtrace.first}")
+      ensure
         dir = File.dirname(self.log_filename)
         name = File.basename(self.log_filename, '.*')
         csv_file = File.join(dir, "#{name}.csv")
